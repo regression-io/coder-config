@@ -147,6 +147,24 @@ your-project/
 
 Environment variables use `${VAR}` syntax and load from `.claude/.env`.
 
+## Memory System
+
+Persistent memory for Claude Code sessions:
+
+**Global Memory** (`~/.claude/memory/`):
+- `preferences.md` - User preferences (tools, style)
+- `corrections.md` - Mistakes to avoid
+- `facts.md` - Environment facts
+
+**Project Memory** (`<project>/.claude/memory/`):
+- `context.md` - Project overview
+- `patterns.md` - Code patterns
+- `decisions.md` - Architecture decisions
+- `issues.md` - Known issues
+- `history.md` - Session history
+
+Manage via Web UI or edit files directly.
+
 ## Web UI Features
 
 When you run `claude-config ui`:
