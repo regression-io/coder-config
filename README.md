@@ -44,6 +44,26 @@ claude-config add <mcp> [mcp...]          # Add MCP(s) to project
 claude-config remove <mcp> [mcp...]       # Remove MCP(s) from project
 ```
 
+### Memory Commands
+
+```bash
+claude-config memory                         # Show memory status
+claude-config memory init                    # Initialize project memory
+claude-config memory add <type> "<content>"  # Add entry
+claude-config memory search <query>          # Search all memory
+
+# Types: preference, correction, fact (global)
+#        context, pattern, decision, issue, history (project)
+```
+
+### Environment Commands
+
+```bash
+claude-config env                    # List environment variables
+claude-config env set <KEY> <value>  # Set variable in .claude/.env
+claude-config env unset <KEY>        # Remove variable
+```
+
 ### Registry Commands
 
 ```bash
@@ -173,6 +193,28 @@ When you run `claude-config ui`:
 - **MCP Registry** - Search GitHub/npm, add/edit/delete MCPs
 - **Memory System** - Manage preferences, corrections, patterns, decisions
 - **Templates** - Apply rule templates to projects
+
+## Configuration File
+
+User settings stored in `~/.claude/config.json`:
+
+```json
+{
+  "toolsDir": "~/mcp-tools",
+  "registryPath": "~/.claude/registry.json",
+  "ui": {
+    "port": 3333,
+    "openBrowser": true
+  }
+}
+```
+
+| Key | Description |
+|-----|-------------|
+| `toolsDir` | Directory for local MCP tools |
+| `registryPath` | Path to custom MCP registry |
+| `ui.port` | Default port for web UI |
+| `ui.openBrowser` | Auto-open browser on `claude-config ui` |
 
 ## Requirements
 

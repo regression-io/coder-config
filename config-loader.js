@@ -943,6 +943,316 @@ class ClaudeConfigManager {
     console.log(`Registry: ${this.registryPath}`);
     console.log(`Templates: ${this.templatesDir}`);
   }
+
+  // ===========================================================================
+  // MEMORY COMMANDS
+  // ===========================================================================
+
+  /**
+   * Show memory status and contents
+   */
+  memoryList(projectDir = process.cwd()) {
+    const homeDir = process.env.HOME || '';
+    const globalMemoryDir = path.join(homeDir, '.claude', 'memory');
+    const projectMemoryDir = path.join(projectDir, '.claude', 'memory');
+
+    console.log('\n📝 Memory System\n');
+
+    // Global memory
+    console.log('Global (~/.claude/memory/):');
+    if (fs.existsSync(globalMemoryDir)) {
+      const files = ['preferences.md', 'corrections.md', 'facts.md'];
+      for (const file of files) {
+        const filePath = path.join(globalMemoryDir, file);
+        if (fs.existsSync(filePath)) {
+          const content = fs.readFileSync(filePath, 'utf8');
+          const lines = content.split('\n').filter(l => l.trim() && !l.startsWith('#')).length;
+          console.log(`  ✓ ${file} (${lines} entries)`);
+        } else {
+          console.log(`  ○ ${file} (not created)`);
+        }
+      }
+    } else {
+      console.log('  Not initialized');
+    }
+
+    // Project memory
+    console.log(`\nProject (${projectDir}/.claude/memory/):`);
+    if (fs.existsSync(projectMemoryDir)) {
+      const files = ['context.md', 'patterns.md', 'decisions.md', 'issues.md', 'history.md'];
+      for (const file of files) {
+        const filePath = path.join(projectMemoryDir, file);
+        if (fs.existsSync(filePath)) {
+          const content = fs.readFileSync(filePath, 'utf8');
+          const lines = content.split('\n').filter(l => l.trim() && !l.startsWith('#')).length;
+          console.log(`  ✓ ${file} (${lines} entries)`);
+        } else {
+          console.log(`  ○ ${file} (not created)`);
+        }
+      }
+    } else {
+      console.log('  Not initialized. Run: claude-config memory init');
+    }
+    console.log();
+  }
+
+  /**
+   * Initialize project memory
+   */
+  memoryInit(projectDir = process.cwd()) {
+    const memoryDir = path.join(projectDir, '.claude', 'memory');
+
+    if (fs.existsSync(memoryDir)) {
+      console.log('Project memory already initialized at', memoryDir);
+      return;
+    }
+
+    fs.mkdirSync(memoryDir, { recursive: true });
+
+    const files = {
+      'context.md': '# Project Context\n\n<!-- Project overview and key information -->\n',
+      'patterns.md': '# Code Patterns\n\n<!-- Established patterns in this codebase -->\n',
+      'decisions.md': '# Architecture Decisions\n\n<!-- Key decisions and their rationale -->\n',
+      'issues.md': '# Known Issues\n\n<!-- Current issues and workarounds -->\n',
+      'history.md': '# Session History\n\n<!-- Notable changes and milestones -->\n'
+    };
+
+    for (const [file, content] of Object.entries(files)) {
+      fs.writeFileSync(path.join(memoryDir, file), content);
+    }
+
+    console.log(`✓ Initialized project memory at ${memoryDir}`);
+    console.log('\nCreated:');
+    for (const file of Object.keys(files)) {
+      console.log(`  ${file}`);
+    }
+  }
+
+  /**
+   * Add entry to memory
+   */
+  memoryAdd(type, content, projectDir = process.cwd()) {
+    if (!type || !content) {
+      console.error('Usage: claude-config memory add <type> "<content>"');
+      console.log('\nTypes:');
+      console.log('  Global:  preference, correction, fact');
+      console.log('  Project: context, pattern, decision, issue, history');
+      return;
+    }
+
+    const homeDir = process.env.HOME || '';
+    const timestamp = new Date().toISOString().split('T')[0];
+
+    // Map type to file
+    const typeMap = {
+      // Global
+      preference: { dir: path.join(homeDir, '.claude', 'memory'), file: 'preferences.md' },
+      correction: { dir: path.join(homeDir, '.claude', 'memory'), file: 'corrections.md' },
+      fact: { dir: path.join(homeDir, '.claude', 'memory'), file: 'facts.md' },
+      // Project
+      context: { dir: path.join(projectDir, '.claude', 'memory'), file: 'context.md' },
+      pattern: { dir: path.join(projectDir, '.claude', 'memory'), file: 'patterns.md' },
+      decision: { dir: path.join(projectDir, '.claude', 'memory'), file: 'decisions.md' },
+      issue: { dir: path.join(projectDir, '.claude', 'memory'), file: 'issues.md' },
+      history: { dir: path.join(projectDir, '.claude', 'memory'), file: 'history.md' }
+    };
+
+    const target = typeMap[type];
+    if (!target) {
+      console.error(`Unknown type: ${type}`);
+      console.log('Valid types: preference, correction, fact, context, pattern, decision, issue, history');
+      return;
+    }
+
+    // Ensure directory exists
+    if (!fs.existsSync(target.dir)) {
+      fs.mkdirSync(target.dir, { recursive: true });
+    }
+
+    const filePath = path.join(target.dir, target.file);
+
+    // Create file with header if it doesn't exist
+    if (!fs.existsSync(filePath)) {
+      const headers = {
+        'preferences.md': '# Preferences\n',
+        'corrections.md': '# Corrections\n',
+        'facts.md': '# Facts\n',
+        'context.md': '# Project Context\n',
+        'patterns.md': '# Code Patterns\n',
+        'decisions.md': '# Architecture Decisions\n',
+        'issues.md': '# Known Issues\n',
+        'history.md': '# Session History\n'
+      };
+      fs.writeFileSync(filePath, headers[target.file] || '');
+    }
+
+    // Append entry
+    const entry = `\n- [${timestamp}] ${content}\n`;
+    fs.appendFileSync(filePath, entry);
+
+    console.log(`✓ Added ${type} to ${target.file}`);
+  }
+
+  /**
+   * Search memory files
+   */
+  memorySearch(query, projectDir = process.cwd()) {
+    if (!query) {
+      console.error('Usage: claude-config memory search <query>');
+      return;
+    }
+
+    const homeDir = process.env.HOME || '';
+    const searchDirs = [
+      { label: 'Global', dir: path.join(homeDir, '.claude', 'memory') },
+      { label: 'Project', dir: path.join(projectDir, '.claude', 'memory') }
+    ];
+
+    const results = [];
+    const queryLower = query.toLowerCase();
+
+    for (const { label, dir } of searchDirs) {
+      if (!fs.existsSync(dir)) continue;
+
+      for (const file of fs.readdirSync(dir)) {
+        if (!file.endsWith('.md')) continue;
+        const filePath = path.join(dir, file);
+        const content = fs.readFileSync(filePath, 'utf8');
+        const lines = content.split('\n');
+
+        for (let i = 0; i < lines.length; i++) {
+          if (lines[i].toLowerCase().includes(queryLower)) {
+            results.push({
+              location: `${label}/${file}`,
+              line: i + 1,
+              content: lines[i].trim()
+            });
+          }
+        }
+      }
+    }
+
+    if (results.length === 0) {
+      console.log(`No matches found for "${query}"`);
+      return;
+    }
+
+    console.log(`\n🔍 Found ${results.length} match(es) for "${query}":\n`);
+    for (const r of results) {
+      console.log(`  ${r.location}:${r.line}`);
+      console.log(`    ${r.content}\n`);
+    }
+  }
+
+  // ===========================================================================
+  // ENV COMMANDS
+  // ===========================================================================
+
+  /**
+   * List environment variables
+   */
+  envList(projectDir = process.cwd()) {
+    const envPath = path.join(projectDir, '.claude', '.env');
+
+    console.log(`\n🔐 Environment Variables (${projectDir}/.claude/.env)\n`);
+
+    if (!fs.existsSync(envPath)) {
+      console.log('  No .env file found.');
+      console.log('  Create with: claude-config env set <KEY> <value>\n');
+      return;
+    }
+
+    const content = fs.readFileSync(envPath, 'utf8');
+    const lines = content.split('\n').filter(l => l.trim() && !l.startsWith('#'));
+
+    if (lines.length === 0) {
+      console.log('  No variables set.\n');
+      return;
+    }
+
+    for (const line of lines) {
+      const [key] = line.split('=');
+      if (key) {
+        console.log(`  ${key}=****`);
+      }
+    }
+    console.log(`\n  Total: ${lines.length} variable(s)\n`);
+  }
+
+  /**
+   * Set environment variable
+   */
+  envSet(key, value, projectDir = process.cwd()) {
+    if (!key || value === undefined) {
+      console.error('Usage: claude-config env set <KEY> <value>');
+      return;
+    }
+
+    const claudeDir = path.join(projectDir, '.claude');
+    const envPath = path.join(claudeDir, '.env');
+
+    // Ensure .claude directory exists
+    if (!fs.existsSync(claudeDir)) {
+      fs.mkdirSync(claudeDir, { recursive: true });
+    }
+
+    // Read existing content
+    let lines = [];
+    if (fs.existsSync(envPath)) {
+      lines = fs.readFileSync(envPath, 'utf8').split('\n');
+    }
+
+    // Update or add the variable
+    const keyUpper = key.toUpperCase();
+    let found = false;
+    lines = lines.map(line => {
+      if (line.startsWith(`${keyUpper}=`)) {
+        found = true;
+        return `${keyUpper}=${value}`;
+      }
+      return line;
+    });
+
+    if (!found) {
+      lines.push(`${keyUpper}=${value}`);
+    }
+
+    // Write back
+    fs.writeFileSync(envPath, lines.filter(l => l.trim()).join('\n') + '\n');
+
+    console.log(`✓ Set ${keyUpper} in .claude/.env`);
+  }
+
+  /**
+   * Unset environment variable
+   */
+  envUnset(key, projectDir = process.cwd()) {
+    if (!key) {
+      console.error('Usage: claude-config env unset <KEY>');
+      return;
+    }
+
+    const envPath = path.join(projectDir, '.claude', '.env');
+
+    if (!fs.existsSync(envPath)) {
+      console.log('No .env file found.');
+      return;
+    }
+
+    const keyUpper = key.toUpperCase();
+    let lines = fs.readFileSync(envPath, 'utf8').split('\n');
+    const originalLength = lines.length;
+
+    lines = lines.filter(line => !line.startsWith(`${keyUpper}=`));
+
+    if (lines.length === originalLength) {
+      console.log(`Variable ${keyUpper} not found.`);
+      return;
+    }
+
+    fs.writeFileSync(envPath, lines.filter(l => l.trim()).join('\n') + '\n');
+    console.log(`✓ Removed ${keyUpper} from .claude/.env`);
+  }
 }
 
 // =============================================================================
@@ -1004,6 +1314,30 @@ if (require.main === module) {
       manager.registryRemove(args[1]);
       break;
 
+    // Memory
+    case 'memory':
+      if (args[1] === 'init') {
+        manager.memoryInit(args[2]);
+      } else if (args[1] === 'add') {
+        manager.memoryAdd(args[2], args.slice(3).join(' '));
+      } else if (args[1] === 'search') {
+        manager.memorySearch(args.slice(2).join(' '));
+      } else {
+        manager.memoryList();
+      }
+      break;
+
+    // Environment
+    case 'env':
+      if (args[1] === 'set') {
+        manager.envSet(args[2], args[3]);
+      } else if (args[1] === 'unset') {
+        manager.envUnset(args[2]);
+      } else {
+        manager.envList();
+      }
+      break;
+
     // Maintenance
     case 'update':
       manager.update(args[1]);
@@ -1036,26 +1370,34 @@ Project Commands:
   show                         Show current project config
   list                         List available MCPs (✓ = active)
   templates                    List available templates
-
   add <mcp> [mcp...]           Add MCP(s) to project
   remove <mcp> [mcp...]        Remove MCP(s) from project
+
+Memory Commands:
+  memory                       Show memory status
+  memory init                  Initialize project memory
+  memory add <type> <content>  Add entry (types: preference, correction, fact,
+                               context, pattern, decision, issue, history)
+  memory search <query>        Search all memory files
+
+Environment Commands:
+  env                          List environment variables
+  env set <KEY> <value>        Set variable in .claude/.env
+  env unset <KEY>              Remove variable
 
 Registry Commands:
   registry-add <name> '<json>'   Add MCP to global registry
   registry-remove <name>         Remove MCP from registry
 
 Maintenance:
-  ui [--port=3333]        Open web UI for config management
-  update <source-path>    Update from source directory
-  version                 Show version info
+  ui [--port=3333]             Open web UI
+  version                      Show version info
 
 Examples:
   claude-config init --template fastapi
-  claude-config init --template react-ts
-  claude-config init --template fastapi-react-ts
-  claude-config templates
-  claude-config apply-template python
-  claude-config add postgres slack
+  claude-config add postgres github
+  claude-config memory add preference "Use TypeScript for new files"
+  claude-config env set GITHUB_TOKEN ghp_xxx
   claude-config apply
 `);
   }
