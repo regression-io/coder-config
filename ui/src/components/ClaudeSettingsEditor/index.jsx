@@ -172,12 +172,12 @@ export default function ClaudeSettingsEditor({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-            <Settings className="w-5 h-5 text-indigo-600" />
+          <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center">
+            <Settings className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Claude Code Settings</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Claude Code Settings</h2>
+            <p className="text-sm text-gray-500 dark:text-slate-400">
               Configure Claude Code behavior globally
             </p>
           </div>
@@ -185,7 +185,7 @@ export default function ClaudeSettingsEditor({
 
         <div className="flex items-center gap-2">
           {hasChanges && (
-            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+            <Badge variant="outline" className="bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800">
               Unsaved changes
             </Badge>
           )}
@@ -230,8 +230,8 @@ export default function ClaudeSettingsEditor({
       </div>
 
       {/* Path info */}
-      <p className="text-sm text-gray-500">
-        Settings file: <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">{settingsPath}</code>
+      <p className="text-sm text-gray-500 dark:text-slate-400">
+        Settings file: <code className="bg-gray-100 dark:bg-slate-800 px-2 py-0.5 rounded text-xs">{settingsPath}</code>
       </p>
 
       {/* Loading State */}
@@ -299,7 +299,7 @@ export default function ClaudeSettingsEditor({
             <div className="space-y-4">
               <div>
                 <Label className="text-base font-medium">Default Model</Label>
-                <p className="text-sm text-gray-500 mb-3">
+                <p className="text-sm text-gray-500 dark:text-slate-400 mb-3">
                   Select the default model for Claude Code sessions
                 </p>
 
@@ -311,8 +311,8 @@ export default function ClaudeSettingsEditor({
                       className={cn(
                         "w-full p-4 rounded-lg border text-left transition-all",
                         settings.model === model.id
-                          ? "border-indigo-500 bg-indigo-50"
-                          : "border-gray-200 hover:border-gray-300"
+                          ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/50"
+                          : "border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600"
                       )}
                     >
                       <div className="flex items-center justify-between">
@@ -336,10 +336,10 @@ export default function ClaudeSettingsEditor({
                               {model.tier}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-500 mt-1">{model.description}</p>
+                          <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{model.description}</p>
                         </div>
                         {settings.model === model.id && (
-                          <Check className="w-5 h-5 text-indigo-600" />
+                          <Check className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                         )}
                       </div>
                     </button>
@@ -350,7 +350,7 @@ export default function ClaudeSettingsEditor({
               {/* Custom model ID */}
               <div>
                 <Label>Custom Model ID</Label>
-                <p className="text-xs text-gray-500 mb-2">
+                <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">
                   Override with a specific model ID (for AWS Bedrock, etc.)
                 </p>
                 <Input
@@ -367,10 +367,10 @@ export default function ClaudeSettingsEditor({
           <TabsContent value="behavior" className="space-y-6 pt-4">
             <div className="space-y-4">
               {/* Auto-approve settings */}
-              <div className="flex items-center justify-between p-4 rounded-lg border">
+              <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-slate-700">
                 <div>
                   <Label>Auto-accept Edits</Label>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-slate-400">
                     Automatically accept file edits without confirmation
                   </p>
                 </div>
@@ -380,10 +380,10 @@ export default function ClaudeSettingsEditor({
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 rounded-lg border">
+              <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-slate-700">
                 <div>
                   <Label>Verbose Output</Label>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-slate-400">
                     Show detailed output for operations
                   </p>
                 </div>
@@ -393,10 +393,10 @@ export default function ClaudeSettingsEditor({
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 rounded-lg border">
+              <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-slate-700">
                 <div>
                   <Label>Enable MCP Servers</Label>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-slate-400">
                     Allow Claude Code to use MCP server connections
                   </p>
                 </div>
@@ -409,7 +409,7 @@ export default function ClaudeSettingsEditor({
               {/* API Settings */}
               <div className="space-y-2">
                 <Label>API Base URL</Label>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-slate-400">
                   Custom API endpoint (for proxies or enterprise deployments)
                 </p>
                 <Input
@@ -435,7 +435,7 @@ export default function ClaudeSettingsEditor({
               {/* Environment Variables */}
               <div>
                 <Label className="text-base font-medium">Environment Variables</Label>
-                <p className="text-sm text-gray-500 mb-3">
+                <p className="text-sm text-gray-500 dark:text-slate-400 mb-3">
                   Configure model-related environment variables
                 </p>
 
@@ -443,7 +443,7 @@ export default function ClaudeSettingsEditor({
                   {ENV_VARIABLES.map((envVar) => (
                     <div key={envVar.key} className="space-y-1">
                       <Label className="text-sm">{envVar.label}</Label>
-                      <p className="text-xs text-gray-500">{envVar.description}</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-400">{envVar.description}</p>
                       <Input
                         value={settings.env?.[envVar.key] || ''}
                         onChange={(e) => {
@@ -462,7 +462,7 @@ export default function ClaudeSettingsEditor({
               {/* Hooks */}
               <div>
                 <Label className="text-base font-medium">Hooks</Label>
-                <p className="text-sm text-gray-500 mb-3">
+                <p className="text-sm text-gray-500 dark:text-slate-400 mb-3">
                   Scripts to run before/after tool executions (JSON format)
                 </p>
                 <Textarea
@@ -486,7 +486,7 @@ export default function ClaudeSettingsEditor({
               {/* Custom settings */}
               <div>
                 <Label className="text-base font-medium">Custom Settings</Label>
-                <p className="text-sm text-gray-500 mb-3">
+                <p className="text-sm text-gray-500 dark:text-slate-400 mb-3">
                   Add any additional settings as JSON key-value pairs
                 </p>
                 <Textarea

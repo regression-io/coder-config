@@ -178,12 +178,12 @@ export default function PermissionsEditor({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-            <Shield className="w-5 h-5 text-indigo-600" />
+          <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center">
+            <Shield className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Claude Code Permissions</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Claude Code Permissions</h2>
+            <p className="text-sm text-gray-500 dark:text-slate-400">
               Configure what Claude Code can do automatically
             </p>
           </div>
@@ -191,7 +191,7 @@ export default function PermissionsEditor({
 
         <div className="flex items-center gap-2">
           {hasChanges && (
-            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+            <Badge variant="outline" className="bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800">
               Unsaved changes
             </Badge>
           )}
@@ -256,7 +256,7 @@ export default function PermissionsEditor({
       {/* Help Section */}
       <Collapsible open={helpOpen} onOpenChange={setHelpOpen}>
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" size="sm" className="text-gray-500">
+          <Button variant="ghost" size="sm" className="text-gray-500 dark:text-slate-400">
             <HelpCircle className="w-4 h-4 mr-2" />
             How permissions work
             <ChevronDown className={cn(
@@ -271,25 +271,25 @@ export default function PermissionsEditor({
             <AlertDescription className="text-sm">
               <p className="mb-2">
                 Permissions control what Claude Code can do automatically vs. what requires your approval.
-                These settings are stored in <code className="px-1 py-0.5 bg-gray-100 rounded text-xs">~/.claude/settings.json</code>.
+                These settings are stored in <code className="px-1 py-0.5 bg-gray-100 dark:bg-slate-700 rounded text-xs">~/.claude/settings.json</code>.
               </p>
               <div className="grid grid-cols-3 gap-4 mt-3">
                 <div>
-                  <Badge className="bg-green-100 text-green-700 mb-1">Allow</Badge>
-                  <p className="text-xs text-gray-600">Operations run without asking</p>
+                  <Badge className="bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400 mb-1">Allow</Badge>
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Operations run without asking</p>
                 </div>
                 <div>
-                  <Badge className="bg-amber-100 text-amber-700 mb-1">Ask</Badge>
-                  <p className="text-xs text-gray-600">Prompts for confirmation each time</p>
+                  <Badge className="bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400 mb-1">Ask</Badge>
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Prompts for confirmation each time</p>
                 </div>
                 <div>
-                  <Badge className="bg-red-100 text-red-700 mb-1">Deny</Badge>
-                  <p className="text-xs text-gray-600">Blocked entirely</p>
+                  <Badge className="bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400 mb-1">Deny</Badge>
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Blocked entirely</p>
                 </div>
               </div>
-              <p className="mt-3 text-xs text-gray-500">
-                Use wildcards: <code className="px-1 py-0.5 bg-gray-100 rounded">*</code> matches anything,{' '}
-                <code className="px-1 py-0.5 bg-gray-100 rounded">**</code> matches recursively in paths.
+              <p className="mt-3 text-xs text-gray-500 dark:text-slate-400">
+                Use wildcards: <code className="px-1 py-0.5 bg-gray-100 dark:bg-slate-700 rounded">*</code> matches anything,{' '}
+                <code className="px-1 py-0.5 bg-gray-100 dark:bg-slate-700 rounded">**</code> matches recursively in paths.
               </p>
             </AlertDescription>
           </Alert>
@@ -360,7 +360,7 @@ export default function PermissionsEditor({
                 <div className="flex items-center justify-between">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <p className="text-sm text-gray-500 cursor-help">
+                      <p className="text-sm text-gray-500 dark:text-slate-400 cursor-help">
                         {config.description}
                       </p>
                     </TooltipTrigger>
@@ -385,7 +385,7 @@ export default function PermissionsEditor({
                     "text-center py-8 rounded-lg border-2 border-dashed",
                     config.borderColor
                   )}>
-                    <p className="text-gray-500">No rules in {category}</p>
+                    <p className="text-gray-500 dark:text-slate-400">No rules in {category}</p>
                     <Button
                       variant="link"
                       size="sm"

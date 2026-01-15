@@ -43,8 +43,8 @@ export default function PermissionRuleItem({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
       className={cn(
-        "group flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200",
-        "hover:border-gray-300 hover:shadow-sm transition-all"
+        "group flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700",
+        "hover:border-gray-300 dark:hover:border-slate-600 hover:shadow-sm transition-all"
       )}
     >
       {/* Permission Type Icon */}
@@ -77,7 +77,7 @@ export default function PermissionRuleItem({
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <code className="block text-sm font-mono text-gray-700 truncate mt-1 cursor-default">
+            <code className="block text-sm font-mono text-gray-700 dark:text-slate-300 truncate mt-1 cursor-default">
               {rule}
             </code>
           </TooltipTrigger>

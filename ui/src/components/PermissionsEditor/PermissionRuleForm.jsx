@@ -197,10 +197,10 @@ export default function PermissionRuleForm({
                 onChange={(e) => setPresetSearch(e.target.value)}
               />
 
-              <div className="border rounded-lg max-h-[250px] overflow-auto">
+              <div className="border border-gray-200 dark:border-slate-700 rounded-lg max-h-[250px] overflow-auto">
                 {Object.entries(groupedPresets).map(([cat, presets]) => (
-                  <div key={cat} className="border-b last:border-b-0">
-                    <div className="px-3 py-2 bg-gray-50 font-medium text-sm text-gray-600">
+                  <div key={cat} className="border-b border-gray-200 dark:border-slate-700 last:border-b-0">
+                    <div className="px-3 py-2 bg-gray-50 dark:bg-slate-800 font-medium text-sm text-gray-600 dark:text-slate-300">
                       {cat}
                     </div>
                     {presets.map(preset => {
@@ -210,18 +210,18 @@ export default function PermissionRuleForm({
                           key={preset.pattern}
                           onClick={() => setSelectedPreset(preset)}
                           className={cn(
-                            "w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors",
-                            selectedPreset?.pattern === preset.pattern && "bg-indigo-50 border-l-2 border-indigo-500"
+                            "w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors",
+                            selectedPreset?.pattern === preset.pattern && "bg-indigo-50 dark:bg-indigo-950/50 border-l-2 border-indigo-500"
                           )}
                         >
                           <div className="flex items-start gap-3">
-                            <PresetIcon className="w-4 h-4 mt-0.5 text-gray-400" />
+                            <PresetIcon className="w-4 h-4 mt-0.5 text-gray-400 dark:text-slate-500" />
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-sm">{preset.name}</div>
-                              <code className="text-xs text-gray-500 block truncate">
+                              <code className="text-xs text-gray-500 dark:text-slate-400 block truncate">
                                 {preset.pattern}
                               </code>
-                              <p className="text-xs text-gray-400 mt-1">
+                              <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
                                 {preset.description}
                               </p>
                             </div>
@@ -250,7 +250,7 @@ export default function PermissionRuleForm({
                           <div className="flex items-center gap-2">
                             <TypeIcon className="w-4 h-4" />
                             {type.name}
-                            <span className="text-xs text-gray-400">- {type.description}</span>
+                            <span className="text-xs text-gray-400 dark:text-slate-500">- {type.description}</span>
                           </div>
                         </SelectItem>
                       );
@@ -275,7 +275,7 @@ export default function PermissionRuleForm({
                 </div>
 
                 {ruleType === 'WebSearch' ? (
-                  <p className="text-sm text-gray-500 italic">
+                  <p className="text-sm text-gray-500 dark:text-slate-400 italic">
                     WebSearch does not require a value pattern.
                   </p>
                 ) : (
@@ -291,7 +291,7 @@ export default function PermissionRuleForm({
               {/* Quick examples */}
               {quickExamples.length > 0 && (
                 <div className="space-y-2">
-                  <Label className="text-xs text-gray-500">Quick examples:</Label>
+                  <Label className="text-xs text-gray-500 dark:text-slate-400">Quick examples:</Label>
                   <div className="flex flex-wrap gap-2">
                     {quickExamples.map(example => (
                       <Button
@@ -320,7 +320,7 @@ export default function PermissionRuleForm({
                   className="font-mono text-sm"
                   rows={3}
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-slate-400">
                   Enter the full permission pattern. Use * for wildcards and : for Bash argument separation.
                 </p>
               </div>
@@ -333,10 +333,10 @@ export default function PermissionRuleForm({
             <div className={cn(
               "p-3 rounded-lg border font-mono text-sm",
               validationError
-                ? "bg-red-50 border-red-200 text-red-700"
-                : "bg-gray-50 border-gray-200 text-gray-700"
+                ? "bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400"
+                : "bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300"
             )}>
-              {builtRule || <span className="text-gray-400">No rule configured</span>}
+              {builtRule || <span className="text-gray-400 dark:text-slate-500">No rule configured</span>}
             </div>
             {validationError && (
               <div className="flex items-center gap-2 text-sm text-red-600">

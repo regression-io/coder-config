@@ -44,7 +44,7 @@ export default function ClaudeSettingsView() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+      <div className="bg-white dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 p-6 shadow-sm">
         <ClaudeSettingsEditor
           settings={claudeSettings}
           onSave={handleSaveClaudeSettings}
