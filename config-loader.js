@@ -19,7 +19,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const VERSION = '2.12.4';
+const VERSION = '2.12.5';
 
 class ClaudeConfigManager {
   constructor() {

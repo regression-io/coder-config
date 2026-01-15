@@ -460,8 +460,8 @@ class ConfigUIServer {
         }
         break;
 
-      // User preferences/config
-      case '/api/config':
+      // User preferences (claude-config tool settings)
+      case '/api/preferences':
         if (req.method === 'GET') {
           return this.json(res, { config: this.config, path: this.configPath });
         }

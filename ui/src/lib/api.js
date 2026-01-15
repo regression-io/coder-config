@@ -286,11 +286,11 @@ export const api = {
 
   // User preferences/config
   async getConfig() {
-    return request('/config');
+    return request('/preferences');
   },
 
   async saveConfig(config) {
-    return request('/config', {
+    return request('/preferences', {
       method: 'PUT',
       body: config,
     });
