@@ -46,5 +46,5 @@ if (!fs.existsSync(registryPath)) {
   console.log('Created ~/.claude/registry.json');
 }
 
-console.log('\nClaude Code Config installed successfully!');
-console.log('Run "claude-config" or "claude-code-config" to start the UI.\n');
+console.log('\nClaude Config installed successfully!');
+console.log('Run "claude-config" to start the UI.\n');

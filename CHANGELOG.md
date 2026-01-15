@@ -1,4 +1,4 @@
-# Changelog (claude-code-config)
+# Changelog (@regression-io/claude-config)
 
 All notable changes to this project will be documented in this file.
 
