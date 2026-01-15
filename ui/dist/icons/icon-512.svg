@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="url(#gradient)"/>
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(86, 86)">
+    <!-- Gear teeth -->
+    <circle cx="170" cy="170" r="138" fill="none" stroke="white" stroke-width="26" stroke-dasharray="64 32"/>
+    <!-- Gear center -->
+    <circle cx="170" cy="170" r="74" fill="white"/>
+    <circle cx="170" cy="170" r="32" fill="#6366f1"/>
+  </g>
+</svg>
