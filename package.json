@@ -17,6 +17,7 @@
     "version:sync": "node scripts/sync-version.js",
     "version:bump": "node scripts/sync-version.js --bump",
     "build": "npm run version:bump && cd ui && npm install && npm run build",
+    "build:ci": "cd ui && npm install && npm run build",
     "prepublishOnly": "npm run build",
     "postinstall": "node scripts/postinstall.js",
     "test": "node --test test/*.test.js"

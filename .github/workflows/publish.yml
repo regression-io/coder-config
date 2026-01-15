@@ -1,13 +1,10 @@
 name: Publish to npm
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags (v0.14.16, v1.0.0, etc.)
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to publish (leave empty to use package.json version)'
-        required: false
 
 jobs:
   publish:
@@ -27,9 +24,9 @@ jobs:
         run: npm ci
 
       - name: Build UI
-        run: cd ui && npm ci && npm run build
+        run: npm run build:ci
 
       - name: Publish to npm
-        run: npm publish --access public --provenance
+        run: npm publish --access public --provenance --ignore-scripts
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
