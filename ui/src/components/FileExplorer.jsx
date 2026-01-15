@@ -1135,6 +1135,7 @@ export default function FileExplorer({ project, onRefresh }) {
             content={fileContent.content}
             parsed={fileContent.parsed}
             onSave={handleSaveFile}
+            filePath={selectedItem?.path}
           />
         );
       case 'command':
