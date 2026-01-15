@@ -1872,7 +1872,231 @@ class ConfigUIServer {
       folders.push(folder);
     }
 
+    // Also add all sub-projects
+    const subprojects = this.getSubprojects();
+    for (const sub of subprojects) {
+      const subFolder = this.scanFolderForExplorer(sub.dir, sub.name);
+      if (subFolder) {
+        subFolder.isSubproject = true;
+        folders.push(subFolder);
+      }
+    }
+
     return folders;
+  }
+
+  /**
+   * Scan a directory for .claude, .agent, .gemini folders
+   * Returns folder object for FileExplorer
+   */
+  scanFolderForExplorer(dir, label = null) {
+    const home = os.homedir();
+    const claudeDir = path.join(dir, '.claude');
+    const agentDir = path.join(dir, '.agent');
+    const geminiDir = path.join(dir, '.gemini');
+
+    // Use label or generate from path
+    if (!label) {
+      if (dir === home) {
+        label = '~';
+      } else if (dir.startsWith(home + '/')) {
+        label = '~' + dir.slice(home.length);
+      } else {
+        label = dir;
+      }
+    }
+
+    const folder = {
+      dir: dir,
+      label,
+      claudePath: claudeDir,
+      agentPath: agentDir,
+      geminiPath: geminiDir,
+      exists: fs.existsSync(claudeDir),
+      agentExists: fs.existsSync(agentDir),
+      geminiExists: fs.existsSync(geminiDir),
+      files: [],
+      agentFiles: [],
+      geminiFiles: []
+    };
+
+    // If none of the config folders exist, don't include
+    if (!folder.exists && !folder.agentExists && !folder.geminiExists) {
+      return null;
+    }
+
+    // Scan .claude folder
+    if (folder.exists) {
+      const mcpsPath = path.join(claudeDir, 'mcps.json');
+      if (fs.existsSync(mcpsPath)) {
+        const content = this.manager.loadJson(mcpsPath) || {};
+        folder.files.push({
+          name: 'mcps.json',
+          path: mcpsPath,
+          type: 'mcps',
+          size: fs.statSync(mcpsPath).size,
+          mcpCount: (content.include?.length || 0) + Object.keys(content.mcpServers || {}).length
+        });
+      }
+
+      const settingsPath = path.join(claudeDir, 'settings.json');
+      if (fs.existsSync(settingsPath)) {
+        folder.files.push({
+          name: 'settings.json',
+          path: settingsPath,
+          type: 'settings',
+          size: fs.statSync(settingsPath).size
+        });
+      }
+
+      // Commands
+      const commandsDir = path.join(claudeDir, 'commands');
+      if (fs.existsSync(commandsDir)) {
+        const commands = fs.readdirSync(commandsDir)
+          .filter(f => f.endsWith('.md'))
+          .map(f => ({
+            name: f,
+            path: path.join(commandsDir, f),
+            type: 'command',
+            size: fs.statSync(path.join(commandsDir, f)).size
+          }));
+        if (commands.length > 0) {
+          folder.files.push({
+            name: 'commands',
+            path: commandsDir,
+            type: 'folder',
+            children: commands
+          });
+        }
+      }
+
+      // Rules
+      const rulesDir = path.join(claudeDir, 'rules');
+      if (fs.existsSync(rulesDir)) {
+        const rules = fs.readdirSync(rulesDir)
+          .filter(f => f.endsWith('.md'))
+          .map(f => ({
+            name: f,
+            path: path.join(rulesDir, f),
+            type: 'rule',
+            size: fs.statSync(path.join(rulesDir, f)).size
+          }));
+        if (rules.length > 0) {
+          folder.files.push({
+            name: 'rules',
+            path: rulesDir,
+            type: 'folder',
+            children: rules
+          });
+        }
+      }
+
+      // Workflows
+      const workflowsDir = path.join(claudeDir, 'workflows');
+      if (fs.existsSync(workflowsDir)) {
+        const workflows = fs.readdirSync(workflowsDir)
+          .filter(f => f.endsWith('.md'))
+          .map(f => ({
+            name: f,
+            path: path.join(workflowsDir, f),
+            type: 'workflow',
+            size: fs.statSync(path.join(workflowsDir, f)).size
+          }));
+        if (workflows.length > 0) {
+          folder.files.push({
+            name: 'workflows',
+            path: workflowsDir,
+            type: 'folder',
+            children: workflows
+          });
+        }
+      }
+
+      // CLAUDE.md inside .claude
+      const claudeMdPath = path.join(claudeDir, 'CLAUDE.md');
+      if (fs.existsSync(claudeMdPath)) {
+        folder.files.push({
+          name: 'CLAUDE.md',
+          path: claudeMdPath,
+          type: 'claudemd',
+          size: fs.statSync(claudeMdPath).size
+        });
+      }
+    }
+
+    // Scan .agent folder
+    if (folder.agentExists) {
+      const agentRulesDir = path.join(agentDir, 'rules');
+      if (fs.existsSync(agentRulesDir)) {
+        const rules = fs.readdirSync(agentRulesDir)
+          .filter(f => f.endsWith('.md'))
+          .map(f => ({
+            name: f,
+            path: path.join(agentRulesDir, f),
+            type: 'rule',
+            size: fs.statSync(path.join(agentRulesDir, f)).size
+          }));
+        if (rules.length > 0) {
+          folder.agentFiles.push({
+            name: 'rules',
+            path: agentRulesDir,
+            type: 'folder',
+            children: rules
+          });
+        }
+      }
+    }
+
+    // Scan .gemini folder
+    if (folder.geminiExists) {
+      const geminiSettingsPath = path.join(geminiDir, 'settings.json');
+      if (fs.existsSync(geminiSettingsPath)) {
+        const content = this.manager.loadJson(geminiSettingsPath) || {};
+        folder.geminiFiles.push({
+          name: 'settings.json',
+          path: geminiSettingsPath,
+          type: 'settings',
+          size: fs.statSync(geminiSettingsPath).size,
+          mcpCount: Object.keys(content.mcpServers || {}).length
+        });
+      }
+
+      const geminiMdPath = path.join(geminiDir, 'GEMINI.md');
+      if (fs.existsSync(geminiMdPath)) {
+        folder.geminiFiles.push({
+          name: 'GEMINI.md',
+          path: geminiMdPath,
+          type: 'geminimd',
+          size: fs.statSync(geminiMdPath).size
+        });
+      }
+    }
+
+    // Root CLAUDE.md
+    const rootClaudeMd = path.join(dir, 'CLAUDE.md');
+    if (fs.existsSync(rootClaudeMd)) {
+      folder.files.push({
+        name: 'CLAUDE.md (root)',
+        path: rootClaudeMd,
+        type: 'claudemd',
+        size: fs.statSync(rootClaudeMd).size,
+        isRoot: true
+      });
+    }
+
+    // Root GEMINI.md
+    const rootGeminiMd = path.join(dir, 'GEMINI.md');
+    if (fs.existsSync(rootGeminiMd)) {
+      folder.agentFiles.push({
+        name: 'GEMINI.md (root)',
+        path: rootGeminiMd,
+        type: 'geminimd',
+        size: fs.statSync(rootGeminiMd).size,
+        isRoot: true
+      });
+    }
+
+    return folder;
   }
 
   /**

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Settings, Package, Layout, Lock, RefreshCw, Rocket, Terminal,
+  Settings, Package, Layout, RefreshCw, Rocket, Terminal,
   Folder, FolderOpen, Loader2, Brain, Wand2, Wrench, Shield, Download, Layers, BookOpen
 } from 'lucide-react';
 import FileExplorer from "@/components/FileExplorer";
@@ -19,9 +19,7 @@ import {
   ClaudeSettingsView,
   GeminiSettingsView,
   CreateMcpView,
-  EnvView,
   TemplatesView,
-  SubprojectsView,
   RegistryView,
   MemoryView,
   ProjectsView,
@@ -31,13 +29,11 @@ import {
 const navItems = [
   { id: 'projects', label: 'All Projects', icon: Layers, section: 'Projects' },
   { id: 'explorer', label: 'Project Explorer', icon: FolderOpen, section: 'Projects' },
-  { id: 'subprojects', label: 'Sub-Projects', icon: Folder, section: 'Projects', badge: 'subprojects' },
   { id: 'registry', label: 'MCP Registry', icon: Package, section: 'Configuration' },
   { id: 'memory', label: 'Memory', icon: Brain, section: 'Configuration' },
   { id: 'claude-settings', label: 'Claude Code', icon: Shield, section: 'Configuration' },
   { id: 'gemini-settings', label: 'Gemini CLI', icon: Terminal, section: 'Configuration' },
   { id: 'templates', label: 'Templates', icon: Layout, section: 'Tools' },
-  { id: 'env', label: 'Environment', icon: Lock, section: 'Tools' },
   { id: 'create-mcp', label: 'Create MCP', icon: Wand2, section: 'Developer' },
   { id: 'preferences', label: 'Preferences', icon: Wrench, section: 'System' },
   { id: 'docs', label: 'Docs & Help', icon: BookOpen, section: 'Help' },
@@ -251,7 +247,6 @@ export default function Dashboard() {
   });
 
   const badges = {
-    subprojects: rootProject?.subprojects?.length || project.subprojects?.length || 0,
     mcps: uniqueEnabledMcps.size,
     rules: rules.length,
     commands: commands.length,
@@ -305,16 +300,12 @@ export default function Dashboard() {
     switch (currentView) {
       case 'explorer':
         return <FileExplorer project={project} onRefresh={loadData} />;
-      case 'subprojects':
-        return <SubprojectsView project={project} rootProject={rootProject} onRefresh={handleRefresh} />;
       case 'registry':
         return <RegistryView registry={registry} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onUpdate={loadData} />;
       case 'memory':
         return <MemoryView project={project} onUpdate={loadData} />;
       case 'templates':
         return <TemplatesView templates={templates} project={project} onApply={loadData} />;
-      case 'env':
-        return <EnvView project={project} configs={configs} />;
       case 'create-mcp':
         return <CreateMcpView project={project} />;
       case 'claude-settings':
@@ -406,14 +397,6 @@ export default function Dashboard() {
                 <div className="space-y-0.5">
                   {navItems
                     .filter(item => item.section === section)
-                    .filter(item => {
-                      // Hide sub-projects if there are none (use root project for sticky behavior)
-                      const subprojectsList = rootProject?.subprojects || project.subprojects;
-                      if (item.id === 'subprojects' && (!subprojectsList || subprojectsList.length === 0)) {
-                        return false;
-                      }
-                      return true;
-                    })
                     .map((item) => {
                     const Icon = item.icon;
                     const isActive = currentView === item.id;

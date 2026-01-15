@@ -111,6 +111,7 @@ const LEVEL_COLORS = {
   home: { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700' },
   intermediate: { bg: 'bg-gray-50 dark:bg-slate-800', border: 'border-gray-200 dark:border-slate-700', text: 'text-gray-700 dark:text-slate-300' },
   project: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700' },
+  subproject: { bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-200 dark:border-amber-800', text: 'text-amber-700 dark:text-amber-400' },
 };
 
 // Tree Item Component
@@ -169,17 +170,26 @@ function TreeItem({ item, level = 0, selectedPath, onSelect, onContextMenu, expa
 }
 
 // Folder Header Component
-function FolderHeader({ folder, isFirst, isLast, onCreateFile }) {
-  const levelColor = isFirst ? LEVEL_COLORS.home : isLast ? LEVEL_COLORS.project : LEVEL_COLORS.intermediate;
+function FolderHeader({ folder, isFirst, isLast, isSubproject, onCreateFile }) {
+  const levelColor = isSubproject
+    ? LEVEL_COLORS.subproject
+    : isFirst
+      ? LEVEL_COLORS.home
+      : isLast
+        ? LEVEL_COLORS.project
+        : LEVEL_COLORS.intermediate;
 
   return (
     <div className={cn('flex items-center justify-between px-3 py-2 border-b', levelColor.bg, levelColor.border)}>
       <div className="flex items-center gap-2">
-        {isFirst ? <Home className="w-4 h-4" /> : <Folder className="w-4 h-4" />}
+        {isFirst ? <Home className="w-4 h-4" /> : isSubproject ? <FolderOpen className="w-4 h-4" /> : <Folder className="w-4 h-4" />}
         <span className={cn('font-medium text-sm', levelColor.text)}>
           {folder.label}
         </span>
-        {!folder.exists && (
+        {isSubproject && (
+          <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700 border-amber-300">sub</Badge>
+        )}
+        {!folder.exists && !isSubproject && (
           <Badge variant="outline" className="text-xs">no .claude</Badge>
         )}
       </div>
@@ -1198,12 +1208,19 @@ export default function FileExplorer({ project, onRefresh }) {
           </div>
         </div>
         <ScrollArea className="flex-1">
-          {folders.map((folder, index) => (
+          {folders.map((folder, index) => {
+            // Find the last non-subproject folder (the main project)
+            const lastNonSubprojectIndex = folders.findIndex(f => f.isSubproject) - 1;
+            const isMainProject = !folder.isSubproject && (
+              lastNonSubprojectIndex >= 0 ? index === lastNonSubprojectIndex : index === folders.length - 1
+            );
+            return (
             <div key={folder.dir}>
               <FolderHeader
                 folder={folder}
                 isFirst={index === 0}
-                isLast={index === folders.length - 1}
+                isLast={isMainProject}
+                isSubproject={folder.isSubproject}
                 onCreateFile={handleCreateFile}
               />
               {/* Claude Code .claude folder */}
@@ -1271,7 +1288,8 @@ export default function FileExplorer({ project, onRefresh }) {
                 </div>
               )}
             </div>
-          ))}
+          );
+          })}
         </ScrollArea>
       </div>
 
