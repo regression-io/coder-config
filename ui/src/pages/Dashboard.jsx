@@ -122,8 +122,8 @@ export default function Dashboard() {
       const active = data.projects?.find(p => p.isActive);
       setActiveProject(active || null);
 
-      // On initial load, if no active project, show projects view
-      if (isInitialLoad && !active) {
+      // On initial load, always show projects view for project selection
+      if (isInitialLoad) {
         setCurrentView('projects');
       }
     } catch (error) {
