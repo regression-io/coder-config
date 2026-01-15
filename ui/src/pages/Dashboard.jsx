@@ -2,11 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Settings, Package, Layout, Lock, RefreshCw, Rocket,
-  Folder, FolderOpen, Loader2, Brain, Wand2, Wrench, Shield, Download, Layers
+  Folder, FolderOpen, Loader2, Brain, Wand2, Wrench, Shield, Download, Layers, BookOpen
 } from 'lucide-react';
 import FileExplorer from "@/components/FileExplorer";
 import ProjectSwitcher from "@/components/ProjectSwitcher";
 import AddProjectDialog from "@/components/AddProjectDialog";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -22,7 +23,8 @@ import {
   SubprojectsView,
   RegistryView,
   MemoryView,
-  ProjectsView
+  ProjectsView,
+  DocsView
 } from "@/views";
 
 const navItems = [
@@ -36,6 +38,7 @@ const navItems = [
   { id: 'env', label: 'Environment', icon: Lock, section: 'Tools' },
   { id: 'create-mcp', label: 'Create MCP', icon: Wand2, section: 'Developer' },
   { id: 'preferences', label: 'Preferences', icon: Wrench, section: 'System' },
+  { id: 'docs', label: 'Docs & Help', icon: BookOpen, section: 'Help' },
 ];
 
 // Helper to get/set localStorage with JSON
@@ -122,9 +125,12 @@ export default function Dashboard() {
       const active = data.projects?.find(p => p.isActive);
       setActiveProject(active || null);
 
-      // On initial load, always show projects view for project selection
-      if (isInitialLoad) {
-        setCurrentView('projects');
+      // On initial load, only show projects view if no active project and no stored view
+      if (isInitialLoad && !active) {
+        const storedView = getStoredState('currentView', null);
+        if (!storedView) {
+          setCurrentView('projects');
+        }
       }
     } catch (error) {
       // Projects API might not exist in older versions
@@ -262,10 +268,10 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-          <p className="text-gray-600">Loading configuration...</p>
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading configuration...</p>
         </div>
       </div>
     );
@@ -297,15 +303,17 @@ export default function Dashboard() {
           loadData();
           loadProjects();
         }} />;
+      case 'docs':
+        return <DocsView />;
       default:
         return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="h-16 bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+      <header className="h-16 bg-card border-b border-border sticky top-0 z-50 shadow-sm">
         <div className="h-full px-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
@@ -313,9 +321,9 @@ export default function Dashboard() {
                 <Settings className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  Claude <span className="text-indigo-600">Config</span>
-                  {version && <span className="text-xs font-normal text-gray-400 ml-2">v{version}</span>}
+                <h1 className="text-xl font-bold text-foreground">
+                  Claude <span className="text-primary">Config</span>
+                  {version && <span className="text-xs font-normal text-muted-foreground ml-2">v{version}</span>}
                 </h1>
               </div>
               {updateInfo && (
@@ -344,6 +352,7 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={handleRefresh}>
               <RefreshCw className="w-4 h-4" />
             </Button>
@@ -360,11 +369,11 @@ export default function Dashboard() {
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 h-[calc(100vh-64px)] border-r border-gray-200 bg-white sticky top-16">
+        <aside className="w-64 h-[calc(100vh-64px)] border-r border-border bg-card sticky top-16">
           <ScrollArea className="h-full py-4">
-            {['Projects', 'Configuration', 'Tools', 'Developer', 'System'].map((section) => (
+            {['Projects', 'Configuration', 'Tools', 'Developer', 'System', 'Help'].map((section) => (
               <div key={section} className="mb-6">
-                <h3 className="px-4 mb-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                <h3 className="px-4 mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {section}
                 </h3>
                 <div className="space-y-0.5">
@@ -386,15 +395,15 @@ export default function Dashboard() {
                         onClick={() => setCurrentView(item.id)}
                         className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-all duration-200 border-l-2 ${
                           isActive
-                            ? 'bg-indigo-50 border-indigo-600 text-indigo-700 font-medium'
-                            : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                            ? 'bg-accent border-primary text-primary font-medium'
+                            : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-accent'
                         }`}
                       >
                         <Icon className="w-4 h-4" />
                         <span className="flex-1 text-left">{item.label}</span>
                         {item.badge && (
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                            isActive ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'
+                            isActive ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                           }`}>
                             {badges[item.badge]}
                           </span>
@@ -411,7 +420,7 @@ export default function Dashboard() {
         {/* Main Content */}
         <main className={cn(
           "flex-1 overflow-auto",
-          currentView === 'explorer' ? "h-[calc(100vh-64px)]" : "p-6"
+          (currentView === 'explorer' || currentView === 'docs') ? "h-[calc(100vh-64px)]" : "p-6"
         )}>
           <AnimatePresence mode="wait">
             <motion.div
@@ -420,7 +429,7 @@ export default function Dashboard() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className={currentView === 'explorer' ? "h-full" : ""}
+              className={(currentView === 'explorer' || currentView === 'docs') ? "h-full" : ""}
             >
               {renderContent()}
             </motion.div>

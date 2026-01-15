@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wrench, Folder, Layout, FileText, Save, Loader2, RefreshCw, Download, FolderOpen } from 'lucide-react';
+import { Wrench, Folder, Layout, FileText, Save, Loader2, RefreshCw, Download, FolderOpen, Plus, X, FolderPlus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -97,7 +97,7 @@ export default function PreferencesView() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -106,29 +106,28 @@ export default function PreferencesView() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-          <Wrench className="w-5 h-5 text-gray-600" />
+        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+          <Wrench className="w-5 h-5 text-muted-foreground" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">claude-config Preferences</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-lg font-semibold text-foreground">claude-config Preferences</h2>
+          <p className="text-sm text-muted-foreground">
             Tool settings for this configuration manager
           </p>
         </div>
       </div>
 
       {/* Configuration Section */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+      <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-sm text-gray-500">
-              Stored in: <code className="bg-gray-100 px-2 py-0.5 rounded">{configPath}</code>
+            <p className="text-sm text-muted-foreground">
+              Stored in: <code className="bg-muted px-2 py-0.5 rounded">{configPath}</code>
             </p>
           </div>
           <Button
             onClick={handleSave}
             disabled={saving}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
           >
             {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
             Save
@@ -137,39 +136,79 @@ export default function PreferencesView() {
 
         <div className="space-y-6">
           {/* Directories Section */}
-          <div className="border-b border-gray-200 pb-6">
-            <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
+          <div className="border-b border-border pb-6">
+            <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
               <Folder className="w-4 h-4" />
               Directories
             </h3>
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">MCP Tools Directory</label>
-                <p className="text-xs text-gray-500 mb-2">
-                  Where local MCP tool repositories are stored for discovery
+                <label className="text-sm font-medium text-foreground">MCP Tools Directories</label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Folders containing local MCP tool repositories for discovery
                 </p>
-                <div className="flex gap-2">
-                  <Input
-                    value={config?.toolsDir || ''}
-                    onChange={(e) => updateConfig('toolsDir', e.target.value)}
-                    placeholder="~/mcp-tools"
-                    className="font-mono flex-1"
-                  />
+                <div className="space-y-2">
+                  {(config?.toolsDirs || (config?.toolsDir ? [config.toolsDir] : [])).map((dir, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={dir || ''}
+                        onChange={(e) => {
+                          const newDirs = [...(config?.toolsDirs || (config?.toolsDir ? [config.toolsDir] : []))];
+                          newDirs[index] = e.target.value;
+                          updateConfig('toolsDirs', newDirs);
+                          // Clear old single toolsDir
+                          if (config?.toolsDir) {
+                            setConfig(prev => {
+                              const { toolsDir, ...rest } = prev;
+                              return { ...rest, toolsDirs: newDirs };
+                            });
+                          }
+                        }}
+                        placeholder="~/mcp-tools"
+                        className="font-mono flex-1"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setPicker({ open: true, field: 'toolsDirs', type: 'directory', index })}
+                        title="Browse..."
+                      >
+                        <FolderOpen className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          const currentDirs = config?.toolsDirs || (config?.toolsDir ? [config.toolsDir] : []);
+                          const newDirs = currentDirs.filter((_, i) => i !== index);
+                          setConfig(prev => {
+                            const { toolsDir, ...rest } = prev;
+                            return { ...rest, toolsDirs: newDirs.length > 0 ? newDirs : undefined };
+                          });
+                        }}
+                        title="Remove"
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
                   <Button
                     variant="outline"
-                    size="icon"
-                    onClick={() => setPicker({ open: true, field: 'toolsDir', type: 'directory' })}
-                    title="Browse..."
+                    size="sm"
+                    onClick={() => setPicker({ open: true, field: 'toolsDirs', type: 'directory', index: -1 })}
+                    className="mt-2"
                   >
-                    <FolderOpen className="w-4 h-4" />
+                    <FolderPlus className="w-4 h-4 mr-2" />
+                    Add Tools Folder
                   </Button>
                 </div>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700">Global Registry Path</label>
-                <p className="text-xs text-gray-500 mb-2">
+                <label className="text-sm font-medium text-foreground">Global Registry Path</label>
+                <p className="text-xs text-muted-foreground mb-2">
                   Path to the global MCP registry file
                 </p>
                 <div className="flex gap-2">
@@ -193,16 +232,16 @@ export default function PreferencesView() {
           </div>
 
           {/* UI Section */}
-          <div className="border-b border-gray-200 pb-6">
-            <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
+          <div className="border-b border-border pb-6">
+            <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
               <Layout className="w-4 h-4" />
               User Interface
             </h3>
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Default Port</label>
-                <p className="text-xs text-gray-500 mb-2">
+                <label className="text-sm font-medium text-foreground">Default Port</label>
+                <p className="text-xs text-muted-foreground mb-2">
                   Port for the web UI server
                 </p>
                 <Input
@@ -216,8 +255,8 @@ export default function PreferencesView() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Open Browser on Start</label>
-                  <p className="text-xs text-gray-500">
+                  <label className="text-sm font-medium text-foreground">Open Browser on Start</label>
+                  <p className="text-xs text-muted-foreground">
                     Automatically open browser when starting the UI
                   </p>
                 </div>
@@ -231,23 +270,23 @@ export default function PreferencesView() {
 
           {/* About Section */}
           <div>
-            <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
               <FileText className="w-4 h-4" />
               About
             </h3>
 
-            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+            <div className="bg-muted rounded-lg p-4 space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Installed Version</span>
-                <span className="font-medium font-mono">{versionInfo?.installedVersion || 'Loading...'}</span>
+                <span className="text-muted-foreground">Installed Version</span>
+                <span className="font-medium font-mono text-foreground">{versionInfo?.installedVersion || 'Loading...'}</span>
               </div>
 
               {versionInfo?.updateAvailable && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-green-800">Update Available!</p>
-                      <p className="text-xs text-green-600">
+                      <p className="text-sm font-medium text-green-600 dark:text-green-400">Update Available!</p>
+                      <p className="text-xs text-green-600/80 dark:text-green-400/80">
                         Version {versionInfo.latestVersion} via {versionInfo.updateMethod === 'npm' ? 'npm' : versionInfo.sourcePath}
                       </p>
                     </div>
@@ -266,16 +305,16 @@ export default function PreferencesView() {
 
               {!versionInfo?.updateAvailable && versionInfo?.latestVersion && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Latest Version</span>
-                  <span className="font-mono text-green-600">{versionInfo.latestVersion} ✓</span>
+                  <span className="text-muted-foreground">Latest Version</span>
+                  <span className="font-mono text-green-600 dark:text-green-400">{versionInfo.latestVersion} ✓</span>
                 </div>
               )}
 
               {versionInfo?.sourcePath && !versionInfo?.updateAvailable && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Dev Source</span>
+                  <span className="text-muted-foreground">Dev Source</span>
                   <div className="flex items-center gap-2">
-                    <code className="text-xs text-gray-500">{versionInfo.sourcePath}</code>
+                    <code className="text-xs text-muted-foreground">{versionInfo.sourcePath}</code>
                     <Button
                       size="sm"
                       variant="outline"
@@ -290,24 +329,24 @@ export default function PreferencesView() {
               )}
 
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Install Location</span>
-                <code className="text-xs text-gray-500">{versionInfo?.installDir || '~/.claude-config'}</code>
+                <span className="text-muted-foreground">Install Location</span>
+                <code className="text-xs text-muted-foreground">{versionInfo?.installDir || '~/.claude-config'}</code>
               </div>
 
-              <div className="border-t border-gray-200 pt-3 mt-3">
+              <div className="border-t border-border pt-3 mt-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Documentation</span>
+                  <span className="text-muted-foreground">Documentation</span>
                   <a
                     href="https://github.com/regression-io/claude-config"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-indigo-600 hover:underline"
+                    className="text-primary hover:underline"
                   >
                     GitHub
                   </a>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  After updating, restart the server with <code className="bg-gray-100 px-1 rounded">claude-config ui</code>
+                <p className="text-xs text-muted-foreground mt-2">
+                  After updating, restart the server with <code className="bg-muted-foreground/10 px-1 rounded">claude-config ui</code>
                 </p>
               </div>
             </div>
@@ -320,12 +359,33 @@ export default function PreferencesView() {
         open={picker.open}
         onOpenChange={(open) => setPicker(prev => ({ ...prev, open }))}
         onSelect={(path) => {
-          if (picker.field) {
+          if (picker.field === 'toolsDirs') {
+            const currentDirs = config?.toolsDirs || (config?.toolsDir ? [config.toolsDir] : []);
+            if (picker.index === -1) {
+              // Adding new folder
+              setConfig(prev => {
+                const { toolsDir, ...rest } = prev;
+                return { ...rest, toolsDirs: [...currentDirs, path] };
+              });
+            } else {
+              // Editing existing folder
+              const newDirs = [...currentDirs];
+              newDirs[picker.index] = path;
+              setConfig(prev => {
+                const { toolsDir, ...rest } = prev;
+                return { ...rest, toolsDirs: newDirs };
+              });
+            }
+          } else if (picker.field) {
             updateConfig(picker.field, path);
           }
         }}
         type={picker.type}
-        initialPath={config?.[picker.field] || '~'}
+        initialPath={
+          picker.field === 'toolsDirs' && picker.index >= 0
+            ? (config?.toolsDirs || (config?.toolsDir ? [config.toolsDir] : []))[picker.index] || '~'
+            : config?.[picker.field] || '~'
+        }
         title={picker.type === 'directory' ? 'Select Directory' : 'Select File'}
       />
     </div>

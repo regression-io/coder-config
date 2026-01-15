@@ -224,6 +224,21 @@ class ConfigUIServer {
       return { error: 'Project already registered', path: absPath };
     }
 
+    // Auto-create .claude folder with blank mcps.json if it doesn't exist
+    const claudeDir = path.join(absPath, '.claude');
+    const mcpsFile = path.join(claudeDir, 'mcps.json');
+    let claudeCreated = false;
+
+    if (!fs.existsSync(claudeDir)) {
+      fs.mkdirSync(claudeDir, { recursive: true });
+      claudeCreated = true;
+    }
+
+    if (!fs.existsSync(mcpsFile)) {
+      fs.writeFileSync(mcpsFile, JSON.stringify({ mcpServers: {} }, null, 2));
+      claudeCreated = true;
+    }
+
     const project = {
       id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
       name: name || path.basename(absPath),
@@ -242,7 +257,7 @@ class ConfigUIServer {
 
     this.manager.saveProjectsRegistry(registry);
 
-    return { success: true, project };
+    return { success: true, project, claudeCreated };
   }
 
   /**
