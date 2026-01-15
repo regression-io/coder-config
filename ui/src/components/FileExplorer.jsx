@@ -24,6 +24,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { toast } from 'sonner';
@@ -52,6 +55,8 @@ import {
   X,
   GitBranch,
   ArrowLeftRight,
+  FileCode,
+  Layout,
 } from 'lucide-react';
 
 // File type icons and colors
@@ -98,6 +103,12 @@ const FILE_CONFIG = {
     bgColor: 'bg-blue-50',
     label: 'GEMINI.md',
   },
+  env: {
+    icon: FileCode,
+    color: 'text-yellow-600',
+    bgColor: 'bg-yellow-50',
+    label: '.env',
+  },
   folder: {
     icon: Folder,
     color: 'text-yellow-600',
@@ -106,15 +117,7 @@ const FILE_CONFIG = {
   },
 };
 
-// Level colors for hierarchy
-const LEVEL_COLORS = {
-  home: { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700' },
-  intermediate: { bg: 'bg-gray-50 dark:bg-slate-800', border: 'border-gray-200 dark:border-slate-700', text: 'text-gray-700 dark:text-slate-300' },
-  project: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700' },
-  subproject: { bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-200 dark:border-amber-800', text: 'text-amber-700 dark:text-amber-400' },
-};
-
-// Tree Item Component
+// Tree Item Component for files within expanded folder
 function TreeItem({ item, level = 0, selectedPath, onSelect, onContextMenu, expandedFolders, onToggleFolder }) {
   const config = FILE_CONFIG[item.type] || FILE_CONFIG.folder;
   const Icon = config.icon;
@@ -127,8 +130,8 @@ function TreeItem({ item, level = 0, selectedPath, onSelect, onContextMenu, expa
       <div
         className={cn(
           'flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer text-sm',
-          'hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700 transition-colors',
-          isSelected && 'bg-blue-100 hover:bg-blue-100'
+          'hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors',
+          isSelected && 'bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/30'
         )}
         style={{ paddingLeft: `${level * 16 + 8}px` }}
         onClick={() => isFolder ? onToggleFolder(item.path) : onSelect(item)}
@@ -169,65 +172,230 @@ function TreeItem({ item, level = 0, selectedPath, onSelect, onContextMenu, expa
   );
 }
 
-// Folder Header Component
-function FolderHeader({ folder, isFirst, isLast, isSubproject, onCreateFile }) {
-  const levelColor = isSubproject
-    ? LEVEL_COLORS.subproject
-    : isFirst
-      ? LEVEL_COLORS.home
-      : isLast
-        ? LEVEL_COLORS.project
-        : LEVEL_COLORS.intermediate;
+// Folder Row Component - collapsible tree entry
+function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onToggle, onCreateFile, onSelectItem, selectedPath, onContextMenu, expandedFolders, onToggleFolder, templates }) {
+  // Check what files already exist
+  const hasMcps = folder.files?.some(f => f.name === 'mcps.json');
+  const hasSettings = folder.files?.some(f => f.name === 'settings.json');
+  const hasClaudeMd = folder.files?.some(f => f.name === 'CLAUDE.md' || f.name === 'CLAUDE.md (root)');
+  const hasEnv = folder.files?.some(f => f.name === '.env');
+
+  // Determine folder styling
+  const getBgColor = () => {
+    if (isHome) return 'bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30';
+    if (isSubproject) return 'bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30';
+    if (isProject) return 'bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30';
+    return 'bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700';
+  };
+
+  const getTextColor = () => {
+    if (isHome) return 'text-indigo-700 dark:text-indigo-400';
+    if (isSubproject) return 'text-amber-700 dark:text-amber-400';
+    if (isProject) return 'text-green-700 dark:text-green-400';
+    return 'text-gray-700 dark:text-slate-300';
+  };
+
+  const getIcon = () => {
+    if (isHome) return Home;
+    if (isExpanded) return FolderOpen;
+    return Folder;
+  };
+
+  const Icon = getIcon();
+  const displayLabel = isHome ? 'Home' : folder.label;
+
+  // Count total files across all tool folders
+  const totalFiles = (folder.files?.length || 0) + (folder.geminiFiles?.length || 0) + (folder.agentFiles?.length || 0);
 
   return (
-    <div className={cn('flex items-center justify-between px-3 py-2 border-b', levelColor.bg, levelColor.border)}>
-      <div className="flex items-center gap-2">
-        {isFirst ? <Home className="w-4 h-4" /> : isSubproject ? <FolderOpen className="w-4 h-4" /> : <Folder className="w-4 h-4" />}
-        <span className={cn('font-medium text-sm', levelColor.text)}>
-          {folder.label}
+    <div className="border-b border-gray-200 dark:border-slate-700">
+      {/* Folder Header Row */}
+      <div
+        className={cn(
+          'flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors',
+          getBgColor()
+        )}
+        onClick={onToggle}
+      >
+        <span className="w-4 h-4 flex items-center justify-center text-gray-500">
+          {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        </span>
+        <Icon className={cn('w-4 h-4', getTextColor())} />
+        <span className={cn('flex-1 font-medium text-sm truncate', getTextColor())}>
+          {displayLabel}
         </span>
         {isSubproject && (
-          <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700 border-amber-300">sub</Badge>
+          <Badge variant="outline" className="text-[10px] px-1 py-0 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700">
+            sub
+          </Badge>
         )}
-        {!folder.exists && !isSubproject && (
-          <Badge variant="outline" className="text-xs">no .claude</Badge>
+        {!folder.exists && !isHome && (
+          <Badge variant="outline" className="text-[10px] px-1 py-0">no config</Badge>
         )}
+        {totalFiles > 0 && (
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+            {totalFiles}
+          </Badge>
+        )}
+        {/* + Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-white/50 dark:hover:bg-slate-900/50">
+              <Plus className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem
+              onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'mcps'); }}
+              disabled={hasMcps}
+              className={hasMcps ? 'opacity-50' : ''}
+            >
+              <Server className="w-4 h-4 mr-2" />
+              mcps.json
+              {hasMcps && <span className="ml-auto text-xs text-muted-foreground">exists</span>}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'settings'); }}
+              disabled={hasSettings}
+              className={hasSettings ? 'opacity-50' : ''}
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              settings.json
+              {hasSettings && <span className="ml-auto text-xs text-muted-foreground">exists</span>}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'env'); }}
+              disabled={hasEnv}
+              className={hasEnv ? 'opacity-50' : ''}
+            >
+              <FileCode className="w-4 h-4 mr-2" />
+              .env
+              {hasEnv && <span className="ml-auto text-xs text-muted-foreground">exists</span>}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'command'); }}>
+              <Terminal className="w-4 h-4 mr-2" />
+              New Command
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'rule'); }}>
+              <BookOpen className="w-4 h-4 mr-2" />
+              New Rule
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'workflow'); }}>
+              <GitBranch className="w-4 h-4 mr-2" />
+              New Workflow
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'claudemd'); }}
+              disabled={hasClaudeMd}
+              className={hasClaudeMd ? 'opacity-50' : ''}
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              CLAUDE.md
+              {hasClaudeMd && <span className="ml-auto text-xs text-muted-foreground">exists</span>}
+            </DropdownMenuItem>
+            {templates && templates.length > 0 && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Layout className="w-4 h-4 mr-2" />
+                    Apply Template
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    {templates.map((t) => (
+                      <DropdownMenuItem
+                        key={t.id || t.name}
+                        onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'template', t.id || t.name); }}
+                      >
+                        {t.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-            <Plus className="w-4 h-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onCreateFile(folder.dir, 'mcps')}>
-            <Server className="w-4 h-4 mr-2" />
-            mcps.json
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onCreateFile(folder.dir, 'settings')}>
-            <Settings className="w-4 h-4 mr-2" />
-            settings.json
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => onCreateFile(folder.dir, 'command')}>
-            <Terminal className="w-4 h-4 mr-2" />
-            New Command
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onCreateFile(folder.dir, 'rule')}>
-            <BookOpen className="w-4 h-4 mr-2" />
-            New Rule
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onCreateFile(folder.dir, 'workflow')}>
-            <GitBranch className="w-4 h-4 mr-2" />
-            New Workflow
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => onCreateFile(folder.dir, 'claudemd')}>
-            <FileText className="w-4 h-4 mr-2" />
-            CLAUDE.md
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+
+      {/* Expanded Content */}
+      {isExpanded && (
+        <div className="bg-white dark:bg-slate-950 py-1">
+          {/* Claude Code .claude files */}
+          {folder.files && folder.files.length > 0 && (
+            <div className="mb-1">
+              <div className="px-4 py-1 text-[10px] font-medium text-orange-600 dark:text-orange-400 uppercase tracking-wide flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                Claude Code
+              </div>
+              {folder.files.map((file) => (
+                <TreeItem
+                  key={file.path}
+                  item={file}
+                  selectedPath={selectedPath}
+                  onSelect={onSelectItem}
+                  onContextMenu={onContextMenu}
+                  expandedFolders={expandedFolders}
+                  onToggleFolder={onToggleFolder}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Gemini CLI .gemini files */}
+          {folder.geminiFiles && folder.geminiFiles.length > 0 && (
+            <div className="mb-1 border-t border-dashed border-gray-200 dark:border-slate-700 pt-1">
+              <div className="px-4 py-1 text-[10px] font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                Gemini CLI
+              </div>
+              {folder.geminiFiles.map((file) => (
+                <TreeItem
+                  key={file.path}
+                  item={file}
+                  selectedPath={selectedPath}
+                  onSelect={onSelectItem}
+                  onContextMenu={onContextMenu}
+                  expandedFolders={expandedFolders}
+                  onToggleFolder={onToggleFolder}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Antigravity .agent files */}
+          {folder.agentFiles && folder.agentFiles.length > 0 && (
+            <div className="mb-1 border-t border-dashed border-gray-200 dark:border-slate-700 pt-1">
+              <div className="px-4 py-1 text-[10px] font-medium text-purple-600 dark:text-purple-400 uppercase tracking-wide flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                Antigravity
+              </div>
+              {folder.agentFiles.map((file) => (
+                <TreeItem
+                  key={file.path}
+                  item={file}
+                  selectedPath={selectedPath}
+                  onSelect={onSelectItem}
+                  onContextMenu={onContextMenu}
+                  expandedFolders={expandedFolders}
+                  onToggleFolder={onToggleFolder}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Empty state */}
+          {(!folder.files || folder.files.length === 0) &&
+           (!folder.geminiFiles || folder.geminiFiles.length === 0) &&
+           (!folder.agentFiles || folder.agentFiles.length === 0) && (
+            <div className="px-4 py-3 text-sm text-gray-400 dark:text-slate-500 italic text-center">
+              No config files. Use + to create.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -235,7 +403,7 @@ function FolderHeader({ folder, isFirst, isLast, isSubproject, onCreateFile }) {
 // MCP Editor Component
 function McpEditor({ content, parsed, onSave, registry }) {
   const [localConfig, setLocalConfig] = useState(parsed || { include: [], mcpServers: {} });
-  const [viewMode, setViewMode] = useState('rich'); // 'rich' or 'json'
+  const [viewMode, setViewMode] = useState('rich');
   const [jsonText, setJsonText] = useState(JSON.stringify(parsed || {}, null, 2));
   const [hasChanges, setHasChanges] = useState(false);
   const [addDialog, setAddDialog] = useState({ open: false, json: '' });
@@ -269,7 +437,6 @@ function McpEditor({ content, parsed, onSave, registry }) {
     setHasChanges(false);
   };
 
-  // Add MCP from pasted JSON
   const handleAddMcp = () => {
     if (!addDialog.json.trim()) {
       toast.error('Please paste the MCP JSON configuration');
@@ -285,7 +452,6 @@ function McpEditor({ content, parsed, onSave, registry }) {
         return;
       }
 
-      // Determine format and extract MCPs
       let mcpsToAdd = {};
       if (parsed.mcpServers && typeof parsed.mcpServers === 'object') {
         mcpsToAdd = parsed.mcpServers;
@@ -303,7 +469,6 @@ function McpEditor({ content, parsed, onSave, registry }) {
         return;
       }
 
-      // Validate required fields
       for (const [name, mcp] of Object.entries(mcpsToAdd)) {
         if (!mcp.command) {
           toast.error(`MCP "${name}" is missing required "command" field`);
@@ -311,7 +476,6 @@ function McpEditor({ content, parsed, onSave, registry }) {
         }
       }
 
-      // Add to local config
       const newMcpServers = { ...(localConfig.mcpServers || {}), ...mcpsToAdd };
       const newConfig = { ...localConfig, mcpServers: newMcpServers };
       setLocalConfig(newConfig);
@@ -424,7 +588,6 @@ function McpEditor({ content, parsed, onSave, registry }) {
         )}
       </ScrollArea>
 
-      {/* Add MCP Dialog */}
       <Dialog open={addDialog.open} onOpenChange={(open) => setAddDialog({ ...addDialog, open })}>
         <DialogContent className="bg-white dark:bg-slate-950 max-w-2xl">
           <DialogHeader>
@@ -433,7 +596,6 @@ function McpEditor({ content, parsed, onSave, registry }) {
               Paste the MCP JSON configuration to add to this config file.
             </DialogDescription>
           </DialogHeader>
-
           <div className="py-4">
             <Textarea
               value={addDialog.json}
@@ -446,7 +608,6 @@ function McpEditor({ content, parsed, onSave, registry }) {
               Accepts formats: <code className="bg-gray-100 dark:bg-slate-700 px-1 rounded">{'{ "name": { "command": "...", "args": [...] } }'}</code> or <code className="bg-gray-100 dark:bg-slate-700 px-1 rounded">{'{ "mcpServers": { ... } }'}</code>
             </p>
           </div>
-
           <DialogFooter>
             <Button variant="ghost" onClick={() => setAddDialog({ open: false, json: '' })}>
               Cancel
@@ -462,200 +623,10 @@ function McpEditor({ content, parsed, onSave, registry }) {
   );
 }
 
-// AI Assist Dialog Component
-function AIAssistDialog({ open, onClose, fileType, currentContent, onInsert }) {
-  const [prompt, setPrompt] = useState('');
-  const [generatedContent, setGeneratedContent] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  // Template suggestions based on file type
-  const templates = {
-    rule: [
-      { label: 'Code Style', prompt: 'Create a rule for code formatting and style conventions' },
-      { label: 'Testing', prompt: 'Create a rule for testing requirements and best practices' },
-      { label: 'Security', prompt: 'Create a rule for security guidelines and vulnerability prevention' },
-      { label: 'Documentation', prompt: 'Create a rule for documentation standards' },
-    ],
-    command: [
-      { label: 'Build & Deploy', prompt: 'Create a command for building and deploying the project' },
-      { label: 'Testing', prompt: 'Create a command for running tests with coverage' },
-      { label: 'Database', prompt: 'Create a command for database migrations' },
-      { label: 'Code Generation', prompt: 'Create a command for generating boilerplate code' },
-    ],
-    claudemd: [
-      { label: 'Project Overview', prompt: 'Create a project overview section with tech stack and conventions' },
-      { label: 'API Documentation', prompt: 'Create API documentation template' },
-      { label: 'Development Setup', prompt: 'Create development environment setup instructions' },
-      { label: 'Architecture', prompt: 'Create architecture documentation' },
-    ],
-  };
-
-  const fileTemplates = templates[fileType] || templates.claudemd;
-
-  const handleGenerate = (selectedPrompt) => {
-    const finalPrompt = selectedPrompt || prompt;
-    if (!finalPrompt.trim()) {
-      toast.error('Please enter a prompt or select a template');
-      return;
-    }
-
-    // Generate content based on file type
-    setLoading(true);
-
-    // Simulate AI generation with templates
-    setTimeout(() => {
-      let content = '';
-
-      if (fileType === 'rule') {
-        content = `# ${finalPrompt.replace(/^Create a rule for\s*/i, '').replace(/\s+/g, ' ').trim()}\n\n`;
-        content += `## Guidelines\n\n`;
-        content += `- Follow consistent patterns throughout the codebase\n`;
-        content += `- Document any deviations from these guidelines\n`;
-        content += `- Review changes for compliance before merging\n\n`;
-        content += `## Examples\n\n`;
-        content += `\`\`\`\n// Good example\n// TODO: Add specific examples\n\`\`\`\n\n`;
-        content += `## Exceptions\n\n`;
-        content += `- None documented yet\n`;
-      } else if (fileType === 'command') {
-        const commandName = finalPrompt.replace(/^Create a command for\s*/i, '').toLowerCase().replace(/\s+/g, '-');
-        content = `---\n`;
-        content += `name: ${commandName}\n`;
-        content += `description: ${finalPrompt}\n`;
-        content += `---\n\n`;
-        content += `# ${finalPrompt}\n\n`;
-        content += `## Usage\n\n`;
-        content += `Run this command when you need to ${finalPrompt.toLowerCase()}.\n\n`;
-        content += `## Steps\n\n`;
-        content += `1. First, verify prerequisites are met\n`;
-        content += `2. Execute the main operation\n`;
-        content += `3. Verify the results\n\n`;
-        content += `## Example Output\n\n`;
-        content += `\`\`\`\n// Expected output format\n\`\`\`\n`;
-      } else {
-        content = `# ${finalPrompt.replace(/^Create\s*/i, '')}\n\n`;
-        content += `## Overview\n\n`;
-        content += `TODO: Add overview here.\n\n`;
-        content += `## Details\n\n`;
-        content += `TODO: Add detailed information.\n\n`;
-        content += `## Related\n\n`;
-        content += `- See also: related documentation\n`;
-      }
-
-      setGeneratedContent(content);
-      setLoading(false);
-    }, 500);
-  };
-
-  const handleInsert = (mode) => {
-    if (!generatedContent) {
-      toast.error('Generate content first');
-      return;
-    }
-
-    if (mode === 'replace') {
-      onInsert(generatedContent);
-    } else {
-      onInsert(currentContent + '\n\n' + generatedContent);
-    }
-    onClose();
-    toast.success('Content inserted');
-  };
-
-  const handleClose = () => {
-    setPrompt('');
-    setGeneratedContent('');
-    onClose();
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-indigo-600" />
-            AI Assist
-          </DialogTitle>
-          <DialogDescription>
-            Generate content for your {fileType || 'file'} using templates or custom prompts
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="flex-1 overflow-auto space-y-4 py-4">
-          {/* Quick Templates */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">Quick Templates</label>
-            <div className="flex flex-wrap gap-2">
-              {fileTemplates.map((template) => (
-                <Button
-                  key={template.label}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setPrompt(template.prompt);
-                    handleGenerate(template.prompt);
-                  }}
-                  disabled={loading}
-                >
-                  {template.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Custom Prompt */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">Custom Prompt</label>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Describe what you want to generate..."
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
-              />
-              <Button onClick={() => handleGenerate()} disabled={loading || !prompt.trim()}>
-                {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Generate'}
-              </Button>
-            </div>
-          </div>
-
-          {/* Generated Content Preview */}
-          {generatedContent && (
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">Generated Content</label>
-              <Textarea
-                value={generatedContent}
-                onChange={(e) => setGeneratedContent(e.target.value)}
-                className="font-mono text-sm min-h-[200px]"
-              />
-            </div>
-          )}
-        </div>
-
-        <DialogFooter>
-          <Button variant="ghost" onClick={handleClose}>
-            Cancel
-          </Button>
-          {generatedContent && (
-            <>
-              <Button variant="outline" onClick={() => handleInsert('append')}>
-                Append to File
-              </Button>
-              <Button onClick={() => handleInsert('replace')} className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                Replace Content
-              </Button>
-            </>
-          )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 // Markdown Editor Component
 function MarkdownEditor({ content, onSave, fileType }) {
   const [text, setText] = useState(content || '');
   const [hasChanges, setHasChanges] = useState(false);
-  const [aiAssistOpen, setAiAssistOpen] = useState(false);
 
   useEffect(() => {
     setText(content || '');
@@ -665,11 +636,6 @@ function MarkdownEditor({ content, onSave, fileType }) {
   const handleSave = () => {
     onSave(text);
     setHasChanges(false);
-  };
-
-  const handleAiInsert = (newContent) => {
-    setText(newContent);
-    setHasChanges(true);
   };
 
   const config = FILE_CONFIG[fileType] || FILE_CONFIG.claudemd;
@@ -682,10 +648,6 @@ function MarkdownEditor({ content, onSave, fileType }) {
           <span className="text-sm font-medium">{config.label}</span>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setAiAssistOpen(true)}>
-            <Sparkles className="w-4 h-4 mr-1" />
-            AI Assist
-          </Button>
           {hasChanges && (
             <Button size="sm" onClick={handleSave}>
               <Save className="w-4 h-4 mr-1" />
@@ -703,27 +665,17 @@ function MarkdownEditor({ content, onSave, fileType }) {
         }}
         placeholder={`Enter ${config.label.toLowerCase()} content...`}
       />
-
-      <AIAssistDialog
-        open={aiAssistOpen}
-        onClose={() => setAiAssistOpen(false)}
-        fileType={fileType}
-        currentContent={text}
-        onInsert={handleAiInsert}
-      />
     </div>
   );
 }
 
-// Settings Editor Component - detects tool type from file path
+// Settings Editor Component
 function SettingsEditor({ content, parsed, onSave, filePath }) {
   const handleSave = async (settings) => {
-    // Convert settings object to JSON string for saving
     const jsonContent = JSON.stringify(settings, null, 2);
     onSave(jsonContent);
   };
 
-  // Detect which tool's settings.json this is
   const isGemini = filePath?.includes('.gemini') || filePath?.includes('/.gemini/');
   const isAntigravity = filePath?.includes('.agent') || filePath?.includes('/antigravity/');
 
@@ -740,7 +692,6 @@ function SettingsEditor({ content, parsed, onSave, filePath }) {
     );
   }
 
-  // Default to Claude Code settings
   return (
     <div className="h-full overflow-auto p-4">
       <ClaudeSettingsEditor
@@ -774,43 +725,26 @@ function MoveCopyDialog({ open, onClose, item, intermediatePaths, onMove }) {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{mode === 'copy' ? 'Copy' : 'Move'} {item?.name}</DialogTitle>
-          <DialogDescription>
-            Select a destination for this file
-          </DialogDescription>
+          <DialogDescription>Select a destination for this file</DialogDescription>
         </DialogHeader>
-
         <div className="space-y-4">
           <div className="flex gap-2">
-            <Button
-              variant={mode === 'copy' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setMode('copy')}
-            >
-              <Copy className="w-4 h-4 mr-1" />
-              Copy
+            <Button variant={mode === 'copy' ? 'default' : 'outline'} size="sm" onClick={() => setMode('copy')}>
+              <Copy className="w-4 h-4 mr-1" /> Copy
             </Button>
-            <Button
-              variant={mode === 'move' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setMode('move')}
-            >
-              <Move className="w-4 h-4 mr-1" />
-              Move
+            <Button variant={mode === 'move' ? 'default' : 'outline'} size="sm" onClick={() => setMode('move')}>
+              <Move className="w-4 h-4 mr-1" /> Move
             </Button>
           </div>
-
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {intermediatePaths?.map((p) => (
               <div
                 key={p.dir}
                 className={cn(
                   'flex items-center justify-between p-2 rounded border cursor-pointer',
-                  selectedPath === p.dir ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50 dark:bg-slate-800'
+                  selectedPath === p.dir ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-gray-50 dark:hover:bg-slate-800'
                 )}
-                onClick={() => {
-                  setSelectedPath(p.dir);
-                  setCustomPath('');
-                }}
+                onClick={() => { setSelectedPath(p.dir); setCustomPath(''); }}
               >
                 <div className="flex items-center gap-2">
                   {p.isHome ? <Home className="w-4 h-4" /> : <Folder className="w-4 h-4" />}
@@ -824,31 +758,23 @@ function MoveCopyDialog({ open, onClose, item, intermediatePaths, onMove }) {
               </div>
             ))}
           </div>
-
           <div>
             <label className="text-sm font-medium">Or enter custom path:</label>
             <Input
               className="mt-1 font-mono text-sm"
               placeholder="/path/to/directory"
               value={customPath}
-              onChange={(e) => {
-                setCustomPath(e.target.value);
-                setSelectedPath(null);
-              }}
+              onChange={(e) => { setCustomPath(e.target.value); setSelectedPath(null); }}
             />
           </div>
-
           <div className="flex items-center gap-2">
             <Switch checked={merge} onCheckedChange={setMerge} />
             <span className="text-sm">Merge if target exists</span>
           </div>
         </div>
-
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit}>
-            {mode === 'copy' ? 'Copy' : 'Move'}
-          </Button>
+          <Button onClick={handleSubmit}>{mode === 'copy' ? 'Copy' : 'Move'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -927,7 +853,6 @@ function CreateFileDialog({ open, onClose, dir, type, onCreate }) {
         <DialogHeader>
           <DialogTitle>Create {config.label || type}</DialogTitle>
         </DialogHeader>
-
         {needsName && (
           <div>
             <label className="text-sm font-medium">Name</label>
@@ -940,7 +865,6 @@ function CreateFileDialog({ open, onClose, dir, type, onCreate }) {
             />
           </div>
         )}
-
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
           <Button onClick={handleCreate}>Create</Button>
@@ -955,35 +879,42 @@ export default function FileExplorer({ project, onRefresh }) {
   const [folders, setFolders] = useState([]);
   const [intermediatePaths, setIntermediatePaths] = useState([]);
   const [registry, setRegistry] = useState(null);
+  const [templates, setTemplates] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [fileContent, setFileContent] = useState(null);
-  const [expandedFolders, setExpandedFolders] = useState({});
+  const [expandedFolder, setExpandedFolder] = useState(null); // Only one folder expanded at a time
+  const [expandedFolders, setExpandedFolders] = useState({}); // For nested folders within files
   const [loading, setLoading] = useState(true);
 
   // Dialogs
   const [moveCopyDialog, setMoveCopyDialog] = useState({ open: false, item: null });
   const [createDialog, setCreateDialog] = useState({ open: false, dir: null, type: null });
   const [renameDialog, setRenameDialog] = useState({ open: false, item: null });
-  const [newFolderDialog, setNewFolderDialog] = useState(false);
   const [syncDialog, setSyncDialog] = useState(false);
   const [contextMenu, setContextMenu] = useState({ x: 0, y: 0, item: null });
 
-  // User preferences (for sync button visibility)
   const [enabledTools, setEnabledTools] = useState(['claude']);
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [foldersData, pathsData, registryData, configData] = await Promise.all([
+      const [foldersData, pathsData, registryData, configData, templatesData] = await Promise.all([
         api.getClaudeFolders(),
         api.getIntermediatePaths(),
         api.getRegistry(),
         api.getConfig(),
+        api.getTemplates().catch(() => []),
       ]);
       setFolders(foldersData);
       setIntermediatePaths(pathsData);
       setRegistry(registryData);
+      setTemplates(templatesData.templates || templatesData || []);
       setEnabledTools(configData.config?.enabledTools || ['claude']);
+
+      // Auto-expand the first folder (Home) if none expanded
+      if (!expandedFolder && foldersData.length > 0) {
+        setExpandedFolder(foldersData[0].dir);
+      }
     } catch (error) {
       toast.error('Failed to load data: ' + error.message);
     } finally {
@@ -991,13 +922,15 @@ export default function FileExplorer({ project, onRefresh }) {
     }
   }, []);
 
-  // Reload data when project changes
   useEffect(() => {
     loadData();
-    // Clear selection when project changes
     setSelectedItem(null);
     setFileContent(null);
   }, [loadData, project?.dir]);
+
+  const handleToggleFolder = (dir) => {
+    setExpandedFolder(expandedFolder === dir ? null : dir);
+  };
 
   const handleSelectItem = async (item) => {
     setSelectedItem(item);
@@ -1014,7 +947,6 @@ export default function FileExplorer({ project, onRefresh }) {
     try {
       await api.saveClaudeFile(selectedItem.path, content);
       toast.success('Saved');
-      // Reload the file content to reflect changes
       const data = await api.getClaudeFile(selectedItem.path);
       setFileContent(data);
       loadData();
@@ -1023,7 +955,7 @@ export default function FileExplorer({ project, onRefresh }) {
     }
   };
 
-  const handleToggleFolder = (path) => {
+  const handleToggleNestedFolder = (path) => {
     setExpandedFolders((prev) => ({ ...prev, [path]: !prev[path] }));
   };
 
@@ -1032,11 +964,27 @@ export default function FileExplorer({ project, onRefresh }) {
     setContextMenu({ x: e.clientX, y: e.clientY, item });
   };
 
-  const handleCreateFile = (dir, type) => {
+  const handleCreateFile = async (dir, type, templateId = null) => {
+    if (type === 'template' && templateId) {
+      // Apply template
+      try {
+        await api.applyTemplate(templateId, dir);
+        toast.success(`Applied template: ${templateId}`);
+        loadData();
+      } catch (error) {
+        toast.error('Failed to apply template: ' + error.message);
+      }
+      return;
+    }
+
     if (type === 'command' || type === 'rule' || type === 'workflow') {
       setCreateDialog({ open: true, dir, type });
     } else {
-      doCreateFile(dir, type === 'mcps' ? 'mcps.json' : type === 'settings' ? 'settings.json' : 'CLAUDE.md', type);
+      const fileName = type === 'mcps' ? 'mcps.json' :
+                       type === 'settings' ? 'settings.json' :
+                       type === 'env' ? '.env' :
+                       type === 'claudemd' ? 'CLAUDE.md' : 'CLAUDE.md';
+      doCreateFile(dir, fileName, type);
     }
   };
 
@@ -1046,7 +994,6 @@ export default function FileExplorer({ project, onRefresh }) {
       toast.success('Created');
       setCreateDialog({ open: false, dir: null, type: null });
       await loadData();
-      // Select the newly created file
       if (result.path) {
         const newItem = {
           path: result.path,
@@ -1061,18 +1008,6 @@ export default function FileExplorer({ project, onRefresh }) {
     }
   };
 
-  const handleCreateNewFolder = async (dir) => {
-    try {
-      // Create a mcps.json to initialize the .claude folder
-      await api.createClaudeFile(dir, 'mcps.json', 'mcps');
-      toast.success(`Created .claude folder at ${dir}`);
-      setNewFolderDialog(false);
-      loadData();
-    } catch (error) {
-      toast.error('Failed to create: ' + error.message);
-    }
-  };
-
   const handleRename = async (item, newName) => {
     try {
       const result = await api.renameClaudeFile(item.path, newName);
@@ -1080,7 +1015,6 @@ export default function FileExplorer({ project, onRefresh }) {
         toast.success('Renamed');
         setRenameDialog({ open: false, item: null });
         await loadData();
-        // Select the renamed file
         setSelectedItem({ ...item, path: result.newPath, name: newName.endsWith('.md') ? newName : `${newName}.md` });
       } else {
         toast.error(result.error || 'Failed to rename');
@@ -1116,7 +1050,6 @@ export default function FileExplorer({ project, onRefresh }) {
     }
   };
 
-  // Render editor based on file type
   const renderEditor = () => {
     if (!selectedItem || !fileContent) {
       return (
@@ -1152,6 +1085,7 @@ export default function FileExplorer({ project, onRefresh }) {
       case 'rule':
       case 'workflow':
       case 'claudemd':
+      case 'env':
         return (
           <MarkdownEditor
             content={fileContent.content}
@@ -1178,6 +1112,15 @@ export default function FileExplorer({ project, onRefresh }) {
     );
   }
 
+  // Determine folder types
+  const getIsHome = (folder, index) => index === 0;
+  const getIsProject = (folder, index) => {
+    const firstSubprojectIndex = folders.findIndex(f => f.isSubproject);
+    return !folder.isSubproject && (
+      firstSubprojectIndex >= 0 ? index === firstSubprojectIndex - 1 : index === folders.length - 1
+    );
+  };
+
   return (
     <div className="h-full flex">
       {/* Left Panel - Tree View */}
@@ -1185,7 +1128,6 @@ export default function FileExplorer({ project, onRefresh }) {
         <div className="flex items-center justify-between p-3 border-b">
           <h2 className="font-semibold text-sm">Project Config</h2>
           <div className="flex gap-1">
-            {/* Sync button - only show when both Claude and Antigravity are enabled */}
             {enabledTools.includes('claude') && enabledTools.includes('antigravity') && (
               <Button
                 variant="ghost"
@@ -1198,103 +1140,35 @@ export default function FileExplorer({ project, onRefresh }) {
                 Sync
               </Button>
             )}
-            <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => setNewFolderDialog(true)}>
-              <Plus className="w-4 h-4 mr-1" />
-              New
-            </Button>
             <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={loadData}>
               <RefreshCw className="w-4 h-4" />
             </Button>
           </div>
         </div>
         <ScrollArea className="flex-1">
-          {folders.map((folder, index) => {
-            // Find the last non-subproject folder (the main project)
-            const lastNonSubprojectIndex = folders.findIndex(f => f.isSubproject) - 1;
-            const isMainProject = !folder.isSubproject && (
-              lastNonSubprojectIndex >= 0 ? index === lastNonSubprojectIndex : index === folders.length - 1
-            );
-            return (
-            <div key={folder.dir}>
-              <FolderHeader
-                folder={folder}
-                isFirst={index === 0}
-                isLast={isMainProject}
-                isSubproject={folder.isSubproject}
-                onCreateFile={handleCreateFile}
-              />
-              {/* Claude Code .claude folder */}
-              {folder.exists && folder.files.length > 0 ? (
-                <div className="py-1">
-                  <div className="px-3 py-1 text-[10px] font-medium text-orange-600 uppercase tracking-wide flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    Claude Code
-                  </div>
-                  {folder.files.map((file) => (
-                    <TreeItem
-                      key={file.path}
-                      item={file}
-                      selectedPath={selectedItem?.path}
-                      onSelect={handleSelectItem}
-                      onContextMenu={handleContextMenu}
-                      expandedFolders={expandedFolders}
-                      onToggleFolder={handleToggleFolder}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="px-4 py-2 text-sm text-gray-400 italic">
-                  {folder.exists ? 'Empty .claude' : 'No .claude folder'}
-                </div>
-              )}
-              {/* Gemini CLI .gemini folder */}
-              {folder.geminiExists && folder.geminiFiles?.length > 0 && (
-                <div className="py-1 border-t border-dashed border-gray-200 dark:border-slate-700 mt-1">
-                  <div className="px-3 py-1 text-[10px] font-medium text-blue-600 uppercase tracking-wide flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    Gemini CLI
-                  </div>
-                  {folder.geminiFiles.map((file) => (
-                    <TreeItem
-                      key={file.path}
-                      item={file}
-                      selectedPath={selectedItem?.path}
-                      onSelect={handleSelectItem}
-                      onContextMenu={handleContextMenu}
-                      expandedFolders={expandedFolders}
-                      onToggleFolder={handleToggleFolder}
-                    />
-                  ))}
-                </div>
-              )}
-              {/* Antigravity .agent folder */}
-              {folder.agentExists && folder.agentFiles?.length > 0 && (
-                <div className="py-1 border-t border-dashed border-gray-200 dark:border-slate-700 mt-1">
-                  <div className="px-3 py-1 text-[10px] font-medium text-purple-600 uppercase tracking-wide flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    Antigravity
-                  </div>
-                  {folder.agentFiles.map((file) => (
-                    <TreeItem
-                      key={file.path}
-                      item={file}
-                      selectedPath={selectedItem?.path}
-                      onSelect={handleSelectItem}
-                      onContextMenu={handleContextMenu}
-                      expandedFolders={expandedFolders}
-                      onToggleFolder={handleToggleFolder}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-          })}
+          {folders.map((folder, index) => (
+            <FolderRow
+              key={folder.dir}
+              folder={folder}
+              isExpanded={expandedFolder === folder.dir}
+              isHome={getIsHome(folder, index)}
+              isProject={getIsProject(folder, index)}
+              isSubproject={folder.isSubproject}
+              onToggle={() => handleToggleFolder(folder.dir)}
+              onCreateFile={handleCreateFile}
+              onSelectItem={handleSelectItem}
+              selectedPath={selectedItem?.path}
+              onContextMenu={handleContextMenu}
+              expandedFolders={expandedFolders}
+              onToggleFolder={handleToggleNestedFolder}
+              templates={templates}
+            />
+          ))}
         </ScrollArea>
       </div>
 
       {/* Right Panel - Editor */}
-      <div className="flex-1 flex flex-col bg-gray-50 dark:bg-slate-800">
+      <div className="flex-1 flex flex-col bg-gray-50 dark:bg-slate-900">
         {selectedItem && (
           <div className="flex items-center justify-between px-4 py-2 border-b bg-white dark:bg-slate-950">
             <div className="flex items-center gap-2 text-sm">
@@ -1303,18 +1177,10 @@ export default function FileExplorer({ project, onRefresh }) {
               </span>
             </div>
             <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setMoveCopyDialog({ open: true, item: selectedItem })}
-              >
+              <Button variant="ghost" size="sm" onClick={() => setMoveCopyDialog({ open: true, item: selectedItem })}>
                 <Copy className="w-4 h-4" />
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDelete(selectedItem)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => handleDelete(selectedItem)}>
                 <Trash2 className="w-4 h-4" />
               </Button>
             </div>
@@ -1328,62 +1194,43 @@ export default function FileExplorer({ project, onRefresh }) {
       {/* Context Menu */}
       {contextMenu.item && (
         <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setContextMenu({ x: 0, y: 0, item: null })}
-          />
+          <div className="fixed inset-0 z-40" onClick={() => setContextMenu({ x: 0, y: 0, item: null })} />
           <div
             className="fixed z-50 bg-white dark:bg-slate-950 rounded-md shadow-lg border py-1 min-w-[160px]"
             style={{ left: contextMenu.x, top: contextMenu.y }}
           >
             {(contextMenu.item?.type === 'rule' || contextMenu.item?.type === 'command' || contextMenu.item?.type === 'workflow') && (
               <button
-                className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700 flex items-center"
-                onClick={() => {
-                  setRenameDialog({ open: true, item: contextMenu.item });
-                  setContextMenu({ x: 0, y: 0, item: null });
-                }}
+                className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center"
+                onClick={() => { setRenameDialog({ open: true, item: contextMenu.item }); setContextMenu({ x: 0, y: 0, item: null }); }}
               >
-                <Edit3 className="w-4 h-4 mr-2" />
-                Rename
+                <Edit3 className="w-4 h-4 mr-2" /> Rename
               </button>
             )}
             <button
-              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700 flex items-center"
-              onClick={() => {
-                setMoveCopyDialog({ open: true, item: contextMenu.item });
-                setContextMenu({ x: 0, y: 0, item: null });
-              }}
+              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center"
+              onClick={() => { setMoveCopyDialog({ open: true, item: contextMenu.item }); setContextMenu({ x: 0, y: 0, item: null }); }}
             >
-              <Copy className="w-4 h-4 mr-2" />
-              Copy to...
+              <Copy className="w-4 h-4 mr-2" /> Copy to...
             </button>
             <button
-              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700 flex items-center"
-              onClick={() => {
-                setMoveCopyDialog({ open: true, item: contextMenu.item });
-                setContextMenu({ x: 0, y: 0, item: null });
-              }}
+              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center"
+              onClick={() => { setMoveCopyDialog({ open: true, item: contextMenu.item }); setContextMenu({ x: 0, y: 0, item: null }); }}
             >
-              <Move className="w-4 h-4 mr-2" />
-              Move to...
+              <Move className="w-4 h-4 mr-2" /> Move to...
             </button>
             <div className="border-t my-1" />
             <button
-              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700 flex items-center text-red-600"
-              onClick={() => {
-                handleDelete(contextMenu.item);
-                setContextMenu({ x: 0, y: 0, item: null });
-              }}
+              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center text-red-600"
+              onClick={() => { handleDelete(contextMenu.item); setContextMenu({ x: 0, y: 0, item: null }); }}
             >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete
+              <Trash2 className="w-4 h-4 mr-2" /> Delete
             </button>
           </div>
         </>
       )}
 
-      {/* Move/Copy Dialog */}
+      {/* Dialogs */}
       <MoveCopyDialog
         open={moveCopyDialog.open}
         onClose={() => setMoveCopyDialog({ open: false, item: null })}
@@ -1391,8 +1238,6 @@ export default function FileExplorer({ project, onRefresh }) {
         intermediatePaths={intermediatePaths}
         onMove={handleMove}
       />
-
-      {/* Create File Dialog */}
       <CreateFileDialog
         open={createDialog.open}
         onClose={() => setCreateDialog({ open: false, dir: null, type: null })}
@@ -1400,53 +1245,12 @@ export default function FileExplorer({ project, onRefresh }) {
         type={createDialog.type}
         onCreate={doCreateFile}
       />
-
-      {/* Rename Dialog */}
       <RenameDialog
         open={renameDialog.open}
         onClose={() => setRenameDialog({ open: false, item: null })}
         item={renameDialog.item}
         onRename={handleRename}
       />
-
-      {/* New .claude Folder Dialog */}
-      <Dialog open={newFolderDialog} onOpenChange={setNewFolderDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Create New .claude Folder</DialogTitle>
-            <DialogDescription>
-              Select a location to create a new .claude configuration folder
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {intermediatePaths
-              .filter(p => !folders.some(f => f.dir === p.dir))
-              .map((p) => (
-                <div
-                  key={p.dir}
-                  className="flex items-center justify-between p-3 rounded border hover:bg-gray-50 dark:bg-slate-800 cursor-pointer"
-                  onClick={() => handleCreateNewFolder(p.dir)}
-                >
-                  <div className="flex items-center gap-2">
-                    <Folder className="w-4 h-4 text-gray-500 dark:text-slate-400" />
-                    <span className="text-sm font-mono">{p.label}</span>
-                  </div>
-                  <Badge variant="outline" className="text-xs">create</Badge>
-                </div>
-              ))}
-            {intermediatePaths.filter(p => !folders.some(f => f.dir === p.dir)).length === 0 && (
-              <p className="text-sm text-gray-500 dark:text-slate-400 text-center py-4">
-                All intermediate directories already have .claude folders
-              </p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setNewFolderDialog(false)}>Cancel</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Sync Dialog - only available when both tools are enabled */}
       <SyncDialog
         open={syncDialog}
         onOpenChange={setSyncDialog}
