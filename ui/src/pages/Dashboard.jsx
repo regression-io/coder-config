@@ -126,11 +126,11 @@ export default function Dashboard() {
       const active = data.projects?.find(p => p.isActive);
       setActiveProject(active || null);
 
-      // On initial load, set root project from active project
+      // On initial load, set root project from active project's registered path
       if (isInitialLoad && active) {
-        // Fetch project data to get subprojects for root
-        const projectData = await api.getProject();
-        setRootProject({ dir: active.path, subprojects: projectData.subprojects });
+        // Fetch subprojects from the root project path (not current dir)
+        const subData = await api.getSubprojects(active.path);
+        setRootProject({ dir: active.path, subprojects: subData.subprojects || [] });
       }
 
       // On initial load, only show projects view if no active project and no stored view

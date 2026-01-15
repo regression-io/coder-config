@@ -442,6 +442,11 @@ class ConfigUIServer {
           subprojects: this.getSubprojects()
         });
 
+      // Get subprojects for a specific directory
+      case '/api/subprojects':
+        const subDir = query.dir ? path.resolve(query.dir.replace(/^~/, os.homedir())) : this.projectDir;
+        return this.json(res, { subprojects: this.getSubprojectsForDir(subDir) });
+
       // Switch to a different project context
       case '/api/switch-project':
         if (req.method === 'POST') {
@@ -758,17 +763,24 @@ class ConfigUIServer {
    * Find all sub-projects (immediate subdirectories with .git/)
    */
   getSubprojects() {
+    return this.getSubprojectsForDir(this.projectDir);
+  }
+
+  /**
+   * Find all sub-projects in a specific directory
+   */
+  getSubprojectsForDir(dir) {
     const subprojects = [];
 
     try {
-      const entries = fs.readdirSync(this.projectDir, { withFileTypes: true });
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
 
       for (const entry of entries) {
         if (!entry.isDirectory()) continue;
         // Skip hidden folders
         if (entry.name.startsWith('.')) continue;
 
-        const fullPath = path.join(this.projectDir, entry.name);
+        const fullPath = path.join(dir, entry.name);
         const hasGit = fs.existsSync(path.join(fullPath, '.git'));
 
         // Only count as project if it has .git

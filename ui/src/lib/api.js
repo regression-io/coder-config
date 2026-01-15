@@ -34,6 +34,11 @@ export const api = {
     return request('/project');
   },
 
+  // Get subprojects for a specific directory
+  async getSubprojects(dir) {
+    return request(`/subprojects?dir=${encodeURIComponent(dir)}`);
+  },
+
   async switchProject(dir) {
     return request('/switch-project', {
       method: 'POST',
