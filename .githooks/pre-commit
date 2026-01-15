@@ -1,0 +1,39 @@
+#!/bin/bash
+# Auto-bump patch version before every commit
+
+# Skip if this is an amend or if SKIP_VERSION_BUMP is set
+if [ -n "$SKIP_VERSION_BUMP" ]; then
+  exit 0
+fi
+
+# Skip if we're in a rebase or merge
+if [ -d ".git/rebase-merge" ] || [ -d ".git/rebase-apply" ] || [ -f ".git/MERGE_HEAD" ]; then
+  exit 0
+fi
+
+# Get current version
+CURRENT_VERSION=$(node -p "require('./package.json').version" 2>/dev/null)
+if [ -z "$CURRENT_VERSION" ]; then
+  exit 0
+fi
+
+# Parse and bump patch version
+IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+PATCH=$((PATCH + 1))
+NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+
+# Update package.json
+node -e "
+const fs = require('fs');
+const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+pkg.version = '$NEW_VERSION';
+fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+"
+
+# Sync to other files
+npm run version:sync --silent 2>/dev/null
+
+# Stage version files
+git add package.json config-loader.js ui/package.json 2>/dev/null
+
+echo "📦 Version bumped: $CURRENT_VERSION -> $NEW_VERSION"
