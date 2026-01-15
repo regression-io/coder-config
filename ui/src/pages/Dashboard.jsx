@@ -26,9 +26,9 @@ import {
 } from "@/views";
 
 const navItems = [
-  { id: 'explorer', label: 'File Explorer', icon: FolderOpen, section: 'Projects' },
-  { id: 'subprojects', label: 'Sub-Projects', icon: Folder, section: 'Projects', badge: 'subprojects' },
   { id: 'projects', label: 'All Projects', icon: Layers, section: 'Projects' },
+  { id: 'explorer', label: 'Project Explorer', icon: FolderOpen, section: 'Projects' },
+  { id: 'subprojects', label: 'Sub-Projects', icon: Folder, section: 'Projects', badge: 'subprojects' },
   { id: 'registry', label: 'MCP Registry', icon: Package, section: 'Configuration' },
   { id: 'memory', label: 'Memory', icon: Brain, section: 'Configuration' },
   { id: 'claude-settings', label: 'Claude Code', icon: Shield, section: 'Configuration' },
