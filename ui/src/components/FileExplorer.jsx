@@ -89,6 +89,12 @@ const FILE_CONFIG = {
     bgColor: 'bg-orange-50',
     label: 'CLAUDE.md',
   },
+  geminimd: {
+    icon: FileText,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+    label: 'GEMINI.md',
+  },
   folder: {
     icon: Folder,
     color: 'text-yellow-600',
@@ -1139,7 +1145,7 @@ export default function FileExplorer({ project, onRefresh }) {
       {/* Left Panel - Tree View */}
       <div className="w-72 border-r flex flex-col bg-white">
         <div className="flex items-center justify-between p-3 border-b">
-          <h2 className="font-semibold text-sm">.claude Folders</h2>
+          <h2 className="font-semibold text-sm">Project Config</h2>
           <div className="flex gap-1">
             <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => setNewFolderDialog(true)}>
               <Plus className="w-4 h-4 mr-1" />
@@ -1159,8 +1165,13 @@ export default function FileExplorer({ project, onRefresh }) {
                 isLast={index === folders.length - 1}
                 onCreateFile={handleCreateFile}
               />
+              {/* Claude Code .claude folder */}
               {folder.exists && folder.files.length > 0 ? (
                 <div className="py-1">
+                  <div className="px-3 py-1 text-[10px] font-medium text-orange-600 uppercase tracking-wide flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    Claude Code
+                  </div>
                   {folder.files.map((file) => (
                     <TreeItem
                       key={file.path}
@@ -1174,8 +1185,28 @@ export default function FileExplorer({ project, onRefresh }) {
                   ))}
                 </div>
               ) : (
-                <div className="px-4 py-3 text-sm text-gray-400 italic">
-                  {folder.exists ? 'Empty' : 'No .claude folder'}
+                <div className="px-4 py-2 text-sm text-gray-400 italic">
+                  {folder.exists ? 'Empty .claude' : 'No .claude folder'}
+                </div>
+              )}
+              {/* Antigravity .agent folder */}
+              {folder.agentExists && folder.agentFiles?.length > 0 && (
+                <div className="py-1 border-t border-dashed border-gray-200 mt-1">
+                  <div className="px-3 py-1 text-[10px] font-medium text-blue-600 uppercase tracking-wide flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    Antigravity
+                  </div>
+                  {folder.agentFiles.map((file) => (
+                    <TreeItem
+                      key={file.path}
+                      item={file}
+                      selectedPath={selectedItem?.path}
+                      onSelect={handleSelectItem}
+                      onContextMenu={handleContextMenu}
+                      expandedFolders={expandedFolders}
+                      onToggleFolder={handleToggleFolder}
+                    />
+                  ))}
                 </div>
               )}
             </div>

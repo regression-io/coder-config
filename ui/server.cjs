@@ -55,7 +55,9 @@ class ConfigUIServer {
       ui: {
         port: 3333,
         openBrowser: true
-      }
+      },
+      // Enabled AI coding tools (generates configs for each)
+      enabledTools: ['claude']  // Options: 'claude', 'antigravity'
     };
 
     try {
@@ -976,8 +978,25 @@ class ConfigUIServer {
 
   applyConfig(dir) {
     const targetDir = dir || this.projectDir;
-    const result = this.manager.apply(targetDir);
-    return { success: result };
+    const enabledTools = this.config.enabledTools || ['claude'];
+
+    // Use multi-tool apply
+    const results = this.manager.applyForTools(targetDir, enabledTools);
+
+    // Build response with details for each tool
+    const toolResults = {};
+    let anySuccess = false;
+
+    for (const [tool, success] of Object.entries(results)) {
+      toolResults[tool] = success;
+      if (success) anySuccess = true;
+    }
+
+    return {
+      success: anySuccess,
+      tools: toolResults,
+      enabledTools
+    };
   }
 
   getEnv(dir) {
@@ -1430,8 +1449,9 @@ class ConfigUIServer {
   }
 
   /**
-   * Get full .claude folder contents for each hierarchy level
+   * Get full .claude and .agent folder contents for each hierarchy level
    * Returns tree structure suitable for file explorer
+   * Supports both Claude Code and Antigravity
    */
   getClaudeFolders() {
     // Only get paths that have .claude folders
@@ -1442,6 +1462,7 @@ class ConfigUIServer {
     for (const c of configs) {
       const dir = c.dir;
       const claudeDir = path.join(dir, '.claude');
+      const agentDir = path.join(dir, '.agent');
       // Use actual path with ~ for home
       let label = dir;
       if (dir === home) {
@@ -1453,10 +1474,14 @@ class ConfigUIServer {
         dir: dir,
         label,
         claudePath: claudeDir,
+        agentPath: agentDir,
         exists: fs.existsSync(claudeDir),
-        files: []
+        agentExists: fs.existsSync(agentDir),
+        files: [],
+        agentFiles: []
       };
 
+      // Scan .claude folder
       if (folder.exists) {
         // Check for mcps.json
         const mcpsPath = path.join(claudeDir, 'mcps.json');
@@ -1557,6 +1582,30 @@ class ConfigUIServer {
         }
       }
 
+      // Scan .agent folder (Antigravity)
+      if (folder.agentExists) {
+        // Check for rules folder
+        const agentRulesDir = path.join(agentDir, 'rules');
+        if (fs.existsSync(agentRulesDir)) {
+          const rules = fs.readdirSync(agentRulesDir)
+            .filter(f => f.endsWith('.md'))
+            .map(f => ({
+              name: f,
+              path: path.join(agentRulesDir, f),
+              type: 'rule',
+              size: fs.statSync(path.join(agentRulesDir, f)).size
+            }));
+          if (rules.length > 0) {
+            folder.agentFiles.push({
+              name: 'rules',
+              path: agentRulesDir,
+              type: 'folder',
+              children: rules
+            });
+          }
+        }
+      }
+
       // Also check for CLAUDE.md at project root
       const rootClaudeMd = path.join(dir, 'CLAUDE.md');
       if (fs.existsSync(rootClaudeMd)) {
@@ -1565,6 +1614,18 @@ class ConfigUIServer {
           path: rootClaudeMd,
           type: 'claudemd',
           size: fs.statSync(rootClaudeMd).size,
+          isRoot: true
+        });
+      }
+
+      // Check for GEMINI.md at project root (Antigravity)
+      const rootGeminiMd = path.join(dir, 'GEMINI.md');
+      if (fs.existsSync(rootGeminiMd)) {
+        folder.agentFiles.push({
+          name: 'GEMINI.md (root)',
+          path: rootGeminiMd,
+          type: 'geminimd',
+          size: fs.statSync(rootGeminiMd).size,
           isRoot: true
         });
       }

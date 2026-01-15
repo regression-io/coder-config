@@ -257,8 +257,20 @@ export default function Dashboard() {
 
   const handleApplyConfig = async () => {
     try {
-      await api.applyConfig(project.dir);
-      toast.success('Configuration applied successfully!');
+      const result = await api.applyConfig(project.dir);
+      // Show which tools were updated
+      if (result.tools) {
+        const updated = Object.entries(result.tools)
+          .filter(([, success]) => success)
+          .map(([tool]) => tool === 'claude' ? 'Claude Code' : 'Antigravity');
+        if (updated.length > 0) {
+          toast.success(`Config applied to: ${updated.join(', ')}`);
+        } else {
+          toast.warning('No tools were updated');
+        }
+      } else {
+        toast.success('Configuration applied successfully!');
+      }
     } catch (error) {
       toast.error('Failed to apply config: ' + error.message);
     }

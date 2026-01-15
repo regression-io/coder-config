@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wrench, Folder, Layout, FileText, Save, Loader2, RefreshCw, Download, FolderOpen, Plus, X, FolderPlus } from 'lucide-react';
+import { Wrench, Folder, Layout, FileText, Save, Loader2, RefreshCw, Download, FolderOpen, Plus, X, FolderPlus, Cpu, Sparkles } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -92,6 +92,18 @@ export default function PreferencesView() {
       ...prev,
       [parent]: { ...prev[parent], [key]: value }
     }));
+  };
+
+  const toggleTool = (tool) => {
+    const currentTools = config?.enabledTools || ['claude'];
+    if (currentTools.includes(tool)) {
+      // Don't allow disabling all tools
+      if (currentTools.length > 1) {
+        updateConfig('enabledTools', currentTools.filter(t => t !== tool));
+      }
+    } else {
+      updateConfig('enabledTools', [...currentTools, tool]);
+    }
   };
 
   if (loading) {
@@ -265,6 +277,60 @@ export default function PreferencesView() {
                   onCheckedChange={(checked) => updateNestedConfig('ui', 'openBrowser', checked)}
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Enabled AI Tools Section */}
+          <div className="border-b border-border pb-6">
+            <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+              <Cpu className="w-4 h-4" />
+              Enabled AI Tools
+            </h3>
+            <p className="text-xs text-muted-foreground mb-4">
+              Select which AI coding tools to generate MCP configurations for. The Apply button will update all enabled tools.
+            </p>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-md bg-orange-500/10 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-orange-500" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-foreground">Claude Code</label>
+                    <p className="text-xs text-muted-foreground">
+                      Anthropic's AI coding assistant • Output: <code className="text-xs">.mcp.json</code>
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={(config?.enabledTools || ['claude']).includes('claude')}
+                  onCheckedChange={() => toggleTool('claude')}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-md bg-blue-500/10 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-blue-500" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-foreground">Antigravity</label>
+                    <p className="text-xs text-muted-foreground">
+                      Google's AI coding assistant • Output: <code className="text-xs">~/.gemini/antigravity/mcp_config.json</code>
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={(config?.enabledTools || ['claude']).includes('antigravity')}
+                  onCheckedChange={() => toggleTool('antigravity')}
+                />
+              </div>
+
+              <p className="text-xs text-muted-foreground italic">
+                Note: Antigravity does not support environment variable interpolation (<code>$&#123;VAR&#125;</code>).
+                Variables are resolved to actual values when generating its config.
+              </p>
             </div>
           </div>
 

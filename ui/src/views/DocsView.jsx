@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import {
   BookOpen, Folder, Package, Brain, Settings, Terminal,
   Layout, Lock, Layers, ChevronRight, ExternalLink, Keyboard,
-  Wand2, RefreshCw, Shield, FileText, HelpCircle
+  Wand2, RefreshCw, Shield, FileText, HelpCircle, Sparkles
 } from 'lucide-react';
 
 const docSections = [
@@ -93,6 +93,16 @@ const docSections = [
       { id: 'cli-overview', title: 'Overview' },
       { id: 'cli-commands', title: 'All Commands' },
       { id: 'daemon-mode', title: 'Daemon Mode' },
+    ]
+  },
+  {
+    id: 'multi-tool',
+    title: 'Multi-Tool Support',
+    icon: Sparkles,
+    subsections: [
+      { id: 'antigravity', title: 'Antigravity Support' },
+      { id: 'tool-differences', title: 'Tool Differences' },
+      { id: 'enabling-tools', title: 'Enabling Tools' },
     ]
   },
   {
@@ -1224,6 +1234,112 @@ claude-config ui -f
 ### Logs
 
 Daemon logs are stored in \`~/.claude-config/ui.log\`
+    `
+  },
+
+  // Multi-Tool Support
+  'antigravity': {
+    title: 'Antigravity Support',
+    content: `
+## Antigravity Support
+
+claude-config now supports **Antigravity** (Google's AI coding assistant) in addition to Claude Code.
+
+### How It Works
+
+Both tools use the **MCP (Model Context Protocol)** for server configurations. claude-config manages a shared registry and generates tool-specific output files:
+
+| Tool | Output Location |
+|------|-----------------|
+| Claude Code | \`.mcp.json\` (project root) |
+| Antigravity | \`~/.gemini/antigravity/mcp_config.json\` |
+
+### Key Difference
+
+**Environment Variables:**
+- **Claude Code** supports \`\${VAR}\` interpolation in configs
+- **Antigravity** requires resolved paths (no \`\${VAR}\` syntax)
+
+When generating Antigravity configs, claude-config automatically resolves all environment variables to their actual values.
+
+### Project Files
+
+| Purpose | Claude Code | Antigravity |
+|---------|-------------|-------------|
+| Config folder | \`.claude/\` | \`.agent/\` |
+| Rules | \`.claude/rules/*.md\` | \`.agent/rules/*.md\` |
+| Instructions | \`CLAUDE.md\` | \`GEMINI.md\` |
+    `
+  },
+  'tool-differences': {
+    title: 'Tool Differences',
+    content: `
+## Tool Differences
+
+### Configuration Formats
+
+Both tools use identical JSON format for MCP server definitions:
+
+\`\`\`json
+{
+  "mcpServers": {
+    "server-name": {
+      "command": "npx",
+      "args": ["-y", "@some/server"],
+      "env": { "API_KEY": "..." }
+    }
+  }
+}
+\`\`\`
+
+### Feature Comparison
+
+| Feature | Claude Code | Antigravity |
+|---------|-------------|-------------|
+| MCP Config | \`.mcp.json\` | Global config |
+| Env Interpolation | Yes (\`\${VAR}\`) | No |
+| Commands | \`.claude/commands/\` | Not supported |
+| Workflows | \`.claude/workflows/\` | Not supported |
+| Rules | \`.claude/rules/\` | \`.agent/rules/\` |
+
+### What This Means
+
+- Your MCP registry is shared between tools
+- When you click "Apply Config", both tools get updated
+- Rules need to be managed separately (sync feature coming soon)
+    `
+  },
+  'enabling-tools': {
+    title: 'Enabling Tools',
+    content: `
+## Enabling Tools
+
+Control which tools receive configuration updates.
+
+### Via Preferences UI
+
+1. Go to **Preferences** in the sidebar
+2. Find the **Enabled AI Tools** section
+3. Toggle tools on/off:
+   - **Claude Code** - Writes to \`.mcp.json\`
+   - **Antigravity** - Writes to \`~/.gemini/antigravity/mcp_config.json\`
+
+### Apply Behavior
+
+When you click **Apply Config**:
+- Config is generated for ALL enabled tools
+- Toast notification shows which tools were updated
+- Each tool receives its format-specific output
+
+### Config File
+
+Tool preferences are stored in \`~/.claude/config.json\`:
+
+\`\`\`json
+{
+  "enabledTools": ["claude", "antigravity"]
+}
+\`\`\`
     `
   },
 

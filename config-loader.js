@@ -19,7 +19,33 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const VERSION = '0.16.17';
+const VERSION = '0.20.1';
+
+// Tool-specific path configurations
+const TOOL_PATHS = {
+  claude: {
+    name: 'Claude Code',
+    globalConfig: '~/.claude/mcps.json',
+    globalSettings: '~/.claude/settings.json',
+    projectFolder: '.claude',
+    projectRules: '.claude/rules',
+    projectCommands: '.claude/commands',
+    projectWorkflows: '.claude/workflows',
+    projectInstructions: 'CLAUDE.md',
+    outputFile: '.mcp.json',
+    supportsEnvInterpolation: true,
+  },
+  antigravity: {
+    name: 'Antigravity',
+    globalConfig: '~/.gemini/antigravity/mcp_config.json',
+    globalRules: '~/.gemini/GEMINI.md',
+    projectFolder: '.agent',
+    projectRules: '.agent/rules',
+    projectInstructions: 'GEMINI.md',
+    outputFile: null, // Writes directly to globalConfig
+    supportsEnvInterpolation: false, // Must resolve to actual values
+  },
+};
 
 class ClaudeConfigManager {
   constructor() {
@@ -477,6 +503,125 @@ class ClaudeConfigManager {
     console.log(`  └─ ${count} MCP(s): ${Object.keys(output.mcpServers).join(', ')}`);
 
     return true;
+  }
+
+  /**
+   * Resolve ${VAR} to actual values (for tools that don't support interpolation)
+   */
+  resolveEnvVars(obj, env) {
+    if (typeof obj === 'string') {
+      return obj.replace(/\$\{([^}]+)\}/g, (match, varName) => {
+        const value = env[varName] || process.env[varName];
+        if (!value) {
+          console.warn(`Warning: Environment variable ${varName} not set`);
+          return ''; // Return empty instead of keeping ${VAR}
+        }
+        return value;
+      });
+    }
+    if (Array.isArray(obj)) {
+      return obj.map(v => this.resolveEnvVars(v, env));
+    }
+    if (obj && typeof obj === 'object') {
+      const result = {};
+      for (const [key, value] of Object.entries(obj)) {
+        result[key] = this.resolveEnvVars(value, env);
+      }
+      return result;
+    }
+    return obj;
+  }
+
+  /**
+   * Generate MCP config for Antigravity
+   */
+  applyForAntigravity(projectDir = null) {
+    const dir = projectDir || this.findProjectRoot() || process.cwd();
+    const paths = TOOL_PATHS.antigravity;
+
+    const registry = this.loadJson(this.registryPath);
+    if (!registry) {
+      console.error('Error: Could not load MCP registry');
+      return false;
+    }
+
+    // Find and load all configs in hierarchy (from .claude folders)
+    const configLocations = this.findAllConfigs(dir);
+
+    if (configLocations.length === 0) {
+      console.error(`No .claude/mcps.json found in ${dir} or parent directories`);
+      return false;
+    }
+
+    // Load all configs and merge
+    const loadedConfigs = configLocations.map(loc => ({
+      ...loc,
+      config: this.loadJson(loc.configPath)
+    }));
+    const mergedConfig = this.mergeConfigs(loadedConfigs);
+
+    // Collect env vars from all levels
+    const globalEnvPath = path.join(path.dirname(this.registryPath), '.env');
+    let env = this.loadEnvFile(globalEnvPath);
+
+    for (const { dir: d } of configLocations) {
+      const envPath = path.join(d, '.claude', '.env');
+      env = { ...env, ...this.loadEnvFile(envPath) };
+    }
+
+    const output = { mcpServers: {} };
+
+    // Add MCPs from include list
+    if (mergedConfig.include && Array.isArray(mergedConfig.include)) {
+      for (const name of mergedConfig.include) {
+        if (registry.mcpServers && registry.mcpServers[name]) {
+          // Resolve env vars to actual values (Antigravity doesn't support ${VAR})
+          output.mcpServers[name] = this.resolveEnvVars(registry.mcpServers[name], env);
+        }
+      }
+    }
+
+    // Add custom mcpServers
+    if (mergedConfig.mcpServers) {
+      for (const [name, config] of Object.entries(mergedConfig.mcpServers)) {
+        if (name.startsWith('_')) continue;
+        output.mcpServers[name] = this.resolveEnvVars(config, env);
+      }
+    }
+
+    // Expand ~ in output path
+    const outputPath = paths.globalConfig.replace(/^~/, process.env.HOME || '');
+
+    // Ensure directory exists
+    const outputDir = path.dirname(outputPath);
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    this.saveJson(outputPath, output);
+
+    const count = Object.keys(output.mcpServers).length;
+    console.log(`✓ Generated ${outputPath} (Antigravity)`);
+    console.log(`  └─ ${count} MCP(s): ${Object.keys(output.mcpServers).join(', ')}`);
+
+    return true;
+  }
+
+  /**
+   * Apply config for multiple tools based on preferences
+   */
+  applyForTools(projectDir = null, tools = ['claude']) {
+    const results = {};
+
+    for (const tool of tools) {
+      if (tool === 'claude') {
+        results.claude = this.apply(projectDir);
+      } else if (tool === 'antigravity') {
+        results.antigravity = this.applyForAntigravity(projectDir);
+      }
+    }
+
+    return results;
   }
 
   /**
