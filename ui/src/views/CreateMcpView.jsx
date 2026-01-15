@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Wand2, Plus, FileCode, Plug, FileText, Package,
   Terminal as TerminalIcon, Loader2
@@ -9,8 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import api from "@/lib/api";
 
 const MCP_TOOLS_DIR = '~/reg/tools';
+
+const AI_ASSISTANTS = {
+  claude: { name: 'Claude Code', command: 'claude', color: 'orange' },
+  gemini: { name: 'Gemini CLI', command: 'gemini', color: 'blue' },
+};
 
 export default function CreateMcpView({ project }) {
   const [mcpName, setMcpName] = useState('');
@@ -19,6 +25,22 @@ export default function CreateMcpView({ project }) {
   const [showTerminal, setShowTerminal] = useState(false);
   const [terminalCommand, setTerminalCommand] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [aiAssistant, setAiAssistant] = useState('claude');
+
+  useEffect(() => {
+    loadPreferences();
+  }, []);
+
+  const loadPreferences = async () => {
+    try {
+      const data = await api.getConfig();
+      setAiAssistant(data.config?.aiAssistant || 'claude');
+    } catch (error) {
+      console.error('Failed to load preferences:', error);
+    }
+  };
+
+  const assistant = AI_ASSISTANTS[aiAssistant] || AI_ASSISTANTS.claude;
 
   const handleCreate = () => {
     if (!mcpName.trim()) {
@@ -26,7 +48,7 @@ export default function CreateMcpView({ project }) {
       return;
     }
 
-    // Generate scaffold command for Claude Code
+    // Generate scaffold prompt
     const scaffoldPrompt = `Create a new MCP server project called "${mcpName}" with the following:
 - Use Python with uv for package management
 - Use FastMCP framework
@@ -35,8 +57,8 @@ export default function CreateMcpView({ project }) {
 - Include a pyproject.toml configured for uv
 - Add a README.md with usage instructions`;
 
-    // Start terminal with claude command
-    setTerminalCommand(`cd "${outputDir}" && claude "${scaffoldPrompt}"`);
+    // Start terminal with selected AI assistant command
+    setTerminalCommand(`cd "${outputDir}" && ${assistant.command} "${scaffoldPrompt}"`);
     setShowTerminal(true);
     setIsCreating(true);
   };
@@ -71,7 +93,7 @@ export default function CreateMcpView({ project }) {
               Create MCP Server
             </h1>
             <p className="text-gray-500 dark:text-slate-400 mt-1">
-              Generate a new MCP server project with Claude Code assistance
+              Generate a new MCP server project with {assistant.name} assistance
             </p>
           </div>
           {showTerminal && (
@@ -171,7 +193,7 @@ export default function CreateMcpView({ project }) {
                 disabled={!mcpName.trim()}
               >
                 <Wand2 className="w-4 h-4 mr-2" />
-                Create & Launch Claude Code
+                Create & Launch {assistant.name}
               </Button>
             )}
           </div>
@@ -183,7 +205,7 @@ export default function CreateMcpView({ project }) {
             <div className="flex-none px-4 py-2 border-b border-gray-700 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <TerminalIcon className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-300">Claude Code Terminal</span>
+                <span className="text-sm text-gray-300">{assistant.name} Terminal</span>
               </div>
               <div className="flex items-center gap-2">
                 {isCreating && (

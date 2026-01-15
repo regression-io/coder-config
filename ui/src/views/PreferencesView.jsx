@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wrench, Folder, Layout, FileText, Save, Loader2, RefreshCw, Download, FolderOpen, Plus, X, FolderPlus, Cpu, Sparkles } from 'lucide-react';
+import { Wrench, Folder, Layout, FileText, Save, Loader2, RefreshCw, Download, FolderOpen, Plus, X, FolderPlus, Cpu, Sparkles, Bot, Terminal } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -277,6 +277,79 @@ export default function PreferencesView() {
                   onCheckedChange={(checked) => updateNestedConfig('ui', 'openBrowser', checked)}
                 />
               </div>
+            </div>
+          </div>
+
+          {/* AI Assistant Section */}
+          <div className="border-b border-border pb-6">
+            <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+              <Bot className="w-4 h-4" />
+              AI Assistant
+            </h3>
+            <p className="text-xs text-muted-foreground mb-4">
+              Choose which AI assistant to use for features like MCP creation and tool import.
+            </p>
+
+            <div className="space-y-2">
+              <label
+                className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border-2 transition-colors ${
+                  (config?.aiAssistant || 'claude') === 'claude'
+                    ? 'border-orange-500 bg-orange-500/5'
+                    : 'border-transparent bg-muted/50 hover:bg-muted'
+                }`}
+                onClick={() => updateConfig('aiAssistant', 'claude')}
+              >
+                <input
+                  type="radio"
+                  name="aiAssistant"
+                  value="claude"
+                  checked={(config?.aiAssistant || 'claude') === 'claude'}
+                  onChange={() => updateConfig('aiAssistant', 'claude')}
+                  className="sr-only"
+                />
+                <div className="w-8 h-8 rounded-md bg-orange-500/10 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-orange-500" />
+                </div>
+                <div className="flex-1">
+                  <span className="text-sm font-medium text-foreground">Claude Code</span>
+                  <p className="text-xs text-muted-foreground">
+                    Anthropic's AI coding assistant • Command: <code className="text-xs">claude</code>
+                  </p>
+                </div>
+                {(config?.aiAssistant || 'claude') === 'claude' && (
+                  <div className="w-2 h-2 rounded-full bg-orange-500" />
+                )}
+              </label>
+
+              <label
+                className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border-2 transition-colors ${
+                  config?.aiAssistant === 'gemini'
+                    ? 'border-blue-500 bg-blue-500/5'
+                    : 'border-transparent bg-muted/50 hover:bg-muted'
+                }`}
+                onClick={() => updateConfig('aiAssistant', 'gemini')}
+              >
+                <input
+                  type="radio"
+                  name="aiAssistant"
+                  value="gemini"
+                  checked={config?.aiAssistant === 'gemini'}
+                  onChange={() => updateConfig('aiAssistant', 'gemini')}
+                  className="sr-only"
+                />
+                <div className="w-8 h-8 rounded-md bg-blue-500/10 flex items-center justify-center">
+                  <Terminal className="w-4 h-4 text-blue-500" />
+                </div>
+                <div className="flex-1">
+                  <span className="text-sm font-medium text-foreground">Gemini CLI</span>
+                  <p className="text-xs text-muted-foreground">
+                    Google's AI coding assistant • Command: <code className="text-xs">gemini</code>
+                  </p>
+                </div>
+                {config?.aiAssistant === 'gemini' && (
+                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                )}
+              </label>
             </div>
           </div>
 

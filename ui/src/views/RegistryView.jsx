@@ -44,6 +44,11 @@ const setStoredState = (key, value) => {
   }
 };
 
+const AI_ASSISTANTS = {
+  claude: { name: 'Claude Code', command: 'claude', color: 'orange' },
+  gemini: { name: 'Gemini CLI', command: 'gemini', color: 'blue' },
+};
+
 export default function RegistryView({ registry, searchQuery, setSearchQuery, onUpdate }) {
   const [searchMode, setSearchModeState] = useState(() => getStoredState('registrySearchMode', 'local'));
   const setSearchMode = (mode) => {
@@ -59,6 +64,22 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
   const [toolsDir, setToolsDir] = useState('');
   const [importDialog, setImportDialog] = useState({ open: false, url: '', showTerminal: false, localTool: null, pastedConfig: '', mode: 'url' });
   const [folderPath, setFolderPath] = useState('');
+  const [aiAssistant, setAiAssistant] = useState('claude');
+
+  // Load AI assistant preference
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        const data = await api.getConfig();
+        setAiAssistant(data.config?.aiAssistant || 'claude');
+      } catch (error) {
+        console.error('Failed to load preferences:', error);
+      }
+    };
+    loadPreferences();
+  }, []);
+
+  const assistant = AI_ASSISTANTS[aiAssistant] || AI_ASSISTANTS.claude;
 
   const mcps = Object.entries(registry.mcpServers || {});
   const filtered = mcps.filter(([name]) =>
@@ -217,20 +238,20 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
     setImportDialog(prev => ({ ...prev, showTerminal: true }));
   };
 
-  // Get import command for Claude Code
+  // Get import command for selected AI assistant
   const getImportCommand = () => {
     // Local tool import - use single quotes and escape properly for zsh
     if (importDialog.localTool) {
       const tool = importDialog.localTool;
       // Use a simpler prompt that avoids special characters
       const prompt = `Analyze the MCP server at ${tool.path}. Read the README and source files to understand how to run it. Output a JSON config block with name, command, args array, and description for the MCP registry. Be specific about the exact command needed.`;
-      return `cd '${tool.path}' && claude '${prompt}'`;
+      return `cd '${tool.path}' && ${assistant.command} '${prompt}'`;
     }
 
     // URL import
     const url = importDialog.url.trim();
     const prompt = `Clone ${url} into ~/reg/tools. Read the README, determine if Python or Node MCP server, and output a JSON config block with name, command, args, and description.`;
-    return `cd ~/reg/tools && claude '${prompt}'`;
+    return `cd ~/reg/tools && ${assistant.command} '${prompt}'`;
   };
 
   // Start importing local tool with Claude
@@ -785,10 +806,10 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
             </DialogTitle>
             <DialogDescription>
               {importDialog.localTool
-                ? `Claude Code will analyze ${importDialog.localTool.name} and generate the correct configuration.`
+                ? `${assistant.name} will analyze ${importDialog.localTool.name} and generate the correct configuration.`
                 : importDialog.mode === 'folder'
-                ? 'Enter the path to a local MCP server folder. Claude Code will analyze it and generate the configuration.'
-                : 'Enter a GitHub repository URL. Claude Code will clone it, read the README, and help configure it.'
+                ? `Enter the path to a local MCP server folder. ${assistant.name} will analyze it and generate the configuration.`
+                : `Enter a GitHub repository URL. ${assistant.name} will clone it, read the README, and help configure it.`
               }
             </DialogDescription>
           </DialogHeader>
@@ -838,12 +859,12 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >
                     <Wand2 className="w-4 h-4 mr-2" />
-                    Analyze with Claude
+                    Analyze with {assistant.name}
                   </Button>
                 ) : (
                   <Button onClick={startImport} className="bg-purple-600 hover:bg-purple-700 text-white">
                     <Wand2 className="w-4 h-4 mr-2" />
-                    Import with Claude
+                    Import with {assistant.name}
                   </Button>
                 )}
               </DialogFooter>
