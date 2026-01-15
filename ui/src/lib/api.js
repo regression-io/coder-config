@@ -273,6 +273,21 @@ export const api = {
     });
   },
 
+  // Tool Sync (Claude <-> Antigravity)
+  async getSyncPreview(dir, source = 'claude', target = 'antigravity') {
+    return request('/sync/preview', {
+      method: 'POST',
+      body: { dir, source, target },
+    });
+  },
+
+  async syncRules(dir, source = 'claude', target = 'antigravity', files = null) {
+    return request('/sync/rules', {
+      method: 'POST',
+      body: { dir, source, target, files },
+    });
+  },
+
   async moveClaudeItem(sourcePath, targetDir, mode = 'copy', merge = false) {
     return request('/claude-move', {
       method: 'POST',

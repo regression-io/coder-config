@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import ClaudeSettingsEditor from './ClaudeSettingsEditor';
+import SyncDialog from './SyncDialog';
 import { ScrollArea } from './ui/scroll-area';
 import { Badge } from './ui/badge';
 import { Switch } from './ui/switch';
@@ -49,6 +50,7 @@ import {
   Save,
   X,
   GitBranch,
+  ArrowLeftRight,
 } from 'lucide-react';
 
 // File type icons and colors
@@ -934,19 +936,25 @@ export default function FileExplorer({ project, onRefresh }) {
   const [createDialog, setCreateDialog] = useState({ open: false, dir: null, type: null });
   const [renameDialog, setRenameDialog] = useState({ open: false, item: null });
   const [newFolderDialog, setNewFolderDialog] = useState(false);
+  const [syncDialog, setSyncDialog] = useState(false);
   const [contextMenu, setContextMenu] = useState({ x: 0, y: 0, item: null });
+
+  // User preferences (for sync button visibility)
+  const [enabledTools, setEnabledTools] = useState(['claude']);
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [foldersData, pathsData, registryData] = await Promise.all([
+      const [foldersData, pathsData, registryData, configData] = await Promise.all([
         api.getClaudeFolders(),
         api.getIntermediatePaths(),
         api.getRegistry(),
+        api.getConfig(),
       ]);
       setFolders(foldersData);
       setIntermediatePaths(pathsData);
       setRegistry(registryData);
+      setEnabledTools(configData.config?.enabledTools || ['claude']);
     } catch (error) {
       toast.error('Failed to load data: ' + error.message);
     } finally {
@@ -1147,6 +1155,19 @@ export default function FileExplorer({ project, onRefresh }) {
         <div className="flex items-center justify-between p-3 border-b">
           <h2 className="font-semibold text-sm">Project Config</h2>
           <div className="flex gap-1">
+            {/* Sync button - only show when both Claude and Antigravity are enabled */}
+            {enabledTools.includes('claude') && enabledTools.includes('antigravity') && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2"
+                onClick={() => setSyncDialog(true)}
+                title="Sync rules between tools"
+              >
+                <ArrowLeftRight className="w-4 h-4 mr-1" />
+                Sync
+              </Button>
+            )}
             <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => setNewFolderDialog(true)}>
               <Plus className="w-4 h-4 mr-1" />
               New
@@ -1366,6 +1387,14 @@ export default function FileExplorer({ project, onRefresh }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Sync Dialog - only available when both tools are enabled */}
+      <SyncDialog
+        open={syncDialog}
+        onOpenChange={setSyncDialog}
+        projectDir={project?.dir}
+        onSynced={loadData}
+      />
     </div>
   );
 }

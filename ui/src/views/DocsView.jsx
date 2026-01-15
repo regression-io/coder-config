@@ -103,6 +103,7 @@ const docSections = [
       { id: 'antigravity', title: 'Antigravity Support' },
       { id: 'tool-differences', title: 'Tool Differences' },
       { id: 'enabling-tools', title: 'Enabling Tools' },
+      { id: 'syncing-rules', title: 'Syncing Rules' },
     ]
   },
   {
@@ -1340,6 +1341,46 @@ Tool preferences are stored in \`~/.claude/config.json\`:
   "enabledTools": ["claude", "antigravity"]
 }
 \`\`\`
+    `
+  },
+  'syncing-rules': {
+    title: 'Syncing Rules',
+    content: `
+## Syncing Rules Between Tools
+
+When both Claude Code and Antigravity are enabled, you can sync rules between them.
+
+### Accessing Sync
+
+1. Enable **both tools** in Preferences
+2. Go to **Project Explorer**
+3. Click the **Sync** button in the toolbar
+
+### Sync Dialog
+
+The sync dialog allows you to:
+
+- **Choose direction**: Claude Code → Antigravity or vice versa
+- **Preview changes**: See which files will be copied
+- **Selective sync**: Choose specific files to sync
+- **Status indicators**:
+  - **New**: File doesn't exist in target
+  - **Modified**: File differs from target
+  - **Same**: Files are identical
+
+### What Gets Synced
+
+| From | To |
+|------|-----|
+| \`.claude/rules/*.md\` | \`.agent/rules/*.md\` |
+| \`.agent/rules/*.md\` | \`.claude/rules/*.md\` |
+
+### Notes
+
+- Syncing **copies** files (doesn't move them)
+- Target files are **overwritten** if they exist
+- Instructions files (CLAUDE.md / GEMINI.md) are not synced
+- Commands and workflows are Claude-specific (not synced)
     `
   },
 
