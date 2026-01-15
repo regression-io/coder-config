@@ -107,8 +107,8 @@ function startDaemon(flags) {
   // Log file for daemon output
   const logFile = path.join(pidDir, 'ui.log');
 
-  // Build args for spawned process (without --daemon flag)
-  const spawnArgs = ['ui'];
+  // Build args for spawned process - must use --foreground since daemon is now default
+  const spawnArgs = ['ui', '--foreground'];
   if (flags.port !== 3333) {
     spawnArgs.push('--port', String(flags.port));
   }
