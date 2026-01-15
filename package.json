@@ -1,6 +1,6 @@
 {
   "name": "claude-config",
-  "version": "2.12.5",
+  "version": "2.12.6",
   "description": "Configuration management UI for Claude Code - manage MCPs, rules, commands, memory, and .claude folders",
   "author": "regression.io",
   "main": "config-loader.js",

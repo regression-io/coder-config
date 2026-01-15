@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Settings, Package, Layout, Lock, RefreshCw, Rocket,
-  Folder, FolderOpen, Loader2, Brain, Wand2, Wrench, Shield
+  Folder, FolderOpen, Loader2, Brain, Wand2, Wrench, Shield, Download
 } from 'lucide-react';
 import FileExplorer from "@/components/FileExplorer";
 import { Button } from "@/components/ui/button";
@@ -69,6 +69,8 @@ export default function Dashboard() {
   const [editorContent, setEditorContent] = useState('');
   const [fileHashes, setFileHashes] = useState({});
   const [version, setVersion] = useState(null);
+  const [updateInfo, setUpdateInfo] = useState(null);
+  const [updating, setUpdating] = useState(false);
 
   // Persist currentView to localStorage
   useEffect(() => {
@@ -108,9 +110,34 @@ export default function Dashboard() {
   // Initial load
   useEffect(() => {
     loadData();
-    // Load version info
-    api.checkVersion().then(data => setVersion(data?.installedVersion)).catch(() => {});
+    // Load version info and check for updates
+    api.checkVersion().then(data => {
+      setVersion(data?.installedVersion);
+      if (data?.updateAvailable) {
+        setUpdateInfo(data);
+      }
+    }).catch(() => {});
   }, []);
+
+  // Handle one-click update
+  const handleUpdate = async () => {
+    if (!updateInfo?.sourcePath) return;
+    setUpdating(true);
+    try {
+      const result = await api.performUpdate(updateInfo.sourcePath);
+      if (result.success) {
+        toast.success(`Updated to v${result.newVersion}! Reloading...`);
+        // Reload the page after a short delay to get new UI
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        toast.error('Update failed: ' + result.error);
+        setUpdating(false);
+      }
+    } catch (error) {
+      toast.error('Update failed: ' + error.message);
+      setUpdating(false);
+    }
+  };
 
   // File change detection polling
   useEffect(() => {
@@ -230,6 +257,20 @@ export default function Dashboard() {
                   {version && <span className="text-xs font-normal text-gray-400 ml-2">v{version}</span>}
                 </h1>
               </div>
+              {updateInfo && (
+                <button
+                  onClick={handleUpdate}
+                  disabled={updating}
+                  className="ml-3 px-2.5 py-1 text-xs font-medium bg-green-100 text-green-700 hover:bg-green-200 rounded-full flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                >
+                  {updating ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Download className="w-3 h-3" />
+                  )}
+                  {updating ? 'Updating...' : `Update to v${updateInfo.sourceVersion}`}
+                </button>
+              )}
             </div>
             <Separator orientation="vertical" className="h-6" />
             <div className="flex flex-col">
