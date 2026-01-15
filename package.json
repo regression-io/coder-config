@@ -1,6 +1,6 @@
 {
   "name": "claude-config",
-  "version": "1.0.0",
+  "version": "2.12.4",
   "description": "Configuration management UI for Claude Code - manage MCPs, rules, commands, memory, and .claude folders",
   "author": "regression.io",
   "main": "config-loader.js",
@@ -14,7 +14,9 @@
     "ui": "node cli.js ui",
     "ui:dev": "cd ui && npm run dev",
     "ui:build": "cd ui && npm run build",
-    "build": "cd ui && npm install && npm run build",
+    "version:sync": "node scripts/sync-version.js",
+    "version:bump": "node scripts/sync-version.js --bump",
+    "build": "npm run version:bump && cd ui && npm install && npm run build",
     "prepublishOnly": "npm run build",
     "postinstall": "node scripts/postinstall.js",
     "test": "node --test test/*.test.js"

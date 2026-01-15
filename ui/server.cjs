@@ -61,6 +61,73 @@ class ConfigUIServer {
     }
   }
 
+  browseDirectory(dirPath, type = 'directory') {
+    try {
+      // Expand ~ to home directory
+      const expandedPath = dirPath.replace(/^~/, os.homedir());
+      const resolvedPath = path.resolve(expandedPath);
+
+      if (!fs.existsSync(resolvedPath)) {
+        return { error: 'Directory not found', path: resolvedPath };
+      }
+
+      const stat = fs.statSync(resolvedPath);
+      if (!stat.isDirectory()) {
+        // If it's a file, return parent directory contents
+        const parentDir = path.dirname(resolvedPath);
+        return this.browseDirectory(parentDir, type);
+      }
+
+      const entries = fs.readdirSync(resolvedPath, { withFileTypes: true });
+      const items = [];
+
+      // Add parent directory option
+      const parentDir = path.dirname(resolvedPath);
+      if (parentDir !== resolvedPath) {
+        items.push({
+          name: '..',
+          path: parentDir,
+          type: 'directory',
+          isParent: true
+        });
+      }
+
+      for (const entry of entries) {
+        // Skip hidden files unless it's a .claude directory
+        if (entry.name.startsWith('.') && entry.name !== '.claude') continue;
+
+        const fullPath = path.join(resolvedPath, entry.name);
+        const isDir = entry.isDirectory();
+
+        // For directory picker, show all dirs; for file picker, show dirs and matching files
+        if (type === 'directory' && !isDir) continue;
+        if (type === 'file' && !isDir && !entry.name.endsWith('.json')) continue;
+
+        items.push({
+          name: entry.name,
+          path: fullPath,
+          type: isDir ? 'directory' : 'file'
+        });
+      }
+
+      // Sort: directories first, then alphabetically
+      items.sort((a, b) => {
+        if (a.isParent) return -1;
+        if (b.isParent) return 1;
+        if (a.type !== b.type) return a.type === 'directory' ? -1 : 1;
+        return a.name.localeCompare(b.name);
+      });
+
+      return {
+        path: resolvedPath,
+        items,
+        home: os.homedir()
+      };
+    } catch (e) {
+      return { error: e.message };
+    }
+  }
+
   start() {
     const server = http.createServer((req, res) => this.handleRequest(req, res));
 
@@ -383,6 +450,16 @@ class ConfigUIServer {
       case '/api/memory/sync':
         return this.json(res, this.getSyncState());
 
+      // Claude Code settings.json (permissions)
+      case '/api/claude-settings':
+        if (req.method === 'GET') {
+          return this.json(res, this.getClaudeSettings());
+        }
+        if (req.method === 'PUT') {
+          return this.json(res, this.saveClaudeSettings(body));
+        }
+        break;
+
       // User preferences/config
       case '/api/config':
         if (req.method === 'GET') {
@@ -390,6 +467,13 @@ class ConfigUIServer {
         }
         if (req.method === 'PUT') {
           return this.json(res, this.saveConfig(body));
+        }
+        break;
+
+      // Directory browser
+      case '/api/browse':
+        if (req.method === 'POST') {
+          return this.json(res, this.browseDirectory(body.path, body.type));
         }
         break;
     }
@@ -846,16 +930,19 @@ class ConfigUIServer {
         updated.push('ui/dist/');
       }
 
-      // Copy UI server
-      const uiServerSrc = path.join(sourcePath, 'ui', 'server.js');
-      const uiServerDest = path.join(installDir, 'ui', 'server.js');
-      if (fs.existsSync(uiServerSrc)) {
-        const uiDir = path.dirname(uiServerDest);
-        if (!fs.existsSync(uiDir)) {
-          fs.mkdirSync(uiDir, { recursive: true });
+      // Copy UI server files
+      const uiServerFiles = ['server.cjs', 'terminal-server.cjs'];
+      for (const file of uiServerFiles) {
+        const uiServerSrc = path.join(sourcePath, 'ui', file);
+        const uiServerDest = path.join(installDir, 'ui', file);
+        if (fs.existsSync(uiServerSrc)) {
+          const uiDir = path.dirname(uiServerDest);
+          if (!fs.existsSync(uiDir)) {
+            fs.mkdirSync(uiDir, { recursive: true });
+          }
+          fs.copyFileSync(uiServerSrc, uiServerDest);
+          updated.push('ui/' + file);
         }
-        fs.copyFileSync(uiServerSrc, uiServerDest);
-        updated.push('ui/server.js');
       }
 
       // Copy templates (if they exist)
@@ -1775,6 +1862,97 @@ class ConfigUIServer {
     }
 
     return { query, results };
+  }
+
+  // ==================== Claude Code Settings (Permissions) ====================
+
+  /**
+   * Get Claude Code settings from ~/.claude/settings.json
+   */
+  getClaudeSettings() {
+    const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+
+    try {
+      if (!fs.existsSync(settingsPath)) {
+        return {
+          path: settingsPath,
+          exists: false,
+          settings: { permissions: { allow: [], ask: [], deny: [] } }
+        };
+      }
+
+      const content = fs.readFileSync(settingsPath, 'utf8');
+      const settings = JSON.parse(content);
+
+      // Ensure permissions structure exists
+      if (!settings.permissions) {
+        settings.permissions = { allow: [], ask: [], deny: [] };
+      }
+      if (!settings.permissions.allow) settings.permissions.allow = [];
+      if (!settings.permissions.ask) settings.permissions.ask = [];
+      if (!settings.permissions.deny) settings.permissions.deny = [];
+
+      return {
+        path: settingsPath,
+        exists: true,
+        settings
+      };
+    } catch (e) {
+      return {
+        path: settingsPath,
+        error: e.message
+      };
+    }
+  }
+
+  /**
+   * Save Claude Code settings to ~/.claude/settings.json
+   */
+  saveClaudeSettings(body) {
+    const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+    const { settings, permissions } = body;
+
+    try {
+      // Ensure .claude directory exists
+      const claudeDir = path.dirname(settingsPath);
+      if (!fs.existsSync(claudeDir)) {
+        fs.mkdirSync(claudeDir, { recursive: true });
+      }
+
+      // If full settings object provided, use it
+      // Otherwise, just update permissions
+      let finalSettings = {};
+
+      // Load existing settings if they exist
+      if (fs.existsSync(settingsPath)) {
+        try {
+          finalSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        } catch (e) {
+          finalSettings = {};
+        }
+      }
+
+      // Update with new data
+      if (settings) {
+        finalSettings = { ...finalSettings, ...settings };
+      }
+      if (permissions) {
+        finalSettings.permissions = permissions;
+      }
+
+      fs.writeFileSync(settingsPath, JSON.stringify(finalSettings, null, 2) + '\n', 'utf8');
+
+      return {
+        success: true,
+        path: settingsPath,
+        settings: finalSettings
+      };
+    } catch (e) {
+      return {
+        success: false,
+        error: e.message
+      };
+    }
   }
 
   /**

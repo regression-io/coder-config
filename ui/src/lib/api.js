@@ -272,6 +272,18 @@ export const api = {
     return request('/memory/sync');
   },
 
+  // Claude Code settings.json (full settings including permissions)
+  async getClaudeSettings() {
+    return request('/claude-settings');
+  },
+
+  async saveClaudeSettings(settings) {
+    return request('/claude-settings', {
+      method: 'PUT',
+      body: { settings },
+    });
+  },
+
   // User preferences/config
   async getConfig() {
     return request('/config');
@@ -281,6 +293,13 @@ export const api = {
     return request('/config', {
       method: 'PUT',
       body: config,
+    });
+  },
+
+  async browse(path, type = 'directory') {
+    return request('/browse', {
+      method: 'POST',
+      body: { path, type },
     });
   },
 };

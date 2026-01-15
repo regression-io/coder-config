@@ -4,6 +4,7 @@ import { cn } from '../lib/utils';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
+import ClaudeSettingsEditor from './ClaudeSettingsEditor';
 import { ScrollArea } from './ui/scroll-area';
 import { Badge } from './ui/badge';
 import { Switch } from './ui/switch';
@@ -317,10 +318,200 @@ function McpEditor({ content, parsed, onSave, registry }) {
   );
 }
 
+// AI Assist Dialog Component
+function AIAssistDialog({ open, onClose, fileType, currentContent, onInsert }) {
+  const [prompt, setPrompt] = useState('');
+  const [generatedContent, setGeneratedContent] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Template suggestions based on file type
+  const templates = {
+    rule: [
+      { label: 'Code Style', prompt: 'Create a rule for code formatting and style conventions' },
+      { label: 'Testing', prompt: 'Create a rule for testing requirements and best practices' },
+      { label: 'Security', prompt: 'Create a rule for security guidelines and vulnerability prevention' },
+      { label: 'Documentation', prompt: 'Create a rule for documentation standards' },
+    ],
+    command: [
+      { label: 'Build & Deploy', prompt: 'Create a command for building and deploying the project' },
+      { label: 'Testing', prompt: 'Create a command for running tests with coverage' },
+      { label: 'Database', prompt: 'Create a command for database migrations' },
+      { label: 'Code Generation', prompt: 'Create a command for generating boilerplate code' },
+    ],
+    claudemd: [
+      { label: 'Project Overview', prompt: 'Create a project overview section with tech stack and conventions' },
+      { label: 'API Documentation', prompt: 'Create API documentation template' },
+      { label: 'Development Setup', prompt: 'Create development environment setup instructions' },
+      { label: 'Architecture', prompt: 'Create architecture documentation' },
+    ],
+  };
+
+  const fileTemplates = templates[fileType] || templates.claudemd;
+
+  const handleGenerate = (selectedPrompt) => {
+    const finalPrompt = selectedPrompt || prompt;
+    if (!finalPrompt.trim()) {
+      toast.error('Please enter a prompt or select a template');
+      return;
+    }
+
+    // Generate content based on file type
+    setLoading(true);
+
+    // Simulate AI generation with templates
+    setTimeout(() => {
+      let content = '';
+
+      if (fileType === 'rule') {
+        content = `# ${finalPrompt.replace(/^Create a rule for\s*/i, '').replace(/\s+/g, ' ').trim()}\n\n`;
+        content += `## Guidelines\n\n`;
+        content += `- Follow consistent patterns throughout the codebase\n`;
+        content += `- Document any deviations from these guidelines\n`;
+        content += `- Review changes for compliance before merging\n\n`;
+        content += `## Examples\n\n`;
+        content += `\`\`\`\n// Good example\n// TODO: Add specific examples\n\`\`\`\n\n`;
+        content += `## Exceptions\n\n`;
+        content += `- None documented yet\n`;
+      } else if (fileType === 'command') {
+        const commandName = finalPrompt.replace(/^Create a command for\s*/i, '').toLowerCase().replace(/\s+/g, '-');
+        content = `---\n`;
+        content += `name: ${commandName}\n`;
+        content += `description: ${finalPrompt}\n`;
+        content += `---\n\n`;
+        content += `# ${finalPrompt}\n\n`;
+        content += `## Usage\n\n`;
+        content += `Run this command when you need to ${finalPrompt.toLowerCase()}.\n\n`;
+        content += `## Steps\n\n`;
+        content += `1. First, verify prerequisites are met\n`;
+        content += `2. Execute the main operation\n`;
+        content += `3. Verify the results\n\n`;
+        content += `## Example Output\n\n`;
+        content += `\`\`\`\n// Expected output format\n\`\`\`\n`;
+      } else {
+        content = `# ${finalPrompt.replace(/^Create\s*/i, '')}\n\n`;
+        content += `## Overview\n\n`;
+        content += `TODO: Add overview here.\n\n`;
+        content += `## Details\n\n`;
+        content += `TODO: Add detailed information.\n\n`;
+        content += `## Related\n\n`;
+        content += `- See also: related documentation\n`;
+      }
+
+      setGeneratedContent(content);
+      setLoading(false);
+    }, 500);
+  };
+
+  const handleInsert = (mode) => {
+    if (!generatedContent) {
+      toast.error('Generate content first');
+      return;
+    }
+
+    if (mode === 'replace') {
+      onInsert(generatedContent);
+    } else {
+      onInsert(currentContent + '\n\n' + generatedContent);
+    }
+    onClose();
+    toast.success('Content inserted');
+  };
+
+  const handleClose = () => {
+    setPrompt('');
+    setGeneratedContent('');
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-indigo-600" />
+            AI Assist
+          </DialogTitle>
+          <DialogDescription>
+            Generate content for your {fileType || 'file'} using templates or custom prompts
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-auto space-y-4 py-4">
+          {/* Quick Templates */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 mb-2 block">Quick Templates</label>
+            <div className="flex flex-wrap gap-2">
+              {fileTemplates.map((template) => (
+                <Button
+                  key={template.label}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setPrompt(template.prompt);
+                    handleGenerate(template.prompt);
+                  }}
+                  disabled={loading}
+                >
+                  {template.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom Prompt */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 mb-2 block">Custom Prompt</label>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Describe what you want to generate..."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+              />
+              <Button onClick={() => handleGenerate()} disabled={loading || !prompt.trim()}>
+                {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Generate'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Generated Content Preview */}
+          {generatedContent && (
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Generated Content</label>
+              <Textarea
+                value={generatedContent}
+                onChange={(e) => setGeneratedContent(e.target.value)}
+                className="font-mono text-sm min-h-[200px]"
+              />
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={handleClose}>
+            Cancel
+          </Button>
+          {generatedContent && (
+            <>
+              <Button variant="outline" onClick={() => handleInsert('append')}>
+                Append to File
+              </Button>
+              <Button onClick={() => handleInsert('replace')} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                Replace Content
+              </Button>
+            </>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // Markdown Editor Component
 function MarkdownEditor({ content, onSave, fileType }) {
   const [text, setText] = useState(content || '');
   const [hasChanges, setHasChanges] = useState(false);
+  const [aiAssistOpen, setAiAssistOpen] = useState(false);
 
   useEffect(() => {
     setText(content || '');
@@ -330,6 +521,11 @@ function MarkdownEditor({ content, onSave, fileType }) {
   const handleSave = () => {
     onSave(text);
     setHasChanges(false);
+  };
+
+  const handleAiInsert = (newContent) => {
+    setText(newContent);
+    setHasChanges(true);
   };
 
   const config = FILE_CONFIG[fileType] || FILE_CONFIG.claudemd;
@@ -342,7 +538,7 @@ function MarkdownEditor({ content, onSave, fileType }) {
           <span className="text-sm font-medium">{config.label}</span>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => setAiAssistOpen(true)}>
             <Sparkles className="w-4 h-4 mr-1" />
             AI Assist
           </Button>
@@ -363,51 +559,33 @@ function MarkdownEditor({ content, onSave, fileType }) {
         }}
         placeholder={`Enter ${config.label.toLowerCase()} content...`}
       />
+
+      <AIAssistDialog
+        open={aiAssistOpen}
+        onClose={() => setAiAssistOpen(false)}
+        fileType={fileType}
+        currentContent={text}
+        onInsert={handleAiInsert}
+      />
     </div>
   );
 }
 
-// Settings Editor Component
-function SettingsEditor({ content, parsed, onSave }) {
-  const [jsonText, setJsonText] = useState(JSON.stringify(parsed || {}, null, 2));
-  const [hasChanges, setHasChanges] = useState(false);
-
-  useEffect(() => {
-    setJsonText(JSON.stringify(parsed || {}, null, 2));
-    setHasChanges(false);
-  }, [parsed]);
-
-  const handleSave = () => {
-    try {
-      JSON.parse(jsonText);
-      onSave(jsonText);
-      setHasChanges(false);
-    } catch (e) {
-      toast.error('Invalid JSON');
-    }
+// Settings Editor Component - uses the full ClaudeSettingsEditor
+function SettingsEditor({ content, parsed, onSave, filePath }) {
+  const handleSave = async (settings) => {
+    // Convert settings object to JSON string for saving
+    const jsonContent = JSON.stringify(settings, null, 2);
+    onSave(jsonContent);
   };
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between p-3 border-b bg-gray-50">
-        <div className="flex items-center gap-2">
-          <Settings className="w-4 h-4 text-gray-600" />
-          <span className="text-sm font-medium">Settings</span>
-        </div>
-        {hasChanges && (
-          <Button size="sm" onClick={handleSave}>
-            <Save className="w-4 h-4 mr-1" />
-            Save
-          </Button>
-        )}
-      </div>
-      <Textarea
-        className="flex-1 w-full font-mono text-sm border-0 rounded-none resize-none p-4"
-        value={jsonText}
-        onChange={(e) => {
-          setJsonText(e.target.value);
-          setHasChanges(true);
-        }}
+    <div className="h-full overflow-auto p-4">
+      <ClaudeSettingsEditor
+        settings={parsed || {}}
+        onSave={handleSave}
+        loading={false}
+        settingsPath={filePath || '~/.claude/settings.json'}
       />
     </div>
   );

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Claude Code Configuration System v2.0 - Installer
+# Claude Code Configuration System - Installer
 # Installs the config manager and shell integration
 
 set -e
@@ -12,15 +12,26 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+# Get version from config-loader.js
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VERSION=$(grep "const VERSION" "$SCRIPT_DIR/config-loader.js" 2>/dev/null | sed "s/.*'\([^']*\)'.*/\1/" || echo "unknown")
+INSTALL_DIR="${CLAUDE_CONFIG_INSTALL_DIR:-$HOME/.claude-config}"
+
+# Check for --update flag (quick update without prompts)
+UPDATE_ONLY=false
+if [[ "$1" == "--update" ]] || [[ "$1" == "-u" ]]; then
+  UPDATE_ONLY=true
+fi
+
 echo -e "${BLUE}"
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║     Claude Code Configuration System v2.0 - Installer       ║"
+echo "║     Claude Code Configuration System v${VERSION}                  ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
-# Determine installation directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-INSTALL_DIR="${CLAUDE_CONFIG_INSTALL_DIR:-$HOME/.claude-config}"
+if [[ "$UPDATE_ONLY" == true ]]; then
+  echo -e "${YELLOW}Quick update mode${NC}\n"
+fi
 
 echo -e "${YELLOW}Installation directory: ${INSTALL_DIR}${NC}\n"
 
@@ -54,9 +65,36 @@ if [[ -d "$SCRIPT_DIR/templates" ]]; then
   cp -r "$SCRIPT_DIR/templates/"* "$INSTALL_DIR/templates/" 2>/dev/null || true
 fi
 
-# Copy UI files
+# Copy UI files (server and dist)
 if [[ -d "$SCRIPT_DIR/ui" ]]; then
-  cp "$SCRIPT_DIR/ui/"* "$INSTALL_DIR/ui/" 2>/dev/null || true
+  # Copy server files
+  cp "$SCRIPT_DIR/ui/server.cjs" "$INSTALL_DIR/ui/" 2>/dev/null || true
+  cp "$SCRIPT_DIR/ui/terminal-server.cjs" "$INSTALL_DIR/ui/" 2>/dev/null || true
+  cp "$SCRIPT_DIR/ui/package.json" "$INSTALL_DIR/ui/" 2>/dev/null || true
+
+  # Build UI if needed (--update always rebuilds, or if dist doesn't exist)
+  if [[ "$UPDATE_ONLY" == true ]] || [[ ! -d "$SCRIPT_DIR/ui/dist" ]]; then
+    if [[ "$UPDATE_ONLY" == true ]]; then
+      echo -e "${YELLOW}Building UI with version bump...${NC}"
+    else
+      echo -e "${YELLOW}UI not built. Building now...${NC}"
+    fi
+    (cd "$SCRIPT_DIR" && npm run build)
+    # Re-read version after build (it may have been bumped)
+    VERSION=$(grep "const VERSION" "$SCRIPT_DIR/config-loader.js" 2>/dev/null | sed "s/.*'\([^']*\)'.*/\1/" || echo "unknown")
+    # Re-copy config-loader.js with updated version
+    cp "$SCRIPT_DIR/config-loader.js" "$INSTALL_DIR/"
+    echo -e "${GREEN}✓ Updated to v${VERSION}${NC}"
+  fi
+
+  # Copy built UI (dist folder) - this is required for the web UI
+  if [[ -d "$SCRIPT_DIR/ui/dist" ]]; then
+    mkdir -p "$INSTALL_DIR/ui/dist"
+    cp -r "$SCRIPT_DIR/ui/dist/"* "$INSTALL_DIR/ui/dist/"
+    echo -e "${GREEN}✓ UI dist copied${NC}"
+  else
+    echo -e "${RED}✗ UI build failed. Check npm run build output.${NC}"
+  fi
 fi
 
 # Create global .env file if it doesn't exist
@@ -110,8 +148,15 @@ fi
 
 # Done
 echo -e "\n${GREEN}╔══════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║                    Installation Complete!                     ║${NC}"
+echo -e "${GREEN}║          Installation Complete! (v${VERSION})                      ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════════════════════╝${NC}"
+
+# If update mode, show simpler output
+if [[ "$UPDATE_ONLY" == true ]]; then
+  echo -e "\n${GREEN}Updated to v${VERSION}${NC}"
+  echo -e "Restart the UI server: ${YELLOW}claude-config ui${NC}"
+  exit 0
+fi
 
 echo -e "\n${BLUE}Next steps:${NC}"
 echo -e "  1. Add to your PATH (choose one):"
