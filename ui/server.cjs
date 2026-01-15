@@ -1653,7 +1653,7 @@ class ConfigUIServer {
     }
 
     fs.writeFileSync(filePath, initialContent, 'utf8');
-    return { success: true, path: filePath };
+    return { success: true, path: filePath, content: initialContent };
   }
 
   /**

@@ -825,10 +825,20 @@ export default function FileExplorer({ onRefresh }) {
 
   const doCreateFile = async (dir, name, type) => {
     try {
-      await api.createClaudeFile(dir, name, type);
+      const result = await api.createClaudeFile(dir, name, type);
       toast.success('Created');
       setCreateDialog({ open: false, dir: null, type: null });
-      loadData();
+      await loadData();
+      // Select the newly created file
+      if (result.path) {
+        const newItem = {
+          path: result.path,
+          name: name,
+          type: type === 'command' ? 'command' : type === 'rule' ? 'rule' : 'file'
+        };
+        setSelectedItem(newItem);
+        setFileContent(result.content || '');
+      }
     } catch (error) {
       toast.error('Failed to create: ' + error.message);
     }
