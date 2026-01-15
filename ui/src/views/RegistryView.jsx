@@ -85,7 +85,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
     tool.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Open edit dialog with existing MCP
+  // Open edit dialog with existing MCP (for editing only)
   const openEditDialog = (name, mcp) => {
     setMcpForm({
       name,
@@ -97,13 +97,76 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
     setEditDialog({ open: true, name, mcp, isNew: false });
   };
 
-  // Open add dialog
+  // Open add dialog - now uses simple JSON paste
+  const [addDialog, setAddDialog] = useState({ open: false, json: '' });
+
   const openAddDialog = () => {
-    setMcpForm({ name: '', command: 'npx', args: '["-y", ""]', env: '{}', description: '' });
-    setEditDialog({ open: true, name: '', mcp: null, isNew: true });
+    setAddDialog({ open: true, json: '' });
   };
 
-  // Add from search result
+  // Add MCP from pasted JSON
+  const handleAddFromJson = async () => {
+    if (!addDialog.json.trim()) {
+      toast.error('Please paste the MCP JSON configuration');
+      return;
+    }
+
+    try {
+      let parsed;
+      try {
+        parsed = JSON.parse(addDialog.json);
+      } catch (e) {
+        toast.error('Invalid JSON format');
+        return;
+      }
+
+      // Determine format and extract MCPs
+      let mcpsToAdd = {};
+      if (parsed.mcpServers && typeof parsed.mcpServers === 'object') {
+        // Format: { "mcpServers": { "name": {...} } }
+        mcpsToAdd = parsed.mcpServers;
+      } else if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+        const keys = Object.keys(parsed);
+        if (keys.includes('command')) {
+          toast.error('JSON is missing the MCP name. Expected: { "name": { "command": "...", "args": [...] } }');
+          return;
+        }
+        // Format: { "name": { "command": "...", "args": [...] } }
+        mcpsToAdd = parsed;
+      }
+
+      if (Object.keys(mcpsToAdd).length === 0) {
+        toast.error('No MCP configurations found in the JSON');
+        return;
+      }
+
+      // Validate required fields
+      for (const [name, mcp] of Object.entries(mcpsToAdd)) {
+        if (!mcp.command) {
+          toast.error(`MCP "${name}" is missing required "command" field`);
+          return;
+        }
+      }
+
+      // Add to registry
+      const updatedRegistry = { ...registry };
+      if (!updatedRegistry.mcpServers) updatedRegistry.mcpServers = {};
+
+      for (const [name, mcp] of Object.entries(mcpsToAdd)) {
+        updatedRegistry.mcpServers[name] = mcp;
+      }
+
+      await api.updateRegistry(updatedRegistry);
+      const count = Object.keys(mcpsToAdd).length;
+      toast.success(`Added ${count} MCP${count > 1 ? 's' : ''} to registry!`);
+      setAddDialog({ open: false, json: '' });
+      onUpdate();
+    } catch (error) {
+      toast.error('Failed to add: ' + error.message);
+    }
+  };
+
+  // Add from search result - populate JSON paste dialog
   const addFromSearch = (result) => {
     const mcpName = result.name
       .replace('@modelcontextprotocol/server-', '')
@@ -111,17 +174,18 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
       .replace('mcp-', '')
       .replace(/-/g, '_');
 
-    setMcpForm({
-      name: mcpName,
-      command: result.suggestedCommand || 'npx',
-      args: JSON.stringify(result.suggestedArgs || ['-y', result.name], null, 2),
-      env: '{}',
-      description: result.description || ''
-    });
-    setEditDialog({ open: true, name: '', mcp: null, isNew: true });
+    const mcpConfig = {
+      [mcpName]: {
+        command: result.suggestedCommand || 'npx',
+        args: result.suggestedArgs || ['-y', result.name],
+        ...(result.description && { description: result.description })
+      }
+    };
+
+    setAddDialog({ open: true, json: JSON.stringify(mcpConfig, null, 2) });
   };
 
-  // Add discovered tool from local ~/reg/tools directory
+  // Add discovered tool from local ~/reg/tools directory - populate JSON paste dialog
   const addFromDiscovered = (tool) => {
     // Generate command based on tool type
     let command, args;
@@ -133,14 +197,15 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
       args = [tool.path + '/index.js'];
     }
 
-    setMcpForm({
-      name: tool.name,
-      command,
-      args: JSON.stringify(args, null, 2),
-      env: '{}',
-      description: tool.description || ''
-    });
-    setEditDialog({ open: true, name: '', mcp: null, isNew: true });
+    const mcpConfig = {
+      [tool.name]: {
+        command,
+        args,
+        ...(tool.description && { description: tool.description })
+      }
+    };
+
+    setAddDialog({ open: true, json: JSON.stringify(mcpConfig, null, 2) });
   };
 
   // Start importing from URL
@@ -251,7 +316,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
     }
   };
 
-  // Save MCP to registry
+  // Save MCP edit to registry
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -275,19 +340,10 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
         ...(mcpForm.description && { description: mcpForm.description })
       };
 
-      if (editDialog.isNew) {
-        if (!mcpForm.name.trim()) {
-          toast.error('Name is required');
-          setSaving(false);
-          return;
-        }
-        updatedRegistry.mcpServers[mcpForm.name] = mcpData;
-      } else {
-        updatedRegistry.mcpServers[editDialog.name] = mcpData;
-      }
+      updatedRegistry.mcpServers[editDialog.name] = mcpData;
 
       await api.updateRegistry(updatedRegistry);
-      toast.success(editDialog.isNew ? 'MCP added to registry' : 'MCP updated');
+      toast.success('MCP updated');
       setEditDialog({ open: false, name: '', mcp: null, isNew: false });
       onUpdate();
     } catch (error) {
@@ -612,28 +668,52 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
         )}
       </div>
 
-      {/* Add/Edit MCP Dialog */}
+      {/* Add MCP Dialog - Simple JSON paste */}
+      <Dialog open={addDialog.open} onOpenChange={(open) => setAddDialog({ ...addDialog, open })}>
+        <DialogContent className="bg-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Add MCP to Registry</DialogTitle>
+            <DialogDescription>
+              Paste the MCP JSON configuration block to add to your registry.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <Textarea
+              value={addDialog.json}
+              onChange={(e) => setAddDialog({ ...addDialog, json: e.target.value })}
+              placeholder={'{\n  "my-mcp": {\n    "command": "npx",\n    "args": ["-y", "@example/mcp-server"],\n    "env": {\n      "API_KEY": "${API_KEY}"\n    }\n  }\n}'}
+              className="font-mono text-sm bg-gray-50"
+              rows={12}
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              Accepts formats: <code className="bg-gray-100 px-1 rounded">{'{ "name": { "command": "...", "args": [...] } }'}</code> or <code className="bg-gray-100 px-1 rounded">{'{ "mcpServers": { ... } }'}</code>
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setAddDialog({ open: false, json: '' })}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddFromJson} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Plus className="w-4 h-4 mr-2" />
+              Add to Registry
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit MCP Dialog */}
       <Dialog open={editDialog.open} onOpenChange={(open) => setEditDialog({ ...editDialog, open })}>
         <DialogContent className="bg-white max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editDialog.isNew ? 'Add MCP to Registry' : 'Edit MCP'}</DialogTitle>
+            <DialogTitle>Edit MCP: {editDialog.name}</DialogTitle>
             <DialogDescription>
-              {editDialog.isNew ? 'Add a new MCP server definition to your registry.' : 'Edit the MCP server configuration.'}
+              Edit the MCP server configuration.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <div>
-              <label className="text-sm font-medium text-gray-700">Name</label>
-              <Input
-                value={mcpForm.name}
-                onChange={(e) => setMcpForm({ ...mcpForm, name: e.target.value })}
-                disabled={!editDialog.isNew}
-                placeholder="my-mcp-server"
-                className="mt-1"
-              />
-            </div>
-
             <div>
               <label className="text-sm font-medium text-gray-700">Description</label>
               <Input
@@ -684,7 +764,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
             </Button>
             <Button onClick={handleSave} disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white">
               {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-              {editDialog.isNew ? 'Add to Registry' : 'Save Changes'}
+              Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>

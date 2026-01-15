@@ -208,6 +208,7 @@ function McpEditor({ content, parsed, onSave, registry }) {
   const [viewMode, setViewMode] = useState('rich'); // 'rich' or 'json'
   const [jsonText, setJsonText] = useState(JSON.stringify(parsed || {}, null, 2));
   const [hasChanges, setHasChanges] = useState(false);
+  const [addDialog, setAddDialog] = useState({ open: false, json: '' });
 
   useEffect(() => {
     setLocalConfig(parsed || { include: [], mcpServers: {} });
@@ -238,6 +239,63 @@ function McpEditor({ content, parsed, onSave, registry }) {
     setHasChanges(false);
   };
 
+  // Add MCP from pasted JSON
+  const handleAddMcp = () => {
+    if (!addDialog.json.trim()) {
+      toast.error('Please paste the MCP JSON configuration');
+      return;
+    }
+
+    try {
+      let parsed;
+      try {
+        parsed = JSON.parse(addDialog.json);
+      } catch (e) {
+        toast.error('Invalid JSON format');
+        return;
+      }
+
+      // Determine format and extract MCPs
+      let mcpsToAdd = {};
+      if (parsed.mcpServers && typeof parsed.mcpServers === 'object') {
+        mcpsToAdd = parsed.mcpServers;
+      } else if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+        const keys = Object.keys(parsed);
+        if (keys.includes('command')) {
+          toast.error('JSON is missing the MCP name. Expected: { "name": { "command": "...", "args": [...] } }');
+          return;
+        }
+        mcpsToAdd = parsed;
+      }
+
+      if (Object.keys(mcpsToAdd).length === 0) {
+        toast.error('No MCP configurations found in the JSON');
+        return;
+      }
+
+      // Validate required fields
+      for (const [name, mcp] of Object.entries(mcpsToAdd)) {
+        if (!mcp.command) {
+          toast.error(`MCP "${name}" is missing required "command" field`);
+          return;
+        }
+      }
+
+      // Add to local config
+      const newMcpServers = { ...(localConfig.mcpServers || {}), ...mcpsToAdd };
+      const newConfig = { ...localConfig, mcpServers: newMcpServers };
+      setLocalConfig(newConfig);
+      setJsonText(JSON.stringify(newConfig, null, 2));
+      setHasChanges(true);
+
+      const count = Object.keys(mcpsToAdd).length;
+      toast.success(`Added ${count} MCP${count > 1 ? 's' : ''} - click Save to apply`);
+      setAddDialog({ open: false, json: '' });
+    } catch (error) {
+      toast.error('Failed to add: ' + error.message);
+    }
+  };
+
   const registryMcps = registry?.mcpServers ? Object.keys(registry.mcpServers) : [];
 
   return (
@@ -250,6 +308,10 @@ function McpEditor({ content, parsed, onSave, registry }) {
           </TabsList>
         </Tabs>
         <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => setAddDialog({ open: true, json: '' })}>
+            <Plus className="w-4 h-4 mr-1" />
+            Add MCP
+          </Button>
           {hasChanges && (
             <Button size="sm" onClick={handleSave}>
               <Save className="w-4 h-4 mr-1" />
@@ -314,6 +376,41 @@ function McpEditor({ content, parsed, onSave, registry }) {
           />
         )}
       </ScrollArea>
+
+      {/* Add MCP Dialog */}
+      <Dialog open={addDialog.open} onOpenChange={(open) => setAddDialog({ ...addDialog, open })}>
+        <DialogContent className="bg-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Add MCP to Config</DialogTitle>
+            <DialogDescription>
+              Paste the MCP JSON configuration to add to this config file.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <Textarea
+              value={addDialog.json}
+              onChange={(e) => setAddDialog({ ...addDialog, json: e.target.value })}
+              placeholder={'{\n  "my-mcp": {\n    "command": "npx",\n    "args": ["-y", "@example/mcp-server"],\n    "env": {\n      "API_KEY": "${API_KEY}"\n    }\n  }\n}'}
+              className="font-mono text-sm bg-gray-50"
+              rows={12}
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              Accepts formats: <code className="bg-gray-100 px-1 rounded">{'{ "name": { "command": "...", "args": [...] } }'}</code> or <code className="bg-gray-100 px-1 rounded">{'{ "mcpServers": { ... } }'}</code>
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setAddDialog({ open: false, json: '' })}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddMcp} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Plus className="w-4 h-4 mr-2" />
+              Add MCP
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
