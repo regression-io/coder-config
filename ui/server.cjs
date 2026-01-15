@@ -2622,8 +2622,29 @@ class ConfigUIServer {
 // CLI
 if (require.main === module) {
   const args = process.argv.slice(2);
-  const port = parseInt(args.find(a => a.startsWith('--port='))?.split('=')[1] || '3333');
-  const dir = args.find(a => !a.startsWith('--')) || process.cwd();
+
+  // Parse flags properly (support both --flag=value and --flag value formats)
+  let port = 3333;
+  let dir = null;
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg.startsWith('--port=')) {
+      port = parseInt(arg.split('=')[1]) || 3333;
+    } else if (arg === '--port' || arg === '-p') {
+      port = parseInt(args[++i]) || 3333;
+    } else if (arg.startsWith('--dir=')) {
+      dir = arg.split('=')[1] || null;
+    } else if (arg === '--dir' || arg === '-d') {
+      dir = args[++i] || null;
+    } else if (!arg.startsWith('-') && fs.existsSync(arg) && fs.statSync(arg).isDirectory()) {
+      // Only treat as directory if it actually exists and is a directory
+      dir = arg;
+    }
+  }
+
+  // Default to cwd if no dir specified
+  dir = dir || process.cwd();
 
   // Create manager instance when running standalone
   const ClaudeConfigManager = require('../config-loader.js');
