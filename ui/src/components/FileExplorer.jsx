@@ -48,6 +48,7 @@ import {
   Sparkles,
   Save,
   X,
+  GitBranch,
 } from 'lucide-react';
 
 // File type icons and colors
@@ -75,6 +76,12 @@ const FILE_CONFIG = {
     color: 'text-purple-600',
     bgColor: 'bg-purple-50',
     label: 'Rule',
+  },
+  workflow: {
+    icon: GitBranch,
+    color: 'text-cyan-600',
+    bgColor: 'bg-cyan-50',
+    label: 'Workflow',
   },
   claudemd: {
     icon: FileText,
@@ -190,6 +197,10 @@ function FolderHeader({ folder, isFirst, isLast, onCreateFile }) {
           <DropdownMenuItem onClick={() => onCreateFile(folder.dir, 'rule')}>
             <BookOpen className="w-4 h-4 mr-2" />
             New Rule
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onCreateFile(folder.dir, 'workflow')}>
+            <GitBranch className="w-4 h-4 mr-2" />
+            New Workflow
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => onCreateFile(folder.dir, 'claudemd')}>
@@ -860,18 +871,18 @@ function CreateFileDialog({ open, onClose, dir, type, onCreate }) {
   }, [open]);
 
   const handleCreate = () => {
-    if ((type === 'command' || type === 'rule') && !name.trim()) {
+    if ((type === 'command' || type === 'rule' || type === 'workflow') && !name.trim()) {
       toast.error('Please enter a name');
       return;
     }
-    const finalName = type === 'command' || type === 'rule'
+    const finalName = type === 'command' || type === 'rule' || type === 'workflow'
       ? (name.endsWith('.md') ? name : `${name}.md`)
       : name;
     onCreate(dir, finalName, type);
   };
 
   const config = FILE_CONFIG[type] || {};
-  const needsName = type === 'command' || type === 'rule';
+  const needsName = type === 'command' || type === 'rule' || type === 'workflow';
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -885,7 +896,7 @@ function CreateFileDialog({ open, onClose, dir, type, onCreate }) {
             <label className="text-sm font-medium">Name</label>
             <Input
               className="mt-1"
-              placeholder={type === 'command' ? 'my-command.md' : 'my-rule.md'}
+              placeholder={type === 'command' ? 'my-command.md' : type === 'workflow' ? 'my-workflow.md' : 'my-rule.md'}
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
@@ -979,7 +990,7 @@ export default function FileExplorer({ project, onRefresh }) {
   };
 
   const handleCreateFile = (dir, type) => {
-    if (type === 'command' || type === 'rule') {
+    if (type === 'command' || type === 'rule' || type === 'workflow') {
       setCreateDialog({ open: true, dir, type });
     } else {
       doCreateFile(dir, type === 'mcps' ? 'mcps.json' : type === 'settings' ? 'settings.json' : 'CLAUDE.md', type);
@@ -997,7 +1008,7 @@ export default function FileExplorer({ project, onRefresh }) {
         const newItem = {
           path: result.path,
           name: name,
-          type: type === 'command' ? 'command' : type === 'rule' ? 'rule' : 'file'
+          type: type === 'command' ? 'command' : type === 'rule' ? 'rule' : type === 'workflow' ? 'workflow' : 'file'
         };
         setSelectedItem(newItem);
         setFileContent(result.content || '');
@@ -1095,6 +1106,7 @@ export default function FileExplorer({ project, onRefresh }) {
         );
       case 'command':
       case 'rule':
+      case 'workflow':
       case 'claudemd':
         return (
           <MarkdownEditor
@@ -1214,7 +1226,7 @@ export default function FileExplorer({ project, onRefresh }) {
             className="fixed z-50 bg-white rounded-md shadow-lg border py-1 min-w-[160px]"
             style={{ left: contextMenu.x, top: contextMenu.y }}
           >
-            {(contextMenu.item?.type === 'rule' || contextMenu.item?.type === 'command') && (
+            {(contextMenu.item?.type === 'rule' || contextMenu.item?.type === 'command' || contextMenu.item?.type === 'workflow') && (
               <button
                 className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 flex items-center"
                 onClick={() => {

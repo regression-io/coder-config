@@ -1524,6 +1524,27 @@ class ConfigUIServer {
           }
         }
 
+        // Check for workflows folder
+        const workflowsDir = path.join(claudeDir, 'workflows');
+        if (fs.existsSync(workflowsDir)) {
+          const workflows = fs.readdirSync(workflowsDir)
+            .filter(f => f.endsWith('.md'))
+            .map(f => ({
+              name: f,
+              path: path.join(workflowsDir, f),
+              type: 'workflow',
+              size: fs.statSync(path.join(workflowsDir, f)).size
+            }));
+          if (workflows.length > 0) {
+            folder.files.push({
+              name: 'workflows',
+              path: workflowsDir,
+              type: 'folder',
+              children: workflows
+            });
+          }
+        }
+
         // Check for CLAUDE.md inside .claude folder
         const claudeMdPath = path.join(claudeDir, 'CLAUDE.md');
         if (fs.existsSync(claudeMdPath)) {
@@ -1680,6 +1701,9 @@ class ConfigUIServer {
       case 'rule':
         filePath = path.join(dir, '.claude', 'rules', name);
         break;
+      case 'workflow':
+        filePath = path.join(dir, '.claude', 'workflows', name);
+        break;
       case 'claudemd':
         filePath = path.join(dir, '.claude', 'CLAUDE.md');
         break;
@@ -1798,6 +1822,8 @@ class ConfigUIServer {
       targetPath = path.join(targetClaudeDir, 'commands', sourceName);
     } else if (sourcePath.includes('/rules/')) {
       targetPath = path.join(targetClaudeDir, 'rules', sourceName);
+    } else if (sourcePath.includes('/workflows/')) {
+      targetPath = path.join(targetClaudeDir, 'workflows', sourceName);
     } else {
       targetPath = path.join(targetClaudeDir, sourceName);
     }
