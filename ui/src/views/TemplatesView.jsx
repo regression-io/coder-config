@@ -24,16 +24,16 @@ export default function TemplatesView({ templates, project, onApply }) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-        <div className="p-5 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+      <div className="bg-white dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
+        <div className="p-5 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <Layout className="w-5 h-5 text-cyan-600" />
             Templates
           </h2>
         </div>
 
         <div className="p-4">
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-gray-600 dark:text-slate-400 mb-4">
             Apply a template to quickly set up rules, commands, and MCP configurations for your project.
           </p>
 
@@ -44,17 +44,17 @@ export default function TemplatesView({ templates, project, onApply }) {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-white rounded-lg border border-gray-200 p-5 hover:border-cyan-300 hover:shadow-lg transition-all group"
+                className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700 p-5 hover:border-cyan-300 dark:hover:border-cyan-700 hover:shadow-lg transition-all group"
               >
-                <Badge variant="outline" className="bg-cyan-50 text-cyan-700 border-cyan-200 mb-3 text-[10px] uppercase tracking-wider">
+                <Badge variant="outline" className="bg-cyan-50 dark:bg-cyan-950/30 text-cyan-700 dark:text-cyan-400 border-cyan-200 dark:border-cyan-800 mb-3 text-[10px] uppercase tracking-wider">
                   {template.category}
                 </Badge>
-                <h3 className="font-semibold text-gray-900 mb-2">{template.name}</h3>
-                <p className="text-sm text-gray-600 mb-4">{template.description || 'Project template'}</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{template.name}</h3>
+                <p className="text-sm text-gray-600 dark:text-slate-400 mb-4">{template.description || 'Project template'}</p>
                 {template.mcpDefaults?.length > 0 && (
                   <div className="mb-4">
-                    <span className="text-xs text-gray-500">MCPs: </span>
-                    <span className="text-xs text-gray-700">{template.mcpDefaults.join(', ')}</span>
+                    <span className="text-xs text-gray-500 dark:text-slate-500">MCPs: </span>
+                    <span className="text-xs text-gray-700 dark:text-slate-300">{template.mcpDefaults.join(', ')}</span>
                   </div>
                 )}
                 <Button
@@ -71,7 +71,7 @@ export default function TemplatesView({ templates, project, onApply }) {
               </motion.div>
             ))}
             {templates.length === 0 && (
-              <div className="col-span-full text-center py-8 text-gray-500">
+              <div className="col-span-full text-center py-8 text-gray-500 dark:text-slate-400">
                 No templates available.
               </div>
             )}

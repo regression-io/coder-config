@@ -392,10 +392,10 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-        <div className="p-5 border-b border-gray-200">
+      <div className="bg-white dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
+        <div className="p-5 border-b border-gray-200 dark:border-slate-700">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white dark:text-white flex items-center gap-2">
               <Package className="w-5 h-5 text-blue-600" />
               MCP Registry
             </h2>
@@ -404,7 +404,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
                 variant="outline"
                 size="sm"
                 onClick={() => setImportDialog({ open: true, url: '', showTerminal: false, localTool: null, pastedConfig: '', mode: 'folder' })}
-                className="border-green-300 text-green-700 hover:bg-green-50"
+                className="border-green-300 dark:border-green-700 text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
               >
                 <Folder className="w-4 h-4 mr-2" />
                 Import Folder
@@ -413,7 +413,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
                 variant="outline"
                 size="sm"
                 onClick={() => setImportDialog({ open: true, url: '', showTerminal: false, localTool: null, pastedConfig: '', mode: 'url' })}
-                className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                className="border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30"
               >
                 <ExternalLink className="w-4 h-4 mr-2" />
                 Import URL
@@ -422,7 +422,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
                 variant="outline"
                 size="sm"
                 onClick={openAddDialog}
-                className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                className="border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add MCP
@@ -499,10 +499,10 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.03 }}
-                className="bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-300 hover:shadow-md transition-all group"
+                className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700 p-4 hover:border-blue-300 hover:shadow-md transition-all group"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-gray-900">{name}</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{name}</h3>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100">
@@ -521,8 +521,8 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-                <p className="text-sm text-gray-600 mb-3">{mcp.description || 'MCP server'}</p>
-                <code className="text-xs text-gray-500 block truncate bg-gray-50 px-2 py-1 rounded">
+                <p className="text-sm text-gray-600 dark:text-slate-400 mb-3">{mcp.description || 'MCP server'}</p>
+                <code className="text-xs text-gray-500 dark:text-slate-400 block truncate bg-gray-50 dark:bg-slate-800 px-2 py-1 rounded">
                   {mcp.command} {mcp.args?.join(' ')}
                 </code>
                 {mcp.env && Object.keys(mcp.env).length > 0 && (
@@ -533,7 +533,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
               </motion.div>
             ))}
             {filtered.length === 0 && (
-              <div className="col-span-full text-center py-8 text-gray-500">
+              <div className="col-span-full text-center py-8 text-gray-500 dark:text-slate-400">
                 {searchQuery ? 'No MCPs match your search.' : 'Registry is empty. Add MCPs or search online.'}
               </div>
             )}
@@ -544,7 +544,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
         {searchMode === 'tools' && (
           <div className="p-4">
             {toolsDir && (
-              <div className="mb-4 text-sm text-gray-500 flex items-center gap-2">
+              <div className="mb-4 text-sm text-gray-500 dark:text-slate-400 flex items-center gap-2">
                 <Folder className="w-4 h-4" />
                 Scanning: {toolsDir}
               </div>
@@ -593,12 +593,12 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
                 </motion.div>
               ))}
               {filteredTools.length === 0 && discoveredTools.length > 0 && (
-                <div className="col-span-full text-center py-8 text-gray-500">
+                <div className="col-span-full text-center py-8 text-gray-500 dark:text-slate-400">
                   All discovered tools are already in the registry.
                 </div>
               )}
               {discoveredTools.length === 0 && (
-                <div className="col-span-full text-center py-8 text-gray-500">
+                <div className="col-span-full text-center py-8 text-gray-500 dark:text-slate-400">
                   No MCP tools found in {toolsDir}. Create one using the Developer &gt; Create MCP view.
                 </div>
               )}
@@ -612,7 +612,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
             {searching ? (
               <div className="text-center py-8">
                 <Loader2 className="w-8 h-8 animate-spin mx-auto text-gray-400" />
-                <p className="text-gray-500 mt-2">Searching {searchMode}...</p>
+                <p className="text-gray-500 dark:text-slate-400 mt-2">Searching {searchMode}...</p>
               </div>
             ) : searchResults.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -622,10 +622,10 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.03 }}
-                    className="bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-300 hover:shadow-md transition-all"
+                    className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700 p-4 hover:border-blue-300 hover:shadow-md transition-all"
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900 text-sm">{result.name}</h3>
+                      <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{result.name}</h3>
                       {result.stars !== undefined && (
                         <div className="flex items-center gap-1 text-xs text-amber-600">
                           <Star className="w-3 h-3" />
@@ -633,8 +633,8 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
                         </div>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{result.description || 'No description'}</p>
-                    <code className="text-xs text-gray-500 block truncate bg-gray-50 px-2 py-1 rounded mb-3">
+                    <p className="text-sm text-gray-600 dark:text-slate-400 mb-3 line-clamp-2">{result.description || 'No description'}</p>
+                    <code className="text-xs text-gray-500 dark:text-slate-400 block truncate bg-gray-50 dark:bg-slate-800 px-2 py-1 rounded mb-3">
                       {result.suggestedCommand} {result.suggestedArgs?.join(' ')}
                     </code>
                     <div className="flex gap-2">
@@ -660,7 +660,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 dark:text-slate-400">
                 {searchQuery ? 'No results found. Try a different search term.' : `Enter a search term to find MCPs on ${searchMode}.`}
               </div>
             )}
@@ -670,7 +670,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
 
       {/* Add MCP Dialog - Simple JSON paste */}
       <Dialog open={addDialog.open} onOpenChange={(open) => setAddDialog({ ...addDialog, open })}>
-        <DialogContent className="bg-white max-w-2xl">
+        <DialogContent className=" max-w-2xl">
           <DialogHeader>
             <DialogTitle>Add MCP to Registry</DialogTitle>
             <DialogDescription>
@@ -683,11 +683,11 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
               value={addDialog.json}
               onChange={(e) => setAddDialog({ ...addDialog, json: e.target.value })}
               placeholder={'{\n  "my-mcp": {\n    "command": "npx",\n    "args": ["-y", "@example/mcp-server"],\n    "env": {\n      "API_KEY": "${API_KEY}"\n    }\n  }\n}'}
-              className="font-mono text-sm bg-gray-50"
+              className="font-mono text-sm bg-gray-50 dark:bg-slate-800"
               rows={12}
             />
-            <p className="text-xs text-gray-500 mt-2">
-              Accepts formats: <code className="bg-gray-100 px-1 rounded">{'{ "name": { "command": "...", "args": [...] } }'}</code> or <code className="bg-gray-100 px-1 rounded">{'{ "mcpServers": { ... } }'}</code>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">
+              Accepts formats: <code className="bg-gray-100 dark:bg-slate-700 px-1 rounded">{'{ "name": { "command": "...", "args": [...] } }'}</code> or <code className="bg-gray-100 dark:bg-slate-700 px-1 rounded">{'{ "mcpServers": { ... } }'}</code>
             </p>
           </div>
 
@@ -705,7 +705,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
 
       {/* Edit MCP Dialog */}
       <Dialog open={editDialog.open} onOpenChange={(open) => setEditDialog({ ...editDialog, open })}>
-        <DialogContent className="bg-white max-w-2xl">
+        <DialogContent className=" max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit MCP: {editDialog.name}</DialogTitle>
             <DialogDescription>
@@ -715,7 +715,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
 
           <div className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">Description</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Description</label>
               <Input
                 value={mcpForm.description}
                 onChange={(e) => setMcpForm({ ...mcpForm, description: e.target.value })}
@@ -725,7 +725,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Command</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Command</label>
               <Input
                 value={mcpForm.command}
                 onChange={(e) => setMcpForm({ ...mcpForm, command: e.target.value })}
@@ -735,7 +735,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Args (JSON array)</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Args (JSON array)</label>
               <Textarea
                 value={mcpForm.args}
                 onChange={(e) => setMcpForm({ ...mcpForm, args: e.target.value })}
@@ -746,7 +746,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Environment Variables (JSON object)</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Environment Variables (JSON object)</label>
               <Textarea
                 value={mcpForm.env}
                 onChange={(e) => setMcpForm({ ...mcpForm, env: e.target.value })}
@@ -754,7 +754,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
                 className="mt-1 font-mono text-sm"
                 rows={3}
               />
-              <p className="text-xs text-gray-500 mt-1">Use ${`{VAR_NAME}`} syntax for variables from .env file</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Use ${`{VAR_NAME}`} syntax for variables from .env file</p>
             </div>
           </div>
 
@@ -798,7 +798,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
               <div className="py-4">
                 {importDialog.mode === 'folder' ? (
                   <>
-                    <label className="text-sm font-medium text-gray-700">Folder Path</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Folder Path</label>
                     <Input
                       value={folderPath}
                       onChange={(e) => setFolderPath(e.target.value)}
@@ -806,13 +806,13 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
                       className="mt-1 font-mono"
                       onKeyDown={(e) => e.key === 'Enter' && folderPath.trim() && setImportDialog({ ...importDialog, showTerminal: true, localTool: { name: folderPath.split('/').pop(), path: folderPath } })}
                     />
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">
                       Enter the full path to an existing MCP server project
                     </p>
                   </>
                 ) : (
                   <>
-                    <label className="text-sm font-medium text-gray-700">Repository URL</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Repository URL</label>
                     <Input
                       value={importDialog.url}
                       onChange={(e) => setImportDialog({ ...importDialog, url: e.target.value })}
@@ -820,7 +820,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
                       className="mt-1"
                       onKeyDown={(e) => e.key === 'Enter' && startImport()}
                     />
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">
                       The repository will be cloned to {toolsDir || '~/mcp-tools'}
                     </p>
                   </>
@@ -868,12 +868,12 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
               </div>
 
               {/* Config paste area */}
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <div className="mt-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200">
+                <label className="text-sm font-medium text-gray-700 dark:text-slate-300 flex items-center gap-2">
                   <Clipboard className="w-4 h-4" />
                   Paste MCP Config JSON
                 </label>
-                <p className="text-xs text-gray-500 mt-1 mb-2">
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 mb-2">
                   Copy the JSON config from the terminal output above and paste it here to add to your registry.
                 </p>
                 <Textarea

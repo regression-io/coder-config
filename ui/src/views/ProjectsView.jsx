@@ -89,12 +89,12 @@ export default function ProjectsView({ onProjectSwitch }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-            <FolderOpen className="w-5 h-5 text-indigo-600" />
+          <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+            <FolderOpen className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Projects</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Projects</h2>
+            <p className="text-sm text-gray-500 dark:text-slate-400">
               Registered projects for quick switching
             </p>
           </div>
@@ -112,7 +112,7 @@ export default function ProjectsView({ onProjectSwitch }) {
       </div>
 
       {/* Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-700">
+      <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 text-sm text-blue-700 dark:text-blue-400">
         <p>
           Projects registered here can be quickly switched in the header dropdown.
           The UI will update to show the selected project's configuration.
@@ -120,12 +120,12 @@ export default function ProjectsView({ onProjectSwitch }) {
       </div>
 
       {/* Projects List */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
         {projects.length === 0 ? (
           <div className="p-12 text-center">
-            <Folder className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Projects Yet</h3>
-            <p className="text-sm text-gray-500 mb-4">
+            <Folder className="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-slate-600" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Projects Yet</h3>
+            <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">
               Add your first project to get started with quick switching.
             </p>
             <Button onClick={() => setAddDialogOpen(true)}>
@@ -134,28 +134,28 @@ export default function ProjectsView({ onProjectSwitch }) {
             </Button>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-slate-800">
             {projects.map(project => (
               <div
                 key={project.id}
                 className={`p-4 flex items-center gap-4 transition-colors ${
-                  project.isActive ? 'bg-indigo-50' : 'hover:bg-gray-50'
+                  project.isActive ? 'bg-indigo-50 dark:bg-indigo-950/30' : 'hover:bg-gray-50 dark:hover:bg-slate-900'
                 }`}
               >
                 {/* Icon */}
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                   project.isActive
-                    ? 'bg-indigo-100'
+                    ? 'bg-indigo-100 dark:bg-indigo-900/50'
                     : project.exists
-                    ? 'bg-gray-100'
-                    : 'bg-amber-100'
+                    ? 'bg-gray-100 dark:bg-slate-800'
+                    : 'bg-amber-100 dark:bg-amber-900/30'
                 }`}>
                   {project.isActive ? (
-                    <Check className="w-5 h-5 text-indigo-600" />
+                    <Check className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                   ) : project.exists ? (
-                    <Folder className="w-5 h-5 text-gray-500" />
+                    <Folder className="w-5 h-5 text-gray-500 dark:text-slate-400" />
                   ) : (
-                    <AlertTriangle className="w-5 h-5 text-amber-600" />
+                    <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                   )}
                 </div>
 
@@ -163,26 +163,26 @@ export default function ProjectsView({ onProjectSwitch }) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className={`font-medium truncate ${
-                      project.isActive ? 'text-indigo-700' : 'text-gray-900'
+                      project.isActive ? 'text-indigo-700 dark:text-indigo-400' : 'text-gray-900 dark:text-white'
                     }`}>
                       {project.name}
                     </h3>
                     {project.hasClaudeConfig && (
-                      <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
+                      <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded">
                         .claude
                       </span>
                     )}
                     {project.isActive && (
-                      <span className="text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">
+                      <span className="text-xs bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 px-1.5 py-0.5 rounded">
                         Active
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500 font-mono truncate">
+                  <p className="text-sm text-gray-500 dark:text-slate-400 font-mono truncate">
                     {project.path.replace(/^\/Users\/[^/]+/, '~')}
                   </p>
                   {!project.exists && (
-                    <p className="text-xs text-amber-600 mt-1">
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
                       Path not found - the directory may have been moved or deleted
                     </p>
                   )}
@@ -207,7 +207,7 @@ export default function ProjectsView({ onProjectSwitch }) {
                     size="sm"
                     variant="ghost"
                     onClick={() => handleRemove(project)}
-                    className="text-gray-500 hover:text-red-600"
+                    className="text-gray-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400"
                     title="Remove from registry"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -220,9 +220,9 @@ export default function ProjectsView({ onProjectSwitch }) {
       </div>
 
       {/* CLI Hint */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h4 className="text-sm font-medium text-gray-900 mb-2">CLI Commands</h4>
-        <div className="space-y-1 text-sm text-gray-600 font-mono">
+      <div className="bg-gray-50 dark:bg-slate-900 rounded-lg p-4 border border-transparent dark:border-slate-800">
+        <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">CLI Commands</h4>
+        <div className="space-y-1 text-sm text-gray-600 dark:text-slate-400 font-mono">
           <p>claude-config project add [path]        # Add project</p>
           <p>claude-config project remove &lt;name&gt;    # Remove project</p>
           <p>claude-config project                   # List projects</p>

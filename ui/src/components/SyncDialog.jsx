@@ -119,7 +119,7 @@ export default function SyncDialog({ open, onOpenChange, projectDir, onSynced })
       case 'different':
         return <span className="text-xs px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700">Modified</span>;
       case 'identical':
-        return <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">Same</span>;
+        return <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400">Same</span>;
       default:
         return null;
     }

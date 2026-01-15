@@ -216,9 +216,9 @@ export default function MemoryView({ project, onUpdate }) {
   return (
     <div className="space-y-6">
       {/* Header with search and add */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+      <div className="bg-white dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <Brain className="w-5 h-5 text-purple-600" />
             Memory System
           </h2>
@@ -255,8 +255,8 @@ export default function MemoryView({ project, onUpdate }) {
 
         {/* Search Results */}
         {searchResults.length > 0 && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Search Results</h3>
+          <div className="mt-4 p-3 bg-gray-50 dark:bg-slate-900 rounded-lg">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Search Results</h3>
             <div className="space-y-2">
               {searchResults.map((result, i) => (
                 <div key={i} className="text-sm">
@@ -264,10 +264,10 @@ export default function MemoryView({ project, onUpdate }) {
                     <Badge variant={result.scope === 'global' ? 'default' : 'secondary'}>
                       {result.scope}
                     </Badge>
-                    <span className="font-medium">{result.file}</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{result.file}</span>
                   </div>
                   {result.matches.map((match, j) => (
-                    <div key={j} className="ml-4 text-gray-600 text-xs mt-1">
+                    <div key={j} className="ml-4 text-gray-600 dark:text-slate-400 text-xs mt-1">
                       Line {match.line}: {match.text}
                     </div>
                   ))}
@@ -279,15 +279,15 @@ export default function MemoryView({ project, onUpdate }) {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-200 pb-2">
+      <div className="flex gap-2 border-b border-gray-200 dark:border-slate-700 pb-2">
         {['global', 'project', 'sync'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
               activeTab === tab
-                ? 'bg-white border border-b-white border-gray-200 -mb-[1px] text-indigo-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-slate-950 border border-b-white dark:border-b-slate-950 border-gray-200 dark:border-slate-700 -mb-[1px] text-indigo-600 dark:text-indigo-400'
+                : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)} Memory
@@ -297,38 +297,38 @@ export default function MemoryView({ project, onUpdate }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* File List */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-          <div className="p-4 border-b border-gray-200">
-            <h3 className="font-medium text-gray-900">
+        <div className="bg-white dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
+          <div className="p-4 border-b border-gray-200 dark:border-slate-700">
+            <h3 className="font-medium text-gray-900 dark:text-white">
               {activeTab === 'global' && 'Global Memory Files'}
               {activeTab === 'project' && 'Project Memory Files'}
               {activeTab === 'sync' && 'Sync State'}
             </h3>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
               {activeTab === 'global' && '~/.claude/memory/'}
               {activeTab === 'project' && `${project.dir}/.claude/memory/`}
               {activeTab === 'sync' && '~/.claude/sync/'}
             </p>
           </div>
 
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-slate-800">
             {activeTab === 'global' && memory?.global?.files.map((file) => (
               <button
                 key={file.name}
                 onClick={() => file.exists && setSelectedFile(file)}
-                className={`w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-gray-50 transition-colors ${
-                  selectedFile?.path === file.path ? 'bg-indigo-50' : ''
+                className={`w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-gray-50 dark:hover:bg-slate-900 transition-colors ${
+                  selectedFile?.path === file.path ? 'bg-indigo-50 dark:bg-indigo-950/30' : ''
                 } ${!file.exists ? 'opacity-50' : ''}`}
               >
-                <FileText className="w-4 h-4 text-gray-400" />
+                <FileText className="w-4 h-4 text-gray-400 dark:text-slate-500" />
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-900">{file.name}</div>
-                  <div className="text-xs text-gray-500">{file.type}</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-white">{file.name}</div>
+                  <div className="text-xs text-gray-500 dark:text-slate-400">{file.type}</div>
                 </div>
                 {file.exists ? (
                   <Check className="w-4 h-4 text-green-500" />
                 ) : (
-                  <span className="text-xs text-gray-400">Not created</span>
+                  <span className="text-xs text-gray-400 dark:text-slate-500">Not created</span>
                 )}
               </button>
             ))}
@@ -337,8 +337,8 @@ export default function MemoryView({ project, onUpdate }) {
               <>
                 {!memory?.project?.initialized ? (
                   <div className="p-6 text-center">
-                    <Brain className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-sm text-gray-600 mb-4">Project memory not initialized</p>
+                    <Brain className="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto mb-3" />
+                    <p className="text-sm text-gray-600 dark:text-slate-400 mb-4">Project memory not initialized</p>
                     <Button onClick={handleInitProject} className="bg-purple-600 hover:bg-purple-700 text-white">
                       <Plus className="w-4 h-4 mr-2" />
                       Initialize Project Memory
@@ -349,19 +349,19 @@ export default function MemoryView({ project, onUpdate }) {
                     <button
                       key={file.name}
                       onClick={() => file.exists && setSelectedFile(file)}
-                      className={`w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-gray-50 transition-colors ${
-                        selectedFile?.path === file.path ? 'bg-indigo-50' : ''
+                      className={`w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-gray-50 dark:hover:bg-slate-900 transition-colors ${
+                        selectedFile?.path === file.path ? 'bg-indigo-50 dark:bg-indigo-950/30' : ''
                       } ${!file.exists ? 'opacity-50' : ''}`}
                     >
-                      <FileText className="w-4 h-4 text-gray-400" />
+                      <FileText className="w-4 h-4 text-gray-400 dark:text-slate-500" />
                       <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-900">{file.name}</div>
-                        <div className="text-xs text-gray-500">{file.type}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">{file.name}</div>
+                        <div className="text-xs text-gray-500 dark:text-slate-400">{file.type}</div>
                       </div>
                       {file.exists ? (
                         <Check className="w-4 h-4 text-green-500" />
                       ) : (
-                        <span className="text-xs text-gray-400">Not created</span>
+                        <span className="text-xs text-gray-400 dark:text-slate-500">Not created</span>
                       )}
                     </button>
                   ))
@@ -374,17 +374,17 @@ export default function MemoryView({ project, onUpdate }) {
                 {memory?.sync?.state ? (
                   <div className="space-y-4">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">Current State</h4>
-                      <pre className="text-xs bg-gray-50 p-3 rounded overflow-auto max-h-48">
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Current State</h4>
+                      <pre className="text-xs bg-gray-50 dark:bg-slate-900 p-3 rounded overflow-auto max-h-48 text-gray-800 dark:text-slate-300">
                         {JSON.stringify(memory.sync.state, null, 2)}
                       </pre>
                     </div>
                     {memory.sync.history.length > 0 && (
                       <div>
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">History ({memory.sync.history.length})</h4>
+                        <h4 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">History ({memory.sync.history.length})</h4>
                         <div className="space-y-1">
                           {memory.sync.history.map((h, i) => (
-                            <div key={i} className="text-xs text-gray-600 flex items-center gap-2">
+                            <div key={i} className="text-xs text-gray-600 dark:text-slate-400 flex items-center gap-2">
                               <Clock className="w-3 h-3" />
                               {h.name}
                             </div>
@@ -395,9 +395,9 @@ export default function MemoryView({ project, onUpdate }) {
                   </div>
                 ) : (
                   <div className="text-center py-6">
-                    <Clock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-sm text-gray-600">No sync state</p>
-                    <p className="text-xs text-gray-400 mt-1">State is created by session hooks</p>
+                    <Clock className="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto mb-3" />
+                    <p className="text-sm text-gray-600 dark:text-slate-400">No sync state</p>
+                    <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">State is created by session hooks</p>
                   </div>
                 )}
               </div>
@@ -406,9 +406,9 @@ export default function MemoryView({ project, onUpdate }) {
         </div>
 
         {/* Editor */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="font-medium text-gray-900">
+        <div className="bg-white dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
+          <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
+            <h3 className="font-medium text-gray-900 dark:text-white">
               {selectedFile ? selectedFile.name : 'Select a file'}
             </h3>
             {selectedFile && (
@@ -432,7 +432,7 @@ export default function MemoryView({ project, onUpdate }) {
                 placeholder="File content..."
               />
             ) : (
-              <div className="flex items-center justify-center h-[400px] text-gray-400">
+              <div className="flex items-center justify-center h-[400px] text-gray-400 dark:text-slate-500">
                 <div className="text-center">
                   <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>Select a file to edit</p>
@@ -445,7 +445,7 @@ export default function MemoryView({ project, onUpdate }) {
 
       {/* Add Entry Dialog */}
       <Dialog open={addEntry.open} onOpenChange={(open) => setAddEntry({ ...addEntry, open })}>
-        <DialogContent className="bg-white max-w-lg">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Add Memory Entry</DialogTitle>
             <DialogDescription>
@@ -455,7 +455,7 @@ export default function MemoryView({ project, onUpdate }) {
 
           <div className="py-4 space-y-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">Entry Type</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Entry Type</label>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 {[...entryTypes.global, ...entryTypes.project].map((type) => {
                   const Icon = type.icon;
@@ -466,15 +466,15 @@ export default function MemoryView({ project, onUpdate }) {
                       onClick={() => setAddEntry({ ...addEntry, type: type.id })}
                       className={`p-2 rounded-lg border text-left transition-colors ${
                         addEntry.type === type.id
-                          ? 'border-indigo-500 bg-indigo-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30'
+                          : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <Icon className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm font-medium">{type.label}</span>
+                        <Icon className="w-4 h-4 text-gray-500 dark:text-slate-400" />
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{type.label}</span>
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">{isGlobal ? 'Global' : 'Project'}</div>
+                      <div className="text-xs text-gray-500 dark:text-slate-400 mt-1">{isGlobal ? 'Global' : 'Project'}</div>
                     </button>
                   );
                 })}
@@ -485,7 +485,7 @@ export default function MemoryView({ project, onUpdate }) {
             {addEntry.type === 'preference' && (
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Name</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Name</label>
                   <Input
                     value={addEntry.name}
                     onChange={(e) => setAddEntry({ ...addEntry, name: e.target.value })}
@@ -494,7 +494,7 @@ export default function MemoryView({ project, onUpdate }) {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Description</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Description</label>
                   <Input
                     value={addEntry.description}
                     onChange={(e) => setAddEntry({ ...addEntry, description: e.target.value })}
@@ -508,7 +508,7 @@ export default function MemoryView({ project, onUpdate }) {
             {addEntry.type === 'correction' && (
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Wrong (what to avoid)</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Wrong (what to avoid)</label>
                   <Textarea
                     value={addEntry.wrong}
                     onChange={(e) => setAddEntry({ ...addEntry, wrong: e.target.value })}
@@ -518,7 +518,7 @@ export default function MemoryView({ project, onUpdate }) {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Right (what to do instead)</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Right (what to do instead)</label>
                   <Textarea
                     value={addEntry.right}
                     onChange={(e) => setAddEntry({ ...addEntry, right: e.target.value })}
@@ -533,7 +533,7 @@ export default function MemoryView({ project, onUpdate }) {
             {addEntry.type === 'fact' && (
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Category</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Category</label>
                   <Input
                     value={addEntry.category}
                     onChange={(e) => setAddEntry({ ...addEntry, category: e.target.value })}
@@ -542,7 +542,7 @@ export default function MemoryView({ project, onUpdate }) {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Details</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Details</label>
                   <Textarea
                     value={addEntry.details}
                     onChange={(e) => setAddEntry({ ...addEntry, details: e.target.value })}
@@ -557,7 +557,7 @@ export default function MemoryView({ project, onUpdate }) {
             {addEntry.type === 'pattern' && (
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Pattern Name</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Pattern Name</label>
                   <Input
                     value={addEntry.name}
                     onChange={(e) => setAddEntry({ ...addEntry, name: e.target.value })}
@@ -566,7 +566,7 @@ export default function MemoryView({ project, onUpdate }) {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Description</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Description</label>
                   <Textarea
                     value={addEntry.description}
                     onChange={(e) => setAddEntry({ ...addEntry, description: e.target.value })}
@@ -581,7 +581,7 @@ export default function MemoryView({ project, onUpdate }) {
             {addEntry.type === 'decision' && (
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Title</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Title</label>
                   <Input
                     value={addEntry.title}
                     onChange={(e) => setAddEntry({ ...addEntry, title: e.target.value })}
@@ -590,7 +590,7 @@ export default function MemoryView({ project, onUpdate }) {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Context</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Context</label>
                   <Textarea
                     value={addEntry.context}
                     onChange={(e) => setAddEntry({ ...addEntry, context: e.target.value })}
@@ -600,7 +600,7 @@ export default function MemoryView({ project, onUpdate }) {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Decision</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Decision</label>
                   <Textarea
                     value={addEntry.decision}
                     onChange={(e) => setAddEntry({ ...addEntry, decision: e.target.value })}
@@ -610,7 +610,7 @@ export default function MemoryView({ project, onUpdate }) {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Rationale</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Rationale</label>
                   <Textarea
                     value={addEntry.rationale}
                     onChange={(e) => setAddEntry({ ...addEntry, rationale: e.target.value })}
@@ -625,7 +625,7 @@ export default function MemoryView({ project, onUpdate }) {
             {addEntry.type === 'issue' && (
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Issue Title</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Issue Title</label>
                   <Input
                     value={addEntry.title}
                     onChange={(e) => setAddEntry({ ...addEntry, title: e.target.value })}
@@ -634,7 +634,7 @@ export default function MemoryView({ project, onUpdate }) {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Description / Workaround</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Description / Workaround</label>
                   <Textarea
                     value={addEntry.description}
                     onChange={(e) => setAddEntry({ ...addEntry, description: e.target.value })}
@@ -648,7 +648,7 @@ export default function MemoryView({ project, onUpdate }) {
 
             {(addEntry.type === 'history' || addEntry.type === 'context') && (
               <div>
-                <label className="text-sm font-medium text-gray-700">Content</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Content</label>
                 <Textarea
                   value={addEntry.content}
                   onChange={(e) => setAddEntry({ ...addEntry, content: e.target.value })}

@@ -63,14 +63,14 @@ export default function CreateMcpView({ project }) {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-none p-6 border-b border-gray-200 bg-white">
+      <div className="flex-none p-6 border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <Wand2 className="w-7 h-7 text-purple-600" />
               Create MCP Server
             </h1>
-            <p className="text-gray-500 mt-1">
+            <p className="text-gray-500 dark:text-slate-400 mt-1">
               Generate a new MCP server project with Claude Code assistance
             </p>
           </div>
@@ -78,7 +78,7 @@ export default function CreateMcpView({ project }) {
             <Button
               variant="outline"
               onClick={resetForm}
-              className="text-gray-600"
+              className="text-gray-600 dark:text-slate-300"
             >
               <Plus className="w-4 h-4 mr-2" />
               New Project
@@ -89,62 +89,61 @@ export default function CreateMcpView({ project }) {
 
       <div className="flex-1 overflow-hidden flex">
         {/* Left panel - Form */}
-        <div className={`${showTerminal ? 'w-1/3 border-r border-gray-200' : 'w-full max-w-2xl mx-auto'} p-6 overflow-auto`}>
+        <div className={`${showTerminal ? 'w-1/3 border-r border-gray-200 dark:border-slate-700' : 'w-full max-w-2xl mx-auto'} p-6 overflow-auto`}>
           <div className="space-y-6">
             {/* MCP Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                 MCP Name *
               </label>
               <Input
                 value={mcpName}
                 onChange={(e) => setMcpName(e.target.value)}
                 placeholder="my-awesome-mcp"
-                className="bg-white border-gray-300"
                 disabled={isCreating}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                 This will be the project folder name
               </p>
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                 Description
               </label>
               <Textarea
                 value={mcpDescription}
                 onChange={(e) => setMcpDescription(e.target.value)}
                 placeholder="Describe what your MCP server will do..."
-                className="bg-white border-gray-300 min-h-[100px]"
+                className="min-h-[100px]"
                 disabled={isCreating}
               />
             </div>
 
             {/* Output Directory */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                 Output Directory
               </label>
               <Input
                 value={outputDir}
                 onChange={(e) => setOutputDir(e.target.value)}
                 placeholder="/path/to/projects"
-                className="bg-white border-gray-300 font-mono text-sm"
+                className="font-mono text-sm"
                 disabled={isCreating}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                 Where to create the new MCP project
               </p>
             </div>
 
             {/* Template Info */}
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-purple-900 mb-2">
+            <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-purple-900 dark:text-purple-300 mb-2">
                 What will be created:
               </h3>
-              <ul className="text-sm text-purple-700 space-y-1">
+              <ul className="text-sm text-purple-700 dark:text-purple-400 space-y-1">
                 <li className="flex items-center gap-2">
                   <FileCode className="w-4 h-4" />
                   Python project with uv package manager

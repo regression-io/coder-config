@@ -63,8 +63,8 @@ const FILE_CONFIG = {
   },
   settings: {
     icon: Settings,
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-50',
+    color: 'text-gray-600 dark:text-slate-400',
+    bgColor: 'bg-gray-50 dark:bg-slate-800',
     label: 'Settings',
   },
   command: {
@@ -108,7 +108,7 @@ const FILE_CONFIG = {
 // Level colors for hierarchy
 const LEVEL_COLORS = {
   home: { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700' },
-  intermediate: { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700' },
+  intermediate: { bg: 'bg-gray-50 dark:bg-slate-800', border: 'border-gray-200 dark:border-slate-700', text: 'text-gray-700 dark:text-slate-300' },
   project: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700' },
 };
 
@@ -125,7 +125,7 @@ function TreeItem({ item, level = 0, selectedPath, onSelect, onContextMenu, expa
       <div
         className={cn(
           'flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer text-sm',
-          'hover:bg-gray-100 transition-colors',
+          'hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700 transition-colors',
           isSelected && 'bg-blue-100 hover:bg-blue-100'
         )}
         style={{ paddingLeft: `${level * 16 + 8}px` }}
@@ -319,7 +319,7 @@ function McpEditor({ content, parsed, onSave, registry }) {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between p-3 border-b bg-gray-50">
+      <div className="flex items-center justify-between p-3 border-b bg-gray-50 dark:bg-slate-800">
         <Tabs value={viewMode} onValueChange={setViewMode}>
           <TabsList className="h-8">
             <TabsTrigger value="rich" className="text-xs px-3">Rich Editor</TabsTrigger>
@@ -347,10 +347,10 @@ function McpEditor({ content, parsed, onSave, registry }) {
               <h3 className="text-sm font-medium mb-2">Registry MCPs</h3>
               <div className="space-y-2">
                 {registryMcps.length === 0 ? (
-                  <p className="text-sm text-gray-500">No MCPs in registry</p>
+                  <p className="text-sm text-gray-500 dark:text-slate-400">No MCPs in registry</p>
                 ) : (
                   registryMcps.map((name) => (
-                    <div key={name} className="flex items-center justify-between p-2 rounded border bg-white">
+                    <div key={name} className="flex items-center justify-between p-2 rounded border bg-white dark:bg-slate-950">
                       <div className="flex items-center gap-2">
                         <Server className="w-4 h-4 text-blue-500" />
                         <span className="text-sm">{name}</span>
@@ -370,7 +370,7 @@ function McpEditor({ content, parsed, onSave, registry }) {
                 <h3 className="text-sm font-medium mb-2">Inline MCPs</h3>
                 <div className="space-y-2">
                   {Object.entries(localConfig.mcpServers).map(([name, config]) => (
-                    <div key={name} className="p-2 rounded border bg-white group">
+                    <div key={name} className="p-2 rounded border bg-white dark:bg-slate-950 group">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">{name}</span>
                         <div className="flex items-center gap-2">
@@ -392,7 +392,7 @@ function McpEditor({ content, parsed, onSave, registry }) {
                           </Button>
                         </div>
                       </div>
-                      <p className="text-xs text-gray-500 mt-1 font-mono">
+                      <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 font-mono">
                         {config.command} {config.args?.join(' ')}
                       </p>
                     </div>
@@ -415,7 +415,7 @@ function McpEditor({ content, parsed, onSave, registry }) {
 
       {/* Add MCP Dialog */}
       <Dialog open={addDialog.open} onOpenChange={(open) => setAddDialog({ ...addDialog, open })}>
-        <DialogContent className="bg-white max-w-2xl">
+        <DialogContent className="bg-white dark:bg-slate-950 max-w-2xl">
           <DialogHeader>
             <DialogTitle>Add MCP to Config</DialogTitle>
             <DialogDescription>
@@ -428,11 +428,11 @@ function McpEditor({ content, parsed, onSave, registry }) {
               value={addDialog.json}
               onChange={(e) => setAddDialog({ ...addDialog, json: e.target.value })}
               placeholder={'{\n  "my-mcp": {\n    "command": "npx",\n    "args": ["-y", "@example/mcp-server"],\n    "env": {\n      "API_KEY": "${API_KEY}"\n    }\n  }\n}'}
-              className="font-mono text-sm bg-gray-50"
+              className="font-mono text-sm bg-gray-50 dark:bg-slate-800"
               rows={12}
             />
-            <p className="text-xs text-gray-500 mt-2">
-              Accepts formats: <code className="bg-gray-100 px-1 rounded">{'{ "name": { "command": "...", "args": [...] } }'}</code> or <code className="bg-gray-100 px-1 rounded">{'{ "mcpServers": { ... } }'}</code>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">
+              Accepts formats: <code className="bg-gray-100 dark:bg-slate-700 px-1 rounded">{'{ "name": { "command": "...", "args": [...] } }'}</code> or <code className="bg-gray-100 dark:bg-slate-700 px-1 rounded">{'{ "mcpServers": { ... } }'}</code>
             </p>
           </div>
 
@@ -572,7 +572,7 @@ function AIAssistDialog({ open, onClose, fileType, currentContent, onInsert }) {
         <div className="flex-1 overflow-auto space-y-4 py-4">
           {/* Quick Templates */}
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Quick Templates</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">Quick Templates</label>
             <div className="flex flex-wrap gap-2">
               {fileTemplates.map((template) => (
                 <Button
@@ -593,7 +593,7 @@ function AIAssistDialog({ open, onClose, fileType, currentContent, onInsert }) {
 
           {/* Custom Prompt */}
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Custom Prompt</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">Custom Prompt</label>
             <div className="flex gap-2">
               <Input
                 placeholder="Describe what you want to generate..."
@@ -610,7 +610,7 @@ function AIAssistDialog({ open, onClose, fileType, currentContent, onInsert }) {
           {/* Generated Content Preview */}
           {generatedContent && (
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Generated Content</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">Generated Content</label>
               <Textarea
                 value={generatedContent}
                 onChange={(e) => setGeneratedContent(e.target.value)}
@@ -665,7 +665,7 @@ function MarkdownEditor({ content, onSave, fileType }) {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between p-3 border-b bg-gray-50">
+      <div className="flex items-center justify-between p-3 border-b bg-gray-50 dark:bg-slate-800">
         <div className="flex items-center gap-2">
           <config.icon className={cn('w-4 h-4', config.color)} />
           <span className="text-sm font-medium">{config.label}</span>
@@ -776,7 +776,7 @@ function MoveCopyDialog({ open, onClose, item, intermediatePaths, onMove }) {
                 key={p.dir}
                 className={cn(
                   'flex items-center justify-between p-2 rounded border cursor-pointer',
-                  selectedPath === p.dir ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'
+                  selectedPath === p.dir ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50 dark:bg-slate-800'
                 )}
                 onClick={() => {
                   setSelectedPath(p.dir);
@@ -859,7 +859,7 @@ function RenameDialog({ open, onClose, item, onRename }) {
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleRename()}
           />
-          <p className="text-xs text-gray-500 mt-1">.md extension will be added automatically</p>
+          <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">.md extension will be added automatically</p>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
@@ -1091,7 +1091,7 @@ export default function FileExplorer({ project, onRefresh }) {
   const renderEditor = () => {
     if (!selectedItem || !fileContent) {
       return (
-        <div className="h-full flex items-center justify-center text-gray-500">
+        <div className="h-full flex items-center justify-center text-gray-500 dark:text-slate-400">
           <div className="text-center">
             <File className="w-12 h-12 mx-auto mb-2 opacity-50" />
             <p>Select a file to edit</p>
@@ -1151,7 +1151,7 @@ export default function FileExplorer({ project, onRefresh }) {
   return (
     <div className="h-full flex">
       {/* Left Panel - Tree View */}
-      <div className="w-72 border-r flex flex-col bg-white">
+      <div className="w-72 border-r flex flex-col bg-white dark:bg-slate-950">
         <div className="flex items-center justify-between p-3 border-b">
           <h2 className="font-semibold text-sm">Project Config</h2>
           <div className="flex gap-1">
@@ -1212,7 +1212,7 @@ export default function FileExplorer({ project, onRefresh }) {
               )}
               {/* Antigravity .agent folder */}
               {folder.agentExists && folder.agentFiles?.length > 0 && (
-                <div className="py-1 border-t border-dashed border-gray-200 mt-1">
+                <div className="py-1 border-t border-dashed border-gray-200 dark:border-slate-700 mt-1">
                   <div className="px-3 py-1 text-[10px] font-medium text-blue-600 uppercase tracking-wide flex items-center gap-1">
                     <Sparkles className="w-3 h-3" />
                     Antigravity
@@ -1236,11 +1236,11 @@ export default function FileExplorer({ project, onRefresh }) {
       </div>
 
       {/* Right Panel - Editor */}
-      <div className="flex-1 flex flex-col bg-gray-50">
+      <div className="flex-1 flex flex-col bg-gray-50 dark:bg-slate-800">
         {selectedItem && (
-          <div className="flex items-center justify-between px-4 py-2 border-b bg-white">
+          <div className="flex items-center justify-between px-4 py-2 border-b bg-white dark:bg-slate-950">
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-500 font-mono truncate max-w-md">
+              <span className="text-gray-500 dark:text-slate-400 font-mono truncate max-w-md">
                 {selectedItem.path}
               </span>
             </div>
@@ -1275,12 +1275,12 @@ export default function FileExplorer({ project, onRefresh }) {
             onClick={() => setContextMenu({ x: 0, y: 0, item: null })}
           />
           <div
-            className="fixed z-50 bg-white rounded-md shadow-lg border py-1 min-w-[160px]"
+            className="fixed z-50 bg-white dark:bg-slate-950 rounded-md shadow-lg border py-1 min-w-[160px]"
             style={{ left: contextMenu.x, top: contextMenu.y }}
           >
             {(contextMenu.item?.type === 'rule' || contextMenu.item?.type === 'command' || contextMenu.item?.type === 'workflow') && (
               <button
-                className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 flex items-center"
+                className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700 flex items-center"
                 onClick={() => {
                   setRenameDialog({ open: true, item: contextMenu.item });
                   setContextMenu({ x: 0, y: 0, item: null });
@@ -1291,7 +1291,7 @@ export default function FileExplorer({ project, onRefresh }) {
               </button>
             )}
             <button
-              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 flex items-center"
+              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700 flex items-center"
               onClick={() => {
                 setMoveCopyDialog({ open: true, item: contextMenu.item });
                 setContextMenu({ x: 0, y: 0, item: null });
@@ -1301,7 +1301,7 @@ export default function FileExplorer({ project, onRefresh }) {
               Copy to...
             </button>
             <button
-              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 flex items-center"
+              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700 flex items-center"
               onClick={() => {
                 setMoveCopyDialog({ open: true, item: contextMenu.item });
                 setContextMenu({ x: 0, y: 0, item: null });
@@ -1312,7 +1312,7 @@ export default function FileExplorer({ project, onRefresh }) {
             </button>
             <div className="border-t my-1" />
             <button
-              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 flex items-center text-red-600"
+              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700 flex items-center text-red-600"
               onClick={() => {
                 handleDelete(contextMenu.item);
                 setContextMenu({ x: 0, y: 0, item: null });
@@ -1366,18 +1366,18 @@ export default function FileExplorer({ project, onRefresh }) {
               .map((p) => (
                 <div
                   key={p.dir}
-                  className="flex items-center justify-between p-3 rounded border hover:bg-gray-50 cursor-pointer"
+                  className="flex items-center justify-between p-3 rounded border hover:bg-gray-50 dark:bg-slate-800 cursor-pointer"
                   onClick={() => handleCreateNewFolder(p.dir)}
                 >
                   <div className="flex items-center gap-2">
-                    <Folder className="w-4 h-4 text-gray-500" />
+                    <Folder className="w-4 h-4 text-gray-500 dark:text-slate-400" />
                     <span className="text-sm font-mono">{p.label}</span>
                   </div>
                   <Badge variant="outline" className="text-xs">create</Badge>
                 </div>
               ))}
             {intermediatePaths.filter(p => !folders.some(f => f.dir === p.dir)).length === 0 && (
-              <p className="text-sm text-gray-500 text-center py-4">
+              <p className="text-sm text-gray-500 dark:text-slate-400 text-center py-4">
                 All intermediate directories already have .claude folders
               </p>
             )}
