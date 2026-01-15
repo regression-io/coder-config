@@ -1063,6 +1063,7 @@ class ConfigUIServer {
   }
 
   fetchNpmVersion() {
+    const https = require('https');
     return new Promise((resolve) => {
       const url = 'https://registry.npmjs.org/@regression-io/claude-config/latest';
       https.get(url, (res) => {
