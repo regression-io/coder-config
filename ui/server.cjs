@@ -526,11 +526,13 @@ class ConfigUIServer {
 
       // Version check and update
       case '/api/version-check':
-        return this.json(res, this.checkForUpdates());
+        const versionInfo = await this.checkForUpdates();
+        return this.json(res, versionInfo);
 
       case '/api/update':
         if (req.method === 'POST') {
-          return this.json(res, this.performUpdate(body.sourcePath));
+          const updateResult = await this.performUpdate(body);
+          return this.json(res, updateResult);
         }
         break;
 
@@ -1004,25 +1006,36 @@ class ConfigUIServer {
   // VERSION CHECK AND UPDATE
   // ===========================================================================
 
-  checkForUpdates() {
-    const homeDir = process.env.HOME || '';
-
-    // Known source paths to check (common development locations)
-    const sourcePaths = [
-      path.join(homeDir, 'projects', 'claude-config'),
-      path.join(homeDir, 'src', 'claude-config'),
-      path.join(homeDir, 'dev', 'claude-config'),
-      path.join(homeDir, 'code', 'claude-config'),
-      // Also check if we're running from source directly
-      path.dirname(__dirname)
-    ];
-
+  async checkForUpdates() {
     // Get current installed version
     const installedVersion = this.getVersionFromFile(
       path.join(this.manager.installDir, 'config-loader.js')
     );
 
-    // Check each source path
+    // Check npm for latest version
+    const npmVersion = await this.fetchNpmVersion();
+
+    if (npmVersion && this.isNewerVersion(npmVersion, installedVersion)) {
+      return {
+        updateAvailable: true,
+        installedVersion,
+        latestVersion: npmVersion,
+        updateMethod: 'npm',
+        installDir: this.manager.installDir
+      };
+    }
+
+    // Also check local dev paths as fallback
+    const homeDir = process.env.HOME || '';
+    const sourcePaths = [
+      path.join(homeDir, 'projects', 'claude-config'),
+      path.join(homeDir, 'reg', 'my', 'claude-config'),
+      path.join(homeDir, 'src', 'claude-config'),
+      path.join(homeDir, 'dev', 'claude-config'),
+      path.join(homeDir, 'code', 'claude-config'),
+      path.dirname(__dirname)
+    ];
+
     for (const sourcePath of sourcePaths) {
       const sourceLoaderPath = path.join(sourcePath, 'config-loader.js');
       if (fs.existsSync(sourceLoaderPath)) {
@@ -1032,18 +1045,8 @@ class ConfigUIServer {
           return {
             updateAvailable: true,
             installedVersion,
-            sourceVersion,
-            sourcePath,
-            installDir: this.manager.installDir
-          };
-        }
-
-        // Found source but same/older version
-        if (sourceVersion) {
-          return {
-            updateAvailable: false,
-            installedVersion,
-            sourceVersion,
+            latestVersion: sourceVersion,
+            updateMethod: 'local',
             sourcePath,
             installDir: this.manager.installDir
           };
@@ -1054,11 +1057,27 @@ class ConfigUIServer {
     return {
       updateAvailable: false,
       installedVersion,
-      sourceVersion: null,
-      sourcePath: null,
-      installDir: this.manager.installDir,
-      message: 'No source directory found'
+      latestVersion: npmVersion || installedVersion,
+      installDir: this.manager.installDir
     };
+  }
+
+  fetchNpmVersion() {
+    return new Promise((resolve) => {
+      const url = 'https://registry.npmjs.org/@regression-io/claude-config/latest';
+      https.get(url, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const parsed = JSON.parse(data);
+            resolve(parsed.version || null);
+          } catch (e) {
+            resolve(null);
+          }
+        });
+      }).on('error', () => resolve(null));
+    });
   }
 
   getVersionFromFile(filePath) {
@@ -1088,7 +1107,50 @@ class ConfigUIServer {
     return false;
   }
 
-  performUpdate(sourcePath) {
+  async performUpdate(options = {}) {
+    const { updateMethod, sourcePath } = options;
+
+    // npm update
+    if (updateMethod === 'npm') {
+      return this.performNpmUpdate();
+    }
+
+    // Local update from source path
+    if (sourcePath) {
+      return this.performLocalUpdate(sourcePath);
+    }
+
+    return { success: false, error: 'No update method specified' };
+  }
+
+  performNpmUpdate() {
+    return new Promise((resolve) => {
+      const { execSync } = require('child_process');
+      try {
+        // Run npm update globally
+        execSync('npm update -g @regression-io/claude-config', {
+          stdio: 'pipe',
+          timeout: 120000
+        });
+
+        // Get new version after update
+        const newVersion = this.getVersionFromFile(
+          path.join(this.manager.installDir, 'config-loader.js')
+        );
+
+        resolve({
+          success: true,
+          updateMethod: 'npm',
+          newVersion,
+          message: 'Updated via npm. Please restart the UI to use the new version.'
+        });
+      } catch (error) {
+        resolve({ success: false, error: error.message });
+      }
+    });
+  }
+
+  performLocalUpdate(sourcePath) {
     try {
       const installDir = this.manager.installDir;
 
@@ -1170,6 +1232,7 @@ class ConfigUIServer {
 
       return {
         success: true,
+        updateMethod: 'local',
         updated,
         errors,
         newVersion

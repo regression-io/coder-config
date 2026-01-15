@@ -31,15 +31,22 @@ export default function PreferencesView() {
   };
 
   const handleUpdate = async () => {
-    if (!versionInfo?.sourcePath) {
-      toast.error('No source path available for update');
+    if (!versionInfo?.updateAvailable) {
+      toast.error('No update available');
       return;
     }
     setUpdating(true);
     try {
-      const result = await api.performUpdate(versionInfo.sourcePath);
+      const result = await api.performUpdate({
+        updateMethod: versionInfo.updateMethod,
+        sourcePath: versionInfo.sourcePath
+      });
       if (result.success) {
-        toast.success(`Updated! Files: ${result.updated.join(', ')}. Restart the server to apply.`);
+        if (result.updateMethod === 'npm') {
+          toast.success(result.message || 'Updated via npm! Restart the server to apply.');
+        } else {
+          toast.success(`Updated! Files: ${result.updated?.join(', ') || 'all'}. Restart the server to apply.`);
+        }
         loadVersionInfo();
       } else {
         toast.error('Update failed: ' + result.error);
@@ -241,7 +248,7 @@ export default function PreferencesView() {
                     <div>
                       <p className="text-sm font-medium text-green-800">Update Available!</p>
                       <p className="text-xs text-green-600">
-                        Version {versionInfo.sourceVersion} found at {versionInfo.sourcePath}
+                        Version {versionInfo.latestVersion} via {versionInfo.updateMethod === 'npm' ? 'npm' : versionInfo.sourcePath}
                       </p>
                     </div>
                     <Button
@@ -257,9 +264,16 @@ export default function PreferencesView() {
                 </div>
               )}
 
+              {!versionInfo?.updateAvailable && versionInfo?.latestVersion && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Latest Version</span>
+                  <span className="font-mono text-green-600">{versionInfo.latestVersion} ✓</span>
+                </div>
+              )}
+
               {versionInfo?.sourcePath && !versionInfo?.updateAvailable && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Source</span>
+                  <span className="text-gray-600">Dev Source</span>
                   <div className="flex items-center gap-2">
                     <code className="text-xs text-gray-500">{versionInfo.sourcePath}</code>
                     <Button

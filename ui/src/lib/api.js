@@ -190,10 +190,10 @@ export const api = {
     return request('/version-check');
   },
 
-  async performUpdate(sourcePath) {
+  async performUpdate(options) {
     return request('/update', {
       method: 'POST',
-      body: { sourcePath },
+      body: options,
     });
   },
 
