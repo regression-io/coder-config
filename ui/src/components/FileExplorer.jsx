@@ -7,6 +7,7 @@ import { Textarea } from './ui/textarea';
 import ClaudeSettingsEditor from './ClaudeSettingsEditor';
 import GeminiSettingsEditor from './GeminiSettingsEditor';
 import SyncDialog from './SyncDialog';
+import PathPicker from './PathPicker';
 import { ScrollArea } from './ui/scroll-area';
 import { Badge } from './ui/badge';
 import { Switch } from './ui/switch';
@@ -960,7 +961,7 @@ export default function FileExplorer({ project, onRefresh }) {
   const [createDialog, setCreateDialog] = useState({ open: false, dir: null, type: null });
   const [renameDialog, setRenameDialog] = useState({ open: false, item: null });
   const [syncDialog, setSyncDialog] = useState(false);
-  const [addSubprojectDialog, setAddSubprojectDialog] = useState({ open: false, projectDir: null, path: '' });
+  const [addSubprojectDialog, setAddSubprojectDialog] = useState({ open: false, projectDir: null });
   const [contextMenu, setContextMenu] = useState({ x: 0, y: 0, item: null });
 
   const [enabledTools, setEnabledTools] = useState(['claude']);
@@ -1148,17 +1149,13 @@ export default function FileExplorer({ project, onRefresh }) {
     }
   };
 
-  const handleAddSubproject = async () => {
-    const subPath = addSubprojectDialog.path.trim();
-    if (!subPath) {
-      toast.error('Please enter a folder path');
-      return;
-    }
+  const handleAddSubproject = async (selectedPath) => {
+    if (!selectedPath) return;
     try {
-      const result = await api.addManualSubproject(addSubprojectDialog.projectDir, subPath);
+      const result = await api.addManualSubproject(addSubprojectDialog.projectDir, selectedPath);
       if (result.success) {
-        toast.success(`Added sub-project: ${subPath.split('/').pop()}`);
-        setAddSubprojectDialog({ open: false, projectDir: null, path: '' });
+        toast.success(`Added sub-project: ${selectedPath.split('/').pop()}`);
+        setAddSubprojectDialog({ open: false, projectDir: null });
         loadData();
       } else {
         toast.error(result.error || 'Failed to add sub-project');
@@ -1300,7 +1297,7 @@ export default function FileExplorer({ project, onRefresh }) {
               onToggleFolder={handleToggleNestedFolder}
               templates={templates}
               hasSubprojects={hasSubprojects}
-              onAddSubproject={(projectDir) => setAddSubprojectDialog({ open: true, projectDir, path: '' })}
+              onAddSubproject={(projectDir) => setAddSubprojectDialog({ open: true, projectDir })}
               onRemoveSubproject={handleRemoveSubproject}
             />
           ))}
@@ -1397,38 +1394,15 @@ export default function FileExplorer({ project, onRefresh }) {
         projectDir={project?.dir}
         onSynced={loadData}
       />
-      {/* Add Sub-project Dialog */}
-      <Dialog open={addSubprojectDialog.open} onOpenChange={(open) => setAddSubprojectDialog({ ...addSubprojectDialog, open })}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Sub-project</DialogTitle>
-            <DialogDescription>
-              Enter the path to a folder you want to manage as a sub-project.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Input
-              placeholder="/path/to/project or ~/projects/my-app"
-              value={addSubprojectDialog.path}
-              onChange={(e) => setAddSubprojectDialog({ ...addSubprojectDialog, path: e.target.value })}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddSubproject()}
-              className="font-mono"
-            />
-            <p className="text-xs text-muted-foreground mt-2">
-              Use ~ for home directory. The folder must exist.
-            </p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddSubprojectDialog({ open: false, projectDir: null, path: '' })}>
-              Cancel
-            </Button>
-            <Button onClick={handleAddSubproject}>
-              <FolderPlus className="w-4 h-4 mr-2" />
-              Add
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Add Sub-project Folder Picker */}
+      <PathPicker
+        open={addSubprojectDialog.open}
+        onOpenChange={(open) => setAddSubprojectDialog({ ...addSubprojectDialog, open })}
+        onSelect={handleAddSubproject}
+        type="directory"
+        title="Add Sub-project"
+        initialPath={addSubprojectDialog.projectDir || '~'}
+      />
     </div>
   );
 }
