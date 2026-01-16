@@ -1230,7 +1230,7 @@ export default function FileExplorer({ project, onRefresh }) {
     if (!templateSuggestion.dir || !templateSuggestion.template) return;
 
     try {
-      const result = await api.applyTemplate(templateSuggestion.dir, templateSuggestion.template.fullName);
+      const result = await api.applyTemplate(templateSuggestion.template.fullName, templateSuggestion.dir);
       if (result.success) {
         toast.success(`Applied template: ${templateSuggestion.template.name}`);
         setTemplateSuggestion({ open: false, dir: null, template: null, confidence: null });
