@@ -313,8 +313,8 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
               CLAUDE.md
               {hasClaudeMd && <span className="ml-auto text-xs text-muted-foreground">exists</span>}
             </DropdownMenuItem>
-            {/* Add Sub-project - only for root project */}
-            {isProject && onAddSubproject && (
+            {/* Add Sub-project - for root project and sub-projects */}
+            {(isProject || isSubproject) && onAddSubproject && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onAddSubproject(folder.dir); }}>
