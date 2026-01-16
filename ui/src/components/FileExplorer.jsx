@@ -183,7 +183,7 @@ function TreeItem({ item, level = 0, selectedPath, onSelect, onContextMenu, expa
 }
 
 // Folder Row Component - collapsible tree entry
-function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onToggle, onCreateFile, onSelectItem, selectedPath, onContextMenu, expandedFolders, onToggleFolder, templates, hasSubprojects, onAddSubproject, onRemoveSubproject, onHideSubproject }) {
+function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, depth = 0, onToggle, onCreateFile, onSelectItem, selectedPath, onContextMenu, expandedFolders, onToggleFolder, templates, hasSubprojects, onAddSubproject, onRemoveSubproject, onHideSubproject }) {
   // Check what files already exist
   const hasMcps = folder.files?.some(f => f.name === 'mcps.json');
   const hasSettings = folder.files?.some(f => f.name === 'settings.json');
@@ -222,9 +222,10 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
       {/* Folder Header Row */}
       <div
         className={cn(
-          'flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors',
+          'flex items-center gap-2 py-2 cursor-pointer transition-colors',
           getBgColor()
         )}
+        style={{ paddingLeft: `${12 + (depth * 16)}px`, paddingRight: '12px' }}
         onClick={onToggle}
       >
         <span className="w-4 h-4 flex items-center justify-center text-gray-500">
@@ -1313,6 +1314,7 @@ export default function FileExplorer({ project, onRefresh }) {
               isHome={getIsHome(folder, index)}
               isProject={getIsProject(folder, index)}
               isSubproject={folder.isSubproject}
+              depth={folder.depth || 0}
               onToggle={() => handleToggleFolder(folder.dir)}
               onCreateFile={handleCreateFile}
               onSelectItem={handleSelectItem}

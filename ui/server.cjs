@@ -2157,37 +2157,51 @@ class ConfigUIServer {
       folders.push(folder);
     }
 
-    // Also add all sub-projects (even unconfigured ones)
-    const subprojects = this.getSubprojects();
-    for (const sub of subprojects) {
-      let subFolder = this.scanFolderForExplorer(sub.dir, sub.name);
+    // Also add all sub-projects (even unconfigured ones), including nested sub-projects
+    const addSubprojectsRecursive = (parentDir, depth = 0) => {
+      if (depth > 3) return; // Prevent infinite recursion
 
-      // If no config folders exist, still show the sub-project (so user can init it)
-      if (!subFolder) {
-        subFolder = {
-          dir: sub.dir,
-          label: sub.name,
-          claudePath: path.join(sub.dir, '.claude'),
-          agentPath: path.join(sub.dir, '.agent'),
-          geminiPath: path.join(sub.dir, '.gemini'),
-          exists: false,
-          agentExists: false,
-          geminiExists: false,
-          files: [],
-          agentFiles: [],
-          geminiFiles: [],
-          appliedTemplate: null
-        };
+      const subprojects = this.getSubprojectsForDir(parentDir);
+      for (const sub of subprojects) {
+        // Skip if already added
+        if (folders.some(f => f.dir === sub.dir)) continue;
+
+        let subFolder = this.scanFolderForExplorer(sub.dir, sub.name);
+
+        // If no config folders exist, still show the sub-project (so user can init it)
+        if (!subFolder) {
+          subFolder = {
+            dir: sub.dir,
+            label: sub.name,
+            claudePath: path.join(sub.dir, '.claude'),
+            agentPath: path.join(sub.dir, '.agent'),
+            geminiPath: path.join(sub.dir, '.gemini'),
+            exists: false,
+            agentExists: false,
+            geminiExists: false,
+            files: [],
+            agentFiles: [],
+            geminiFiles: [],
+            appliedTemplate: null
+          };
+        }
+
+        // Always get applied templates for sub-projects
+        subFolder.appliedTemplate = this.manager.getAppliedTemplate(sub.dir);
+        subFolder.isSubproject = true;
+        subFolder.hasConfig = sub.hasConfig;
+        subFolder.mcpCount = sub.mcpCount || 0;
+        subFolder.isManual = sub.isManual || false;
+        subFolder.parentDir = parentDir; // Track parent for hierarchy
+        subFolder.depth = depth + 1; // Depth relative to project root (home=0, project=0, subproject=1, sub-sub=2)
+        folders.push(subFolder);
+
+        // Recursively add sub-projects of this sub-project
+        addSubprojectsRecursive(sub.dir, depth + 1);
       }
+    };
 
-      // Always get applied templates for sub-projects
-      subFolder.appliedTemplate = this.manager.getAppliedTemplate(sub.dir);
-      subFolder.isSubproject = true;
-      subFolder.hasConfig = sub.hasConfig;
-      subFolder.mcpCount = sub.mcpCount || 0;
-      subFolder.isManual = sub.isManual || false;
-      folders.push(subFolder);
-    }
+    addSubprojectsRecursive(this.projectDir);
 
     return folders;
   }
