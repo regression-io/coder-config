@@ -232,7 +232,13 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
         {!folder.exists && !isHome && (
           <Badge variant="outline" className="text-[10px] px-1 py-0">no config</Badge>
         )}
-        {totalFiles > 0 && (
+        {/* Applied template badge */}
+        {folder.appliedTemplate && (
+          <Badge variant="outline" className="text-[10px] px-1 py-0 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border-purple-300 dark:border-purple-700">
+            {folder.appliedTemplate.template.split('/').pop()}
+          </Badge>
+        )}
+        {totalFiles > 0 && !folder.appliedTemplate && (
           <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
             {totalFiles}
           </Badge>
@@ -303,16 +309,26 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
                   <DropdownMenuSubTrigger>
                     <Layout className="w-4 h-4 mr-2" />
                     Apply Template
+                    {folder.appliedTemplate && (
+                      <span className="ml-auto text-xs text-muted-foreground">applied</span>
+                    )}
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent>
-                    {templates.map((t) => (
-                      <DropdownMenuItem
-                        key={t.id || t.name}
-                        onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'template', t.id || t.name); }}
-                      >
-                        {t.name}
-                      </DropdownMenuItem>
-                    ))}
+                    {templates.map((t) => {
+                      const templateId = t.id || t.name;
+                      const isApplied = folder.appliedTemplate?.template === templateId;
+                      return (
+                        <DropdownMenuItem
+                          key={templateId}
+                          onClick={(e) => { e.stopPropagation(); if (!isApplied) onCreateFile(folder.dir, 'template', templateId); }}
+                          disabled={isApplied}
+                          className={isApplied ? 'opacity-50' : ''}
+                        >
+                          {t.name}
+                          {isApplied && <span className="ml-auto text-xs text-muted-foreground">applied</span>}
+                        </DropdownMenuItem>
+                      );
+                    })}
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
               </>
@@ -883,7 +899,12 @@ export default function FileExplorer({ project, onRefresh }) {
   const [templates, setTemplates] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [fileContent, setFileContent] = useState(null);
-  const [expandedFolder, setExpandedFolder] = useState(null); // Only one folder expanded at a time
+  // Remember last expanded folder in localStorage
+  const [expandedFolder, setExpandedFolder] = useState(() => {
+    try {
+      return localStorage.getItem('claude-config-expanded-folder') || null;
+    } catch { return null; }
+  });
   const [expandedFolders, setExpandedFolders] = useState({}); // For nested folders within files
   const [loading, setLoading] = useState(true);
 
@@ -912,12 +933,17 @@ export default function FileExplorer({ project, onRefresh }) {
       setTemplates(templatesData.templates || templatesData || []);
       setEnabledTools(configData.config?.enabledTools || ['claude']);
 
-      // Auto-expand the root project (not home) if none expanded
-      if (!expandedFolder && foldersData.length > 0) {
-        // Find the last non-subproject folder (the root project)
-        const nonSubprojects = foldersData.filter(f => !f.isSubproject);
-        const rootProject = nonSubprojects.length > 1 ? nonSubprojects[nonSubprojects.length - 1] : nonSubprojects[0];
-        setExpandedFolder(rootProject?.dir || foldersData[0].dir);
+      // Auto-expand root project on first load (if no saved selection)
+      if (foldersData.length > 0) {
+        const savedFolder = localStorage.getItem('claude-config-expanded-folder');
+        // Only auto-expand if no saved folder, or saved folder doesn't exist in current data
+        if (!savedFolder || !foldersData.find(f => f.dir === savedFolder)) {
+          const nonSubprojects = foldersData.filter(f => !f.isSubproject);
+          const rootProject = nonSubprojects.length > 1 ? nonSubprojects[nonSubprojects.length - 1] : nonSubprojects[0];
+          const defaultDir = rootProject?.dir || foldersData[0].dir;
+          setExpandedFolder(defaultDir);
+          try { localStorage.setItem('claude-config-expanded-folder', defaultDir); } catch { /* ignore */ }
+        }
       }
     } catch (error) {
       toast.error('Failed to load data: ' + error.message);
@@ -933,7 +959,15 @@ export default function FileExplorer({ project, onRefresh }) {
   }, [loadData, project?.dir]);
 
   const handleToggleFolder = (dir) => {
-    setExpandedFolder(expandedFolder === dir ? null : dir);
+    const newExpanded = expandedFolder === dir ? null : dir;
+    setExpandedFolder(newExpanded);
+    try {
+      if (newExpanded) {
+        localStorage.setItem('claude-config-expanded-folder', newExpanded);
+      } else {
+        localStorage.removeItem('claude-config-expanded-folder');
+      }
+    } catch { /* ignore */ }
   };
 
   const handleSelectItem = async (item) => {

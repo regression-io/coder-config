@@ -19,7 +19,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const VERSION = '0.22.4';
+const VERSION = '0.22.5';
 
 // Tool-specific path configurations
 const TOOL_PATHS = {
@@ -1010,7 +1010,54 @@ class ClaudeConfigManager {
     }
 
     console.log(`\n✅ Applied template: ${totalCopied} files copied, ${totalSkipped} skipped\n`);
+
+    // Track applied template in templates.json
+    this.trackAppliedTemplate(dir, templateName);
+
     return true;
+  }
+
+  /**
+   * Track an applied template in .claude/templates.json
+   * Only one template per project (templates chain internally)
+   */
+  trackAppliedTemplate(dir, templateName) {
+    const claudeDir = path.join(dir, '.claude');
+    const templatesPath = path.join(claudeDir, 'templates.json');
+
+    // Ensure .claude directory exists
+    if (!fs.existsSync(claudeDir)) {
+      fs.mkdirSync(claudeDir, { recursive: true });
+    }
+
+    // Save single template (replaces any previous)
+    const data = {
+      template: templateName,
+      appliedAt: new Date().toISOString()
+    };
+
+    fs.writeFileSync(templatesPath, JSON.stringify(data, null, 2) + '\n');
+  }
+
+  /**
+   * Get applied template for a directory
+   * Returns { template, appliedAt } or null
+   */
+  getAppliedTemplate(dir) {
+    const templatesPath = path.join(dir, '.claude', 'templates.json');
+    if (!fs.existsSync(templatesPath)) {
+      return null;
+    }
+    try {
+      const data = JSON.parse(fs.readFileSync(templatesPath, 'utf8'));
+      if (!data.template) return null;
+      return {
+        template: data.template,
+        appliedAt: data.appliedAt
+      };
+    } catch (e) {
+      return null;
+    }
   }
 
   /**

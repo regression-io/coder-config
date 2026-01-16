@@ -1669,8 +1669,12 @@ class ConfigUIServer {
         geminiExists: fs.existsSync(geminiDir),
         files: [],
         agentFiles: [],
-        geminiFiles: []
+        geminiFiles: [],
+        appliedTemplate: null
       };
+
+      // Get applied templates
+      folder.appliedTemplates = this.manager.getAppliedTemplates(dir);
 
       // Scan .claude folder
       if (folder.exists) {
@@ -1890,10 +1894,13 @@ class ConfigUIServer {
           geminiExists: false,
           files: [],
           agentFiles: [],
-          geminiFiles: []
+          geminiFiles: [],
+          appliedTemplate: null
         };
       }
 
+      // Always get applied templates for sub-projects
+      subFolder.appliedTemplates = this.manager.getAppliedTemplates(sub.dir);
       subFolder.isSubproject = true;
       subFolder.hasConfig = sub.hasConfig;
       subFolder.mcpCount = sub.mcpCount || 0;
@@ -1935,7 +1942,8 @@ class ConfigUIServer {
       geminiExists: fs.existsSync(geminiDir),
       files: [],
       agentFiles: [],
-      geminiFiles: []
+      geminiFiles: [],
+      appliedTemplate: this.manager.getAppliedTemplate(dir)
     };
 
     // If none of the config folders exist, don't include
