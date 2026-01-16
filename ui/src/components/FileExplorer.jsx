@@ -1320,7 +1320,7 @@ export default function FileExplorer({ project, onRefresh }) {
   return (
     <div className="h-full flex">
       {/* Left Panel - Tree View */}
-      <div className="w-80 border-r flex flex-col bg-white dark:bg-slate-950">
+      <div className="w-76 border-r flex flex-col bg-white dark:bg-slate-950">
         <div className="flex items-center justify-between p-3 border-b">
           <h2 className="font-semibold text-sm">Project Config</h2>
           <div className="flex gap-1">
