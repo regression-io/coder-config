@@ -231,13 +231,7 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
         <span className={cn('flex-1 min-w-0 font-medium text-sm truncate', getTextColor())}>
           {displayLabel}
         </span>
-        {/* If template applied: show badge only, no menu (editing files is still possible) */}
-        {folder.appliedTemplate?.template ? (
-          <Badge variant="outline" className="text-[10px] px-1.5 py-0 flex-shrink-0 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border-purple-300 dark:border-purple-700">
-            {folder.appliedTemplate.template.split('/').pop()}
-          </Badge>
-        ) : (
-        /* + Menu - only show when no template applied */
+        {/* + Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
             <Button variant="ghost" size="sm" className="h-6 w-6 p-0 flex-shrink-0 hover:bg-white/50 dark:hover:bg-slate-900/50">
@@ -255,12 +249,17 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
               {!folder.exists && !isHome && (
                 <Badge variant="outline" className="text-[10px] px-1 py-0">no config</Badge>
               )}
+              {folder.appliedTemplate?.template && (
+                <Badge variant="outline" className="text-[10px] px-1 py-0 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border-purple-300 dark:border-purple-700">
+                  {folder.appliedTemplate.template.split('/').pop()}
+                </Badge>
+              )}
               {totalFiles > 0 && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                   {totalFiles} files
                 </Badge>
               )}
-              {!isSubproject && folder.exists && totalFiles === 0 && (
+              {!isSubproject && folder.exists && !folder.appliedTemplate?.template && totalFiles === 0 && (
                 <span className="text-[10px] text-muted-foreground">configured</span>
               )}
             </div>
@@ -318,31 +317,24 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
               CLAUDE.md
               {hasClaudeMd && <span className="ml-auto text-xs text-muted-foreground">exists</span>}
             </DropdownMenuItem>
-            {/* Only show Apply Template for sub-projects, or for home/root when no sub-projects exist */}
-            {templates && templates.length > 0 && (isSubproject || !hasSubprojects) && (
+            {/* Only show Apply Template when no template applied yet */}
+            {templates && templates.length > 0 && (isSubproject || !hasSubprojects) && !folder.appliedTemplate?.template && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
                     <Layout className="w-4 h-4 mr-2" />
                     Apply Template
-                    {folder.appliedTemplate && (
-                      <span className="ml-auto text-xs text-muted-foreground">applied</span>
-                    )}
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent>
                     {templates.map((t) => {
                       const templateId = t.id || t.name;
-                      const isApplied = folder.appliedTemplate?.template === templateId;
                       return (
                         <DropdownMenuItem
                           key={templateId}
-                          onClick={(e) => { e.stopPropagation(); if (!isApplied) onCreateFile(folder.dir, 'template', templateId); }}
-                          disabled={isApplied}
-                          className={isApplied ? 'opacity-50' : ''}
+                          onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'template', templateId); }}
                         >
                           {t.name}
-                          {isApplied && <span className="ml-auto text-xs text-muted-foreground">applied</span>}
                         </DropdownMenuItem>
                       );
                     })}
@@ -354,16 +346,12 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
                       <DropdownMenuSubContent>
                         {templates.map((t) => {
                           const templateId = t.id || t.name;
-                          const isApplied = folder.appliedTemplate?.template === templateId;
                           return (
                             <DropdownMenuItem
                               key={templateId}
                               onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'mark-template', templateId); }}
-                              disabled={isApplied}
-                              className={isApplied ? 'opacity-50' : ''}
                             >
                               {t.name}
-                              {isApplied && <span className="ml-auto text-xs text-muted-foreground">current</span>}
                             </DropdownMenuItem>
                           );
                         })}
@@ -375,7 +363,6 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-        )}
       </div>
 
       {/* Expanded Content */}
