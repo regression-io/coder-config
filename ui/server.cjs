@@ -2346,6 +2346,9 @@ class ConfigUIServer {
       case 'workflow':
         filePath = path.join(dir, '.claude', 'workflows', name);
         break;
+      case 'memory':
+        filePath = path.join(dir, '.claude', 'memory', name);
+        break;
       case 'claudemd':
         filePath = path.join(dir, '.claude', 'CLAUDE.md');
         break;

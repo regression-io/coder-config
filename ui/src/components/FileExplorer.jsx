@@ -186,7 +186,6 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
   const hasSettings = folder.files?.some(f => f.name === 'settings.json');
   const hasClaudeMd = folder.files?.some(f => f.name === 'CLAUDE.md' || f.name === 'CLAUDE.md (root)');
   const hasEnv = folder.files?.some(f => f.name === '.env');
-  const hasMemory = folder.files?.some(f => f.name === 'memory');
 
   // Determine folder styling
   const getBgColor = () => {
@@ -314,14 +313,9 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
               CLAUDE.md
               {hasClaudeMd && <span className="ml-auto text-xs text-muted-foreground">exists</span>}
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'memory'); }}
-              disabled={hasMemory}
-              className={hasMemory ? 'opacity-50' : ''}
-            >
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'memory'); }}>
               <Brain className="w-4 h-4 mr-2" />
-              Memory
-              {hasMemory && <span className="ml-auto text-xs text-muted-foreground">exists</span>}
+              New Memory
             </DropdownMenuItem>
             {/* Only show Apply Template for sub-projects, or for home/root when no sub-projects exist */}
             {templates && templates.length > 0 && (isSubproject || !hasSubprojects) && (
@@ -873,18 +867,18 @@ function CreateFileDialog({ open, onClose, dir, type, onCreate }) {
   }, [open]);
 
   const handleCreate = () => {
-    if ((type === 'command' || type === 'rule' || type === 'workflow') && !name.trim()) {
+    if ((type === 'command' || type === 'rule' || type === 'workflow' || type === 'memory') && !name.trim()) {
       toast.error('Please enter a name');
       return;
     }
-    const finalName = type === 'command' || type === 'rule' || type === 'workflow'
+    const finalName = type === 'command' || type === 'rule' || type === 'workflow' || type === 'memory'
       ? (name.endsWith('.md') ? name : `${name}.md`)
       : name;
     onCreate(dir, finalName, type);
   };
 
   const config = FILE_CONFIG[type] || {};
-  const needsName = type === 'command' || type === 'rule' || type === 'workflow';
+  const needsName = type === 'command' || type === 'rule' || type === 'workflow' || type === 'memory';
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -897,7 +891,7 @@ function CreateFileDialog({ open, onClose, dir, type, onCreate }) {
             <label className="text-sm font-medium">Name</label>
             <Input
               className="mt-1"
-              placeholder={type === 'command' ? 'my-command.md' : type === 'workflow' ? 'my-workflow.md' : 'my-rule.md'}
+              placeholder={type === 'command' ? 'my-command.md' : type === 'workflow' ? 'my-workflow.md' : type === 'memory' ? 'context.md' : 'my-rule.md'}
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
@@ -1037,19 +1031,7 @@ export default function FileExplorer({ project, onRefresh }) {
       return;
     }
 
-    if (type === 'memory') {
-      // Initialize memory folder
-      try {
-        await api.initProjectMemory(dir);
-        toast.success('Memory folder initialized');
-        loadData();
-      } catch (error) {
-        toast.error('Failed to init memory: ' + error.message);
-      }
-      return;
-    }
-
-    if (type === 'command' || type === 'rule' || type === 'workflow') {
+    if (type === 'command' || type === 'rule' || type === 'workflow' || type === 'memory') {
       setCreateDialog({ open: true, dir, type });
     } else {
       const fileName = type === 'mcps' ? 'mcps.json' :
