@@ -193,6 +193,7 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, depth 
   // Determine folder styling
   const getBgColor = () => {
     if (isHome) return 'bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30';
+    if (isSubproject && depth > 1) return 'bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700';
     if (isSubproject) return 'bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30';
     if (isProject) return 'bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30';
     return 'bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700';
@@ -200,6 +201,7 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, depth 
 
   const getTextColor = () => {
     if (isHome) return 'text-indigo-700 dark:text-indigo-400';
+    if (isSubproject && depth > 1) return 'text-gray-600 dark:text-slate-400';
     if (isSubproject) return 'text-amber-700 dark:text-amber-400';
     if (isProject) return 'text-green-700 dark:text-green-400';
     return 'text-gray-700 dark:text-slate-300';
