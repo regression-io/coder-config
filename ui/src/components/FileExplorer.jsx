@@ -227,7 +227,7 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, depth 
           'flex items-center gap-2 py-2 cursor-pointer transition-colors',
           getBgColor()
         )}
-        style={{ paddingLeft: `${12 + (depth * 16)}px`, paddingRight: '12px' }}
+        style={{ paddingLeft: `${12 + (depth * 16)}px`, paddingRight: '24px' }}
         onClick={onToggle}
       >
         <span className="w-4 h-4 flex items-center justify-center text-gray-500">
@@ -240,7 +240,7 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, depth 
         {/* + Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 flex-shrink-0 hover:bg-white/50 dark:hover:bg-slate-900/50">
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 flex-shrink-0 mr-1 hover:bg-white/50 dark:hover:bg-slate-900/50">
               <Plus className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
