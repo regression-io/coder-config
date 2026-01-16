@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wrench, Folder, Layout, FileText, Save, Loader2, RefreshCw, Download, FolderOpen, Plus, X, FolderPlus, Cpu, Sparkles, Bot, Terminal } from 'lucide-react';
+import { Wrench, Folder, Layout, FileText, Save, Loader2, RefreshCw, Download, FolderOpen, Plus, X, FolderPlus, Cpu, Sparkles, Bot, Terminal, Eye, EyeOff } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -15,10 +15,13 @@ export default function PreferencesView() {
   const [saving, setSaving] = useState(false);
   const [versionInfo, setVersionInfo] = useState(null);
   const [updating, setUpdating] = useState(false);
+  const [projectDir, setProjectDir] = useState(null);
+  const [hiddenSubprojects, setHiddenSubprojects] = useState([]);
 
   useEffect(() => {
     loadConfig();
     loadVersionInfo();
+    loadProjectInfo();
   }, []);
 
   const loadVersionInfo = async () => {
@@ -27,6 +30,41 @@ export default function PreferencesView() {
       setVersionInfo(data);
     } catch (error) {
       console.error('Failed to load version info:', error);
+    }
+  };
+
+  const loadProjectInfo = async () => {
+    try {
+      const data = await api.getProject();
+      setProjectDir(data.dir);
+      loadHiddenSubprojects(data.dir);
+    } catch (error) {
+      console.error('Failed to load project info:', error);
+    }
+  };
+
+  const loadHiddenSubprojects = async (dir) => {
+    if (!dir) return;
+    try {
+      const data = await api.getHiddenSubprojects(dir);
+      setHiddenSubprojects(data.hidden || []);
+    } catch (error) {
+      console.error('Failed to load hidden sub-projects:', error);
+    }
+  };
+
+  const handleUnhide = async (subprojectDir) => {
+    if (!projectDir) return;
+    try {
+      const result = await api.unhideSubproject(projectDir, subprojectDir);
+      if (result.success) {
+        toast.success('Sub-project unhidden');
+        loadHiddenSubprojects(projectDir);
+      } else {
+        toast.error(result.error || 'Failed to unhide');
+      }
+    } catch (error) {
+      toast.error('Failed to unhide: ' + error.message);
     }
   };
 
@@ -424,6 +462,44 @@ export default function PreferencesView() {
               </p>
             </div>
           </div>
+
+          {/* Hidden Sub-projects Section */}
+          {hiddenSubprojects.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+                <EyeOff className="w-4 h-4" />
+                Hidden Sub-projects
+              </h3>
+
+              <div className="space-y-2">
+                {hiddenSubprojects.map((sub) => (
+                  <div
+                    key={sub.dir}
+                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Folder className="w-4 h-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{sub.name}</p>
+                        <p className="text-xs text-muted-foreground font-mono">
+                          {sub.dir.replace(projectDir + '/', '')}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleUnhide(sub.dir)}
+                      className="h-7"
+                    >
+                      <Eye className="w-3 h-3 mr-1" />
+                      Unhide
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* About Section */}
           <div>

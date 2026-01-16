@@ -495,6 +495,25 @@ class ConfigUIServer {
         }
         break;
 
+      // Hide a sub-project
+      case '/api/subprojects/hide':
+        if (req.method === 'POST') {
+          return this.json(res, this.hideSubproject(body.projectDir, body.subprojectDir));
+        }
+        break;
+
+      // Unhide a sub-project
+      case '/api/subprojects/unhide':
+        if (req.method === 'POST') {
+          return this.json(res, this.unhideSubproject(body.projectDir, body.subprojectDir));
+        }
+        break;
+
+      // Get hidden sub-projects
+      case '/api/subprojects/hidden':
+        const hiddenDir = query.dir ? path.resolve(query.dir.replace(/^~/, os.homedir())) : this.projectDir;
+        return this.json(res, { hidden: this.getHiddenSubprojects(hiddenDir) });
+
       // Switch to a different project context
       case '/api/switch-project':
         if (req.method === 'POST') {
@@ -1012,7 +1031,9 @@ class ConfigUIServer {
       });
     }
 
-    return subprojects;
+    // Filter out hidden sub-projects
+    const hiddenList = this.config.hiddenSubprojects?.[dir] || [];
+    return subprojects.filter(sub => !hiddenList.includes(sub.dir));
   }
 
   /**
@@ -1062,6 +1083,63 @@ class ConfigUIServer {
     }
 
     return { success: true, subprojects: this.getSubprojectsForDir(resolvedProject) };
+  }
+
+  /**
+   * Hide a sub-project (works for both auto-detected and manual)
+   */
+  hideSubproject(projectDir, subprojectDir) {
+    const resolvedProject = path.resolve(projectDir.replace(/^~/, os.homedir()));
+    const resolvedSubproject = path.resolve(subprojectDir.replace(/^~/, os.homedir()));
+
+    if (!this.config.hiddenSubprojects) {
+      this.config.hiddenSubprojects = {};
+    }
+    if (!this.config.hiddenSubprojects[resolvedProject]) {
+      this.config.hiddenSubprojects[resolvedProject] = [];
+    }
+
+    if (!this.config.hiddenSubprojects[resolvedProject].includes(resolvedSubproject)) {
+      this.config.hiddenSubprojects[resolvedProject].push(resolvedSubproject);
+      this.saveConfig(this.config);
+    }
+
+    return { success: true, subprojects: this.getSubprojectsForDir(resolvedProject) };
+  }
+
+  /**
+   * Unhide a sub-project
+   */
+  unhideSubproject(projectDir, subprojectDir) {
+    const resolvedProject = path.resolve(projectDir.replace(/^~/, os.homedir()));
+    const resolvedSubproject = path.resolve(subprojectDir.replace(/^~/, os.homedir()));
+
+    if (this.config.hiddenSubprojects?.[resolvedProject]) {
+      this.config.hiddenSubprojects[resolvedProject] =
+        this.config.hiddenSubprojects[resolvedProject].filter(d => d !== resolvedSubproject);
+
+      if (this.config.hiddenSubprojects[resolvedProject].length === 0) {
+        delete this.config.hiddenSubprojects[resolvedProject];
+      }
+      this.saveConfig(this.config);
+    }
+
+    return { success: true, subprojects: this.getSubprojectsForDir(resolvedProject) };
+  }
+
+  /**
+   * Get hidden sub-projects for a project
+   */
+  getHiddenSubprojects(projectDir) {
+    const resolvedProject = path.resolve(projectDir.replace(/^~/, os.homedir()));
+    const hidden = this.config.hiddenSubprojects?.[resolvedProject] || [];
+
+    // Return with metadata
+    return hidden.map(dir => ({
+      dir,
+      name: path.basename(dir),
+      exists: fs.existsSync(dir)
+    }));
   }
 
   /**

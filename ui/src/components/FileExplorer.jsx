@@ -60,6 +60,7 @@ import {
   FileCode,
   Layout,
   Brain,
+  EyeOff,
 } from 'lucide-react';
 
 // File type icons and colors
@@ -182,7 +183,7 @@ function TreeItem({ item, level = 0, selectedPath, onSelect, onContextMenu, expa
 }
 
 // Folder Row Component - collapsible tree entry
-function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onToggle, onCreateFile, onSelectItem, selectedPath, onContextMenu, expandedFolders, onToggleFolder, templates, hasSubprojects, onAddSubproject, onRemoveSubproject }) {
+function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onToggle, onCreateFile, onSelectItem, selectedPath, onContextMenu, expandedFolders, onToggleFolder, templates, hasSubprojects, onAddSubproject, onRemoveSubproject, onHideSubproject }) {
   // Check what files already exist
   const hasMcps = folder.files?.some(f => f.name === 'mcps.json');
   const hasSettings = folder.files?.some(f => f.name === 'settings.json');
@@ -324,18 +325,24 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
                 </DropdownMenuItem>
               </>
             )}
+            {/* Hide Sub-project - for all sub-projects */}
+            {isSubproject && onHideSubproject && (
+              <DropdownMenuItem
+                onClick={(e) => { e.stopPropagation(); onHideSubproject(folder.dir); }}
+              >
+                <EyeOff className="w-4 h-4 mr-2" />
+                Hide
+              </DropdownMenuItem>
+            )}
             {/* Remove Sub-project - only for manually added sub-projects */}
             {folder.isManual && onRemoveSubproject && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={(e) => { e.stopPropagation(); onRemoveSubproject(folder.dir); }}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Remove Sub-project
-                </DropdownMenuItem>
-              </>
+              <DropdownMenuItem
+                onClick={(e) => { e.stopPropagation(); onRemoveSubproject(folder.dir); }}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Remove
+              </DropdownMenuItem>
             )}
             {/* Only show Apply Template when no template applied yet */}
             {templates && templates.length > 0 && (isSubproject || !hasSubprojects) && !folder.appliedTemplate?.template && (
@@ -1183,6 +1190,24 @@ export default function FileExplorer({ project, onRefresh }) {
     }
   };
 
+  const handleHideSubproject = async (subprojectDir) => {
+    // Find the root project dir
+    const rootProject = folders.find(f => !f.isSubproject && !f.isHome);
+    if (!rootProject) return;
+
+    try {
+      const result = await api.hideSubproject(rootProject.dir, subprojectDir);
+      if (result.success) {
+        toast.success('Sub-project hidden');
+        loadData();
+      } else {
+        toast.error(result.error || 'Failed to hide sub-project');
+      }
+    } catch (error) {
+      toast.error('Failed to hide sub-project: ' + error.message);
+    }
+  };
+
   const renderEditor = () => {
     if (!selectedItem || !fileContent) {
       return (
@@ -1299,6 +1324,7 @@ export default function FileExplorer({ project, onRefresh }) {
               hasSubprojects={hasSubprojects}
               onAddSubproject={(projectDir) => setAddSubprojectDialog({ open: true, projectDir })}
               onRemoveSubproject={handleRemoveSubproject}
+              onHideSubproject={handleHideSubproject}
             />
           ))}
         </ScrollArea>

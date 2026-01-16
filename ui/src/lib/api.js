@@ -55,6 +55,27 @@ export const api = {
     });
   },
 
+  // Hide a sub-project
+  async hideSubproject(projectDir, subprojectDir) {
+    return request('/subprojects/hide', {
+      method: 'POST',
+      body: { projectDir, subprojectDir },
+    });
+  },
+
+  // Unhide a sub-project
+  async unhideSubproject(projectDir, subprojectDir) {
+    return request('/subprojects/unhide', {
+      method: 'POST',
+      body: { projectDir, subprojectDir },
+    });
+  },
+
+  // Get hidden sub-projects
+  async getHiddenSubprojects(projectDir) {
+    return request(`/subprojects/hidden?dir=${encodeURIComponent(projectDir)}`);
+  },
+
   async switchProject(dir) {
     return request('/switch-project', {
       method: 'POST',
