@@ -399,6 +399,14 @@ export const api = {
     });
   },
 
+  // Mark template as applied (for migration)
+  async markTemplateApplied(template, dir) {
+    return request('/mark-template', {
+      method: 'POST',
+      body: { template, dir },
+    });
+  },
+
   // Server version (for update detection)
   async getVersion() {
     return request('/version');

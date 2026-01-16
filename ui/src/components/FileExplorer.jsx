@@ -303,6 +303,10 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
               <GitBranch className="w-4 h-4 mr-2" />
               New Workflow
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'memory'); }}>
+              <Brain className="w-4 h-4 mr-2" />
+              New Memory
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'claudemd'); }}
@@ -312,10 +316,6 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
               <FileText className="w-4 h-4 mr-2" />
               CLAUDE.md
               {hasClaudeMd && <span className="ml-auto text-xs text-muted-foreground">exists</span>}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'memory'); }}>
-              <Brain className="w-4 h-4 mr-2" />
-              New Memory
             </DropdownMenuItem>
             {/* Only show Apply Template for sub-projects, or for home/root when no sub-projects exist */}
             {templates && templates.length > 0 && (isSubproject || !hasSubprojects) && (
@@ -345,6 +345,29 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
                         </DropdownMenuItem>
                       );
                     })}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger className="text-xs text-muted-foreground">
+                        Mark as Applied (migration)
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        {templates.map((t) => {
+                          const templateId = t.id || t.name;
+                          const isApplied = folder.appliedTemplate?.template === templateId;
+                          return (
+                            <DropdownMenuItem
+                              key={templateId}
+                              onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'mark-template', templateId); }}
+                              disabled={isApplied}
+                              className={isApplied ? 'opacity-50' : ''}
+                            >
+                              {t.name}
+                              {isApplied && <span className="ml-auto text-xs text-muted-foreground">current</span>}
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
               </>
@@ -1027,6 +1050,18 @@ export default function FileExplorer({ project, onRefresh }) {
         loadData();
       } catch (error) {
         toast.error('Failed to apply template: ' + error.message);
+      }
+      return;
+    }
+
+    if (type === 'mark-template' && templateId) {
+      // Mark template as applied (for migration, doesn't copy files)
+      try {
+        await api.markTemplateApplied(templateId, dir);
+        toast.success(`Marked template: ${templateId}`);
+        loadData();
+      } catch (error) {
+        toast.error('Failed to mark template: ' + error.message);
       }
       return;
     }

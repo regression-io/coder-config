@@ -11,28 +11,6 @@ function App() {
   const [isRestarting, setIsRestarting] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
-  // Check for version changes periodically
-  useEffect(() => {
-    let interval;
-
-    const checkVersion = async () => {
-      try {
-        const data = await api.getVersion();
-        if (data.needsRestart && !dismissed) {
-          setUpdateAvailable(true);
-        }
-      } catch (e) {
-        // Server might be restarting
-      }
-    };
-
-    // Check immediately, then every 30 seconds
-    checkVersion();
-    interval = setInterval(checkVersion, 30000);
-
-    return () => clearInterval(interval);
-  }, [dismissed]);
-
   const handleRestart = useCallback(async () => {
     setIsRestarting(true);
     try {
@@ -51,7 +29,49 @@ function App() {
   const handleDismiss = useCallback(() => {
     setDismissed(true);
     setUpdateAvailable(false);
+    toast.dismiss('update-available');
   }, []);
+
+  // Check for version changes periodically
+  useEffect(() => {
+    let interval;
+
+    const checkVersion = async () => {
+      try {
+        const data = await api.getVersion();
+        console.log('[Update Check]', data);
+        if (data.needsRestart && !dismissed) {
+          setUpdateAvailable(true);
+          // Also show a toast in case banner is not visible
+          toast('Update available!', {
+            id: 'update-available',
+            duration: Infinity,
+            description: 'New version ready to apply.',
+            action: {
+              label: 'Restart Now',
+              onClick: async () => {
+                try {
+                  await api.restartServer();
+                  toast.info('Restarting...');
+                  setTimeout(() => window.location.reload(), 2000);
+                } catch (e) {
+                  toast.error('Restart failed');
+                }
+              },
+            },
+          });
+        }
+      } catch (e) {
+        // Server might be restarting
+      }
+    };
+
+    // Check immediately, then every 30 seconds
+    checkVersion();
+    interval = setInterval(checkVersion, 30000);
+
+    return () => clearInterval(interval);
+  }, [dismissed]);
 
   return (
     <ThemeProvider>

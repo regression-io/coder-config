@@ -20,7 +20,7 @@ class ConfigUIServer {
     this.manager = manager;
     this.distDir = path.join(__dirname, 'dist');
     this.terminalServer = new TerminalServer();
-    this.configPath = path.join(os.homedir(), '.claude', 'config.json');
+    this.configPath = path.join(os.homedir(), '.claude-config', 'config.json');
     this.config = this.loadConfig();
 
     // Store server version at startup for change detection
@@ -51,7 +51,7 @@ class ConfigUIServer {
     return null;
   }
 
-  // Load user config from ~/.claude/config.json
+  // Load user config from ~/.claude-config/config.json
   loadConfig() {
     const defaults = {
       toolsDir: path.join(os.homedir(), 'mcp-tools'),
@@ -65,6 +65,18 @@ class ConfigUIServer {
     };
 
     try {
+      // Migrate from old location if needed
+      const oldConfigPath = path.join(os.homedir(), '.claude', 'config.json');
+      if (!fs.existsSync(this.configPath) && fs.existsSync(oldConfigPath)) {
+        // Migrate old config to new location
+        const dir = path.dirname(this.configPath);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        fs.copyFileSync(oldConfigPath, this.configPath);
+        console.log('Migrated config from ~/.claude/config.json to ~/.claude-config/config.json');
+      }
+
       if (fs.existsSync(this.configPath)) {
         const userConfig = JSON.parse(fs.readFileSync(this.configPath, 'utf8'));
         return { ...defaults, ...userConfig };
@@ -572,6 +584,13 @@ class ConfigUIServer {
       case '/api/apply-template':
         if (req.method === 'POST') {
           return this.json(res, this.applyTemplate(body.template, body.dir));
+        }
+        break;
+
+      // Mark template as applied (for migration, doesn't copy files)
+      case '/api/mark-template':
+        if (req.method === 'POST') {
+          return this.json(res, this.markTemplateApplied(body.template, body.dir));
         }
         break;
 
@@ -1094,6 +1113,13 @@ class ConfigUIServer {
     const targetDir = dir || this.projectDir;
     const result = this.manager.applyTemplate(templateName, targetDir);
     return { success: result };
+  }
+
+  // Mark template as applied without copying files (for migration)
+  markTemplateApplied(templateName, dir) {
+    const targetDir = dir || this.projectDir;
+    this.manager.trackAppliedTemplate(targetDir, templateName);
+    return { success: true, template: templateName };
   }
 
   applyConfig(dir) {
