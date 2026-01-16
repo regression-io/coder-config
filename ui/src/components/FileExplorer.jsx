@@ -231,7 +231,13 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
         <span className={cn('flex-1 min-w-0 font-medium text-sm truncate', getTextColor())}>
           {displayLabel}
         </span>
-        {/* + Menu */}
+        {/* If template applied: show badge only, no menu (editing files is still possible) */}
+        {folder.appliedTemplate?.template ? (
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0 flex-shrink-0 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border-purple-300 dark:border-purple-700">
+            {folder.appliedTemplate.template.split('/').pop()}
+          </Badge>
+        ) : (
+        /* + Menu - only show when no template applied */
         <DropdownMenu>
           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
             <Button variant="ghost" size="sm" className="h-6 w-6 p-0 flex-shrink-0 hover:bg-white/50 dark:hover:bg-slate-900/50">
@@ -249,17 +255,12 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
               {!folder.exists && !isHome && (
                 <Badge variant="outline" className="text-[10px] px-1 py-0">no config</Badge>
               )}
-              {folder.appliedTemplate?.template && (
-                <Badge variant="outline" className="text-[10px] px-1 py-0 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border-purple-300 dark:border-purple-700">
-                  {folder.appliedTemplate.template.split('/').pop()}
-                </Badge>
-              )}
               {totalFiles > 0 && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                   {totalFiles} files
                 </Badge>
               )}
-              {!isSubproject && folder.exists && !folder.appliedTemplate?.template && totalFiles === 0 && (
+              {!isSubproject && folder.exists && totalFiles === 0 && (
                 <span className="text-[10px] text-muted-foreground">configured</span>
               )}
             </div>
@@ -374,6 +375,7 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, onTogg
             )}
           </DropdownMenuContent>
         </DropdownMenu>
+        )}
       </div>
 
       {/* Expanded Content */}
