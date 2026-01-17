@@ -454,6 +454,11 @@ export const api = {
     return request('/version');
   },
 
+  // Changelog
+  async getChangelog() {
+    return request('/changelog');
+  },
+
   // Restart server
   async restartServer() {
     return request('/restart', {

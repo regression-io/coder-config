@@ -118,6 +118,20 @@ class ConfigUIServer {
     return this.getPackageVersion();
   }
 
+  // Get changelog content
+  getChangelog() {
+    try {
+      const changelogPath = path.join(__dirname, '..', 'CHANGELOG.md');
+      if (fs.existsSync(changelogPath)) {
+        const content = fs.readFileSync(changelogPath, 'utf8');
+        return { success: true, content };
+      }
+      return { success: false, error: 'Changelog not found' };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+
   browseDirectory(dirPath, type = 'directory') {
     try {
       // Expand ~ to home directory
@@ -548,6 +562,10 @@ class ConfigUIServer {
           startTime: this.serverStartTime,
           needsRestart: this.serverVersion !== this.getCurrentVersion()
         });
+
+      // Changelog
+      case '/api/changelog':
+        return this.json(res, this.getChangelog());
 
       // Restart server
       case '/api/restart':
@@ -1425,7 +1443,10 @@ class ConfigUIServer {
             externalPlugins: []
           };
 
-          // Load marketplace manifest for internal plugins
+          // Track plugin names from manifest to avoid duplicates
+          const manifestPluginNames = new Set();
+
+          // Load marketplace manifest for plugins
           const manifestPath = path.join(info.installLocation, '.claude-plugin', 'marketplace.json');
           if (fs.existsSync(manifestPath)) {
             try {
@@ -1434,10 +1455,13 @@ class ConfigUIServer {
               marketplace.owner = manifest.owner;
               marketplace.plugins = (manifest.plugins || []).map(p => {
                 if (p.category) categories.add(p.category);
+                manifestPluginNames.add(p.name);
+                // Check if source points to external_plugins
+                const isExternal = p.source?.includes('external_plugins');
                 const plugin = {
                   ...p,
                   marketplace: name,
-                  sourceType: 'internal',
+                  sourceType: isExternal ? 'external' : 'internal',
                   installed: !!installed[`${p.name}@${name}`],
                   installedInfo: installed[`${p.name}@${name}`]?.[0] || null
                 };
@@ -1448,6 +1472,7 @@ class ConfigUIServer {
           }
 
           // Load external plugins by scanning external_plugins directory
+          // Skip plugins already in manifest to avoid duplicates
           const externalDir = path.join(info.installLocation, 'external_plugins');
           if (fs.existsSync(externalDir)) {
             try {
@@ -1456,10 +1481,16 @@ class ConfigUIServer {
                 .map(d => d.name);
 
               for (const pluginName of externals) {
+                // Skip if already loaded from manifest
+                if (manifestPluginNames.has(pluginName)) continue;
+
                 const pluginManifestPath = path.join(externalDir, pluginName, '.claude-plugin', 'plugin.json');
                 if (fs.existsSync(pluginManifestPath)) {
                   try {
                     const pluginManifest = JSON.parse(fs.readFileSync(pluginManifestPath, 'utf8'));
+                    // Also skip by manifest name if different from directory name
+                    if (manifestPluginNames.has(pluginManifest.name)) continue;
+
                     if (pluginManifest.category) categories.add(pluginManifest.category);
                     const plugin = {
                       name: pluginManifest.name || pluginName,

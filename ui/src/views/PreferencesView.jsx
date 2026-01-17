@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Wrench, Folder, Layout, FileText, Save, Loader2, RefreshCw, Download, FolderOpen, Plus, X, FolderPlus, Cpu, Sparkles, Bot, Terminal, Eye, EyeOff } from 'lucide-react';
+import { Wrench, Folder, Layout, FileText, Save, Loader2, RefreshCw, Download, FolderOpen, Plus, X, FolderPlus, Cpu, Sparkles, Bot, Terminal, Eye, EyeOff, History } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import PathPicker from "@/components/PathPicker";
@@ -17,6 +24,7 @@ export default function PreferencesView() {
   const [updating, setUpdating] = useState(false);
   const [projectDir, setProjectDir] = useState(null);
   const [hiddenSubprojects, setHiddenSubprojects] = useState([]);
+  const [changelogDialog, setChangelogDialog] = useState({ open: false, content: '', loading: false });
 
   useEffect(() => {
     loadConfig();
@@ -93,6 +101,22 @@ export default function PreferencesView() {
       toast.error('Update failed: ' + error.message);
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const loadChangelog = async () => {
+    setChangelogDialog(prev => ({ ...prev, open: true, loading: true }));
+    try {
+      const result = await api.getChangelog();
+      if (result.success) {
+        setChangelogDialog(prev => ({ ...prev, content: result.content, loading: false }));
+      } else {
+        toast.error('Failed to load changelog');
+        setChangelogDialog(prev => ({ ...prev, open: false, loading: false }));
+      }
+    } catch (error) {
+      toast.error('Failed to load changelog: ' + error.message);
+      setChangelogDialog(prev => ({ ...prev, open: false, loading: false }));
     }
   };
 
@@ -566,7 +590,7 @@ export default function PreferencesView() {
                 <code className="text-xs text-muted-foreground">{versionInfo?.installDir || '~/.claude-config'}</code>
               </div>
 
-              <div className="border-t border-border pt-3 mt-3">
+              <div className="border-t border-border pt-3 mt-3 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Documentation</span>
                   <a
@@ -577,6 +601,16 @@ export default function PreferencesView() {
                   >
                     GitHub
                   </a>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">What's New</span>
+                  <button
+                    onClick={loadChangelog}
+                    className="text-primary hover:underline flex items-center gap-1"
+                  >
+                    <History className="w-3 h-3" />
+                    Changelog
+                  </button>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
                   After updating, restart the server with <code className="bg-muted-foreground/10 px-1 rounded">claude-config ui</code>
@@ -621,6 +655,29 @@ export default function PreferencesView() {
         }
         title={picker.type === 'directory' ? 'Select Directory' : 'Select File'}
       />
+
+      {/* Changelog Dialog */}
+      <Dialog open={changelogDialog.open} onOpenChange={(open) => setChangelogDialog(prev => ({ ...prev, open }))}>
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="w-5 h-5" />
+              Changelog
+            </DialogTitle>
+          </DialogHeader>
+          {changelogDialog.loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : (
+            <ScrollArea className="flex-1 pr-4">
+              <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed">
+                {changelogDialog.content}
+              </pre>
+            </ScrollArea>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
