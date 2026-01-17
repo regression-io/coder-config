@@ -144,7 +144,7 @@ export default function PluginsView() {
   const handleInstall = async (plugin) => {
     setInstalling(plugin.id);
     try {
-      const result = await api.installPlugin(plugin.id, plugin.marketplace);
+      const result = await api.installPlugin(plugin.name, plugin.marketplace);
       if (result.success) {
         toast.success(`Installed ${plugin.name}`);
         await loadData();
