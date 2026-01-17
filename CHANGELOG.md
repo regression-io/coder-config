@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.24.7] - 2026-01-17
+
+### Fixed
+
+- **Changelog Scrolling** - Dialog now scrolls properly
+  - Added `overflow-hidden` to DialogContent
+  - Added `min-h-0` to ScrollArea for proper flex scrolling
+  - Moved padding inside scroll container
+
+---
+
+## [0.24.6] - 2026-01-17
+
+### Added
+
+- **Markdown Changelog Rendering** - Changelog displays with proper formatting
+  - Headings, lists, code blocks styled correctly
+  - react-markdown integration
+
+### Changed
+
+- **Complete Version History** - Backfilled CHANGELOG.md with all versions from v1.0.0
+
+---
+
 ## [0.24.5] - 2026-01-17
 
 ### Fixed
