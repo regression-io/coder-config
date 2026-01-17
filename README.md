@@ -218,17 +218,49 @@ When you run `claude-config ui`:
 
 - **Project Switcher** - Switch between registered projects from header dropdown
 - **File Explorer** - Browse/edit all .claude folders in hierarchy
-- **Sub-Projects** - Auto-detects git repos, plus manually add external folders
+- **Sub-Projects** - Auto-detects git repos, plus manually add/hide external folders
+- **Plugins** - Browse and install Claude Code plugins with scope control
 - **MCP Registry** - Search GitHub/npm, add/edit/delete MCPs
 - **Claude Code Settings** - Visual editor for `~/.claude/settings.json`
   - Permissions (allow/ask/deny rules)
   - Model selection
   - Behavior settings
   - Hooks and advanced options
+- **Gemini CLI Settings** - Visual editor for `~/.gemini/settings.json`
 - **Memory System** - Manage preferences, corrections, patterns, decisions
 - **Templates** - Apply rule templates to projects
 - **Preferences** - Configure claude-config tool settings
 - **One-Click Updates** - Update badge appears when new version available
+
+## Plugins
+
+Claude Code plugins extend functionality with LSP servers, MCP servers, and commands.
+
+### Installing Plugins
+
+From the Web UI:
+1. Open Project Explorer
+2. Click the **+** menu on any project folder
+3. Select **Install Plugins**
+4. Toggle plugins on/off with scope selection (Project/Global/Local)
+
+### Plugin Directory
+
+The **Plugins** page shows all available plugins:
+- Filter by category, source type (Anthropic/Community), installed status
+- Search by name or description
+- View plugin details (LSP/MCP/Commands included)
+
+### Marketplaces
+
+Plugins come from marketplaces (Git repositories):
+- **claude-plugins-official** - Anthropic's official plugins
+- Add community marketplaces via "Add Marketplace"
+
+Supported marketplace formats:
+- `owner/repo` — GitHub shorthand
+- `https://github.com/owner/repo` — Full URL
+- `/local/path` — Local directory
 
 ## Claude Code Settings
 

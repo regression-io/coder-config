@@ -5,6 +5,80 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.24.0] - 2026-01-17
+
+### Added
+
+- **Plugin Management** - Claude Code plugins UI
+  - Plugin Directory with search, filter by category, and source type toggles
+  - PluginSelectorDialog for installing plugins from project context
+  - "Install Plugins" menu item in Project Explorer's + menu
+  - Support for project/global/local scope when installing
+  - View installed plugins, available plugins, LSP/MCP/Commands badges
+  - Marketplace management (add, refresh, view external plugins)
+
+### Changed
+
+- Plugins install from project context (Project Explorer) rather than global Plugins page
+- PluginsView redesigned as discovery/browse view with filtering and sorting
+
+---
+
+## [0.23.0] - 2026-01-16
+
+### Added
+
+- **Manual Sub-Projects** - Link any folder as a sub-project
+  - "Add Sub-project" in Project Explorer context menu
+  - PathPicker for browsing to target directory
+  - Works on root project and nested sub-projects
+
+- **Hide/Unhide Sub-Projects** - Hide auto-detected sub-projects you don't need
+  - Right-click → Hide to remove from view
+  - Hidden sub-projects stored per-project
+  - Unhide from Preferences or context menu
+
+- **Nested Sub-Project Hierarchy** - Support for multiple levels of nesting
+  - Sub-projects can have their own sub-projects (depth 2+)
+  - Grey color for deeply nested items
+  - Full tree navigation
+
+- **Template Auto-Detection** - Suggest templates for sub-projects
+  - Detects project type (Python, Node, etc.) from files
+  - Shows "Apply Template" suggestion when entering unconfigured sub-project
+
+### Changed
+
+- Renamed "Switch" to "Select" in All Projects view
+- FileExplorer redesigned as collapsible tree view
+- Improved panel widths and scrollbar handling
+
+---
+
+## [0.22.0] - 2026-01-16
+
+### Added
+
+- **Gemini CLI Support** - Configure Gemini CLI alongside Claude Code
+  - GeminiSettingsView for `~/.gemini/settings.json`
+  - MCP server management for Gemini
+  - Each AI tool reads from its own config folder
+
+- **Batch Template Application** - Apply templates to multiple sub-projects
+  - Multi-select checkboxes in Sub-Projects view
+  - Action bar for batch operations
+
+- **Sub-Projects in Project Explorer** - Merged into main tree view
+  - Show all sub-projects as expandable folders
+  - Direct navigation without separate view
+
+### Changed
+
+- Project Explorer shows unified tree of all .claude folders
+- Template tracking via `.claude/templates.json`
+
+---
+
 ## [0.15.0] - 2026-01-15
 
 ### Added

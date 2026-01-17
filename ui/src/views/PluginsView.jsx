@@ -522,15 +522,19 @@ export default function PluginsView() {
               <Input
                 value={addMarketplaceDialog.repo}
                 onChange={(e) => setAddMarketplaceDialog({ ...addMarketplaceDialog, repo: e.target.value })}
-                placeholder="https://github.com/user/claude-plugins or /path/to/marketplace"
+                placeholder="owner/repo or full GitHub URL"
                 className="mt-1"
               />
               <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">
-                Examples:
-                <br />
-                <code className="bg-gray-100 dark:bg-slate-700 px-1 rounded">anthropics/claude-plugins-official</code>
-                <br />
-                <code className="bg-gray-100 dark:bg-slate-700 px-1 rounded">https://github.com/user/my-plugins</code>
+                Supported formats:
+              </p>
+              <ul className="text-xs text-gray-500 dark:text-slate-400 mt-1 space-y-1 ml-2">
+                <li><code className="bg-gray-100 dark:bg-slate-700 px-1 rounded">owner/repo</code> — GitHub shorthand</li>
+                <li><code className="bg-gray-100 dark:bg-slate-700 px-1 rounded">https://github.com/owner/repo</code> — Full URL</li>
+                <li><code className="bg-gray-100 dark:bg-slate-700 px-1 rounded">/local/path</code> — Local directory</li>
+              </ul>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">
+                Search GitHub for <code className="bg-gray-100 dark:bg-slate-700 px-1 rounded">claude-plugins</code> to find community marketplaces.
               </p>
             </div>
           </div>
