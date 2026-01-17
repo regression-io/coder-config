@@ -589,7 +589,7 @@ class ConfigUIServer {
 
       case '/api/plugins/install':
         if (req.method === 'POST') {
-          return this.json(res, await this.installPlugin(body.pluginId, body.marketplace));
+          return this.json(res, await this.installPlugin(body.pluginId, body.marketplace, body.scope, body.projectDir));
         }
         break;
 
@@ -1409,6 +1409,9 @@ class ConfigUIServer {
 
     // Load marketplaces and their plugins
     const marketplaces = [];
+    const allPlugins = [];
+    const categories = new Set();
+
     if (fs.existsSync(marketplacesPath)) {
       try {
         const known = JSON.parse(fs.readFileSync(marketplacesPath, 'utf8'));
@@ -1418,22 +1421,66 @@ class ConfigUIServer {
             source: info.source,
             installLocation: info.installLocation,
             lastUpdated: info.lastUpdated,
-            plugins: []
+            plugins: [],
+            externalPlugins: []
           };
 
-          // Load marketplace manifest
+          // Load marketplace manifest for internal plugins
           const manifestPath = path.join(info.installLocation, '.claude-plugin', 'marketplace.json');
           if (fs.existsSync(manifestPath)) {
             try {
               const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
               marketplace.description = manifest.description;
               marketplace.owner = manifest.owner;
-              marketplace.plugins = (manifest.plugins || []).map(p => ({
-                ...p,
-                marketplace: name,
-                installed: !!installed[`${p.name}@${name}`],
-                installedInfo: installed[`${p.name}@${name}`]?.[0] || null
-              }));
+              marketplace.plugins = (manifest.plugins || []).map(p => {
+                if (p.category) categories.add(p.category);
+                const plugin = {
+                  ...p,
+                  marketplace: name,
+                  sourceType: 'internal',
+                  installed: !!installed[`${p.name}@${name}`],
+                  installedInfo: installed[`${p.name}@${name}`]?.[0] || null
+                };
+                allPlugins.push(plugin);
+                return plugin;
+              });
+            } catch (e) {}
+          }
+
+          // Load external plugins by scanning external_plugins directory
+          const externalDir = path.join(info.installLocation, 'external_plugins');
+          if (fs.existsSync(externalDir)) {
+            try {
+              const externals = fs.readdirSync(externalDir, { withFileTypes: true })
+                .filter(d => d.isDirectory())
+                .map(d => d.name);
+
+              for (const pluginName of externals) {
+                const pluginManifestPath = path.join(externalDir, pluginName, '.claude-plugin', 'plugin.json');
+                if (fs.existsSync(pluginManifestPath)) {
+                  try {
+                    const pluginManifest = JSON.parse(fs.readFileSync(pluginManifestPath, 'utf8'));
+                    if (pluginManifest.category) categories.add(pluginManifest.category);
+                    const plugin = {
+                      name: pluginManifest.name || pluginName,
+                      description: pluginManifest.description || '',
+                      version: pluginManifest.version || '1.0.0',
+                      author: pluginManifest.author,
+                      category: pluginManifest.category || 'external',
+                      homepage: pluginManifest.homepage,
+                      mcpServers: pluginManifest.mcpServers,
+                      lspServers: pluginManifest.lspServers,
+                      commands: pluginManifest.commands,
+                      marketplace: name,
+                      sourceType: 'external',
+                      installed: !!installed[`${pluginManifest.name || pluginName}@${name}`],
+                      installedInfo: installed[`${pluginManifest.name || pluginName}@${name}`]?.[0] || null
+                    };
+                    marketplace.externalPlugins.push(plugin);
+                    allPlugins.push(plugin);
+                  } catch (e) {}
+                }
+              }
             } catch (e) {}
           }
 
@@ -1445,6 +1492,8 @@ class ConfigUIServer {
     return {
       installed,
       marketplaces,
+      allPlugins,
+      categories: Array.from(categories).sort(),
       pluginsDir
     };
   }
@@ -1461,11 +1510,15 @@ class ConfigUIServer {
     return {};
   }
 
-  async installPlugin(pluginId, marketplace) {
+  async installPlugin(pluginId, marketplace, scope = 'user', projectDir = null) {
     // Use claude CLI to install
+    const args = ['plugin', 'install', `${pluginId}@${marketplace}`];
+    if (scope && scope !== 'user') {
+      args.push('--scope', scope);
+    }
     return new Promise((resolve) => {
-      const proc = spawn('claude', ['plugin', 'install', `${pluginId}@${marketplace}`], {
-        cwd: os.homedir(),
+      const proc = spawn('claude', args, {
+        cwd: projectDir || os.homedir(),
         env: process.env,
         stdio: ['ignore', 'pipe', 'pipe']  // Don't wait for stdin
       });

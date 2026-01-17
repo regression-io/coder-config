@@ -8,6 +8,7 @@ import ClaudeSettingsEditor from './ClaudeSettingsEditor';
 import GeminiSettingsEditor from './GeminiSettingsEditor';
 import SyncDialog from './SyncDialog';
 import PathPicker from './PathPicker';
+import PluginSelectorDialog from './PluginSelectorDialog';
 import { ScrollArea } from './ui/scroll-area';
 import { Badge } from './ui/badge';
 import { Switch } from './ui/switch';
@@ -61,6 +62,7 @@ import {
   Layout,
   Brain,
   EyeOff,
+  Puzzle,
 } from 'lucide-react';
 
 // File type icons and colors
@@ -183,7 +185,7 @@ function TreeItem({ item, level = 0, selectedPath, onSelect, onContextMenu, expa
 }
 
 // Folder Row Component - collapsible tree entry
-function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, depth = 0, onToggle, onCreateFile, onSelectItem, selectedPath, onContextMenu, expandedFolders, onToggleFolder, templates, hasSubprojects, onAddSubproject, onRemoveSubproject, onHideSubproject }) {
+function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, depth = 0, onToggle, onCreateFile, onInstallPlugin, onSelectItem, selectedPath, onContextMenu, expandedFolders, onToggleFolder, templates, hasSubprojects, onAddSubproject, onRemoveSubproject, onHideSubproject }) {
   // Check what files already exist
   const hasMcps = folder.files?.some(f => f.name === 'mcps.json');
   const hasSettings = folder.files?.some(f => f.name === 'settings.json');
@@ -307,6 +309,11 @@ function FolderRow({ folder, isExpanded, isHome, isProject, isSubproject, depth 
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'memory'); }}>
               <Brain className="w-4 h-4 mr-2" />
               New Memory
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onInstallPlugin(folder.dir, folder.name || folder.dir.split('/').pop()); }}>
+              <Puzzle className="w-4 h-4 mr-2" />
+              Install Plugins
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -973,6 +980,7 @@ export default function FileExplorer({ project, onRefresh }) {
   const [syncDialog, setSyncDialog] = useState(false);
   const [addSubprojectDialog, setAddSubprojectDialog] = useState({ open: false, projectDir: null });
   const [templateSuggestion, setTemplateSuggestion] = useState({ open: false, dir: null, template: null, confidence: null });
+  const [pluginDialog, setPluginDialog] = useState({ open: false, dir: null, name: null });
   const [contextMenu, setContextMenu] = useState({ x: 0, y: 0, item: null });
 
   const [enabledTools, setEnabledTools] = useState(['claude']);
@@ -1353,6 +1361,7 @@ export default function FileExplorer({ project, onRefresh }) {
               depth={folder.depth || 0}
               onToggle={() => handleToggleFolder(folder.dir)}
               onCreateFile={handleCreateFile}
+              onInstallPlugin={(dir, name) => setPluginDialog({ open: true, dir, name })}
               onSelectItem={handleSelectItem}
               selectedPath={selectedItem?.path}
               onContextMenu={handleContextMenu}
@@ -1457,6 +1466,13 @@ export default function FileExplorer({ project, onRefresh }) {
         onOpenChange={setSyncDialog}
         projectDir={project?.dir}
         onSynced={loadData}
+      />
+      {/* Plugin Selector */}
+      <PluginSelectorDialog
+        open={pluginDialog.open}
+        onOpenChange={(open) => setPluginDialog({ ...pluginDialog, open })}
+        projectDir={pluginDialog.dir}
+        projectName={pluginDialog.name}
       />
       {/* Add Sub-project Folder Picker */}
       <PathPicker

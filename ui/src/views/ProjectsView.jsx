@@ -199,7 +199,7 @@ export default function ProjectsView({ onProjectSwitch }) {
                       {switching === project.id ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        'Switch'
+                        'Select'
                       )}
                     </Button>
                   )}

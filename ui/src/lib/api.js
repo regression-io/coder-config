@@ -466,10 +466,10 @@ export const api = {
     return request('/plugins');
   },
 
-  async installPlugin(pluginId, marketplace) {
+  async installPlugin(pluginId, marketplace, scope = 'user', projectDir = null) {
     return request('/plugins/install', {
       method: 'POST',
-      body: { pluginId, marketplace },
+      body: { pluginId, marketplace, scope, projectDir },
     });
   },
 
