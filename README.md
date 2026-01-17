@@ -81,6 +81,20 @@ claude-config project add [path] --name X  # Add with custom display name
 claude-config project remove <name|path>   # Remove from registry
 ```
 
+### Workstream Commands
+
+```bash
+claude-config workstream                   # List all workstreams
+claude-config workstream create "Name"     # Create new workstream
+claude-config workstream delete <name>     # Delete workstream
+claude-config workstream use <name>        # Set active workstream
+claude-config workstream active            # Show current active workstream
+claude-config workstream add-project <ws> <path>     # Add project to workstream
+claude-config workstream remove-project <ws> <path>  # Remove project from workstream
+claude-config workstream inject [--silent] # Output active workstream rules (for hooks)
+claude-config workstream detect [path]     # Detect workstream for directory
+```
+
 ### Registry Commands
 
 ```bash
@@ -212,12 +226,59 @@ Persistent memory for Claude Code sessions:
 
 Manage via Web UI or edit files directly.
 
+## Workstreams
+
+Workstreams are **context sets** for multi-project workflows. They group related projects and inject context rules into every Claude session.
+
+### Why Workstreams?
+
+When working on complex features that span multiple repos (e.g., REST API + UI + shared library), you need Claude to understand the broader context. Workstreams solve this by:
+
+1. Grouping related projects together
+2. Defining rules specific to that workflow
+3. Automatically injecting those rules into every Claude session
+
+### Example
+
+```bash
+# Create a workstream for user authentication feature
+claude-config workstream create "User Auth"
+
+# Add related projects
+claude-config workstream add-project "User Auth" ~/projects/api
+claude-config workstream add-project "User Auth" ~/projects/ui
+claude-config workstream add-project "User Auth" ~/projects/shared
+
+# Activate it
+claude-config workstream use "User Auth"
+```
+
+Then in the Web UI, edit the workstream to add rules like:
+> Focus on user authentication flow. Use JWT tokens. React Query for state management. PostgreSQL for persistence.
+
+### Hook Integration
+
+For rules to be injected automatically, install the pre-prompt hook:
+
+**Option 1: One-click install (recommended)**
+- Open Web UI → Workstreams → Click "Install Hook Automatically"
+
+**Option 2: Manual**
+```bash
+# Add to ~/.claude/hooks/pre-prompt.sh
+claude-config workstream inject --silent
+```
+
+Once installed, your active workstream's rules are prepended to every Claude session.
+
 ## Web UI Features
 
 When you run `claude-config ui`:
 
 - **Project Switcher** - Switch between registered projects from header dropdown
+- **Workstream Switcher** - Quick-switch between workstreams from header
 - **File Explorer** - Browse/edit all .claude folders in hierarchy
+- **Workstreams** - Create and manage context sets for multi-project workflows
 - **Sub-Projects** - Auto-detects git repos, plus manually add/hide external folders
 - **Plugins** - Browse and install Claude Code plugins with scope control
 - **MCP Registry** - Search GitHub/npm, add/edit/delete MCPs

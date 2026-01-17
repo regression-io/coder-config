@@ -1,6 +1,6 @@
 {
   "name": "@regression-io/claude-config",
-  "version": "0.30.3",
+  "version": "0.30.4",
   "description": "Configuration management UI for Claude Code and Antigravity - manage MCPs, rules, commands, memory, and project folders",
   "author": "regression.io",
   "main": "config-loader.js",
