@@ -380,10 +380,13 @@ export default function Dashboard() {
             </Button>
             <Button
               onClick={handleApplyConfig}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2 shadow-md"
+              variant="ghost"
+              size="sm"
+              className="gap-2 text-muted-foreground hover:text-foreground"
+              title="Config auto-applies on save. Click to manually re-apply."
             >
               <Rocket className="w-4 h-4" />
-              Apply Config
+              Re-apply
             </Button>
           </div>
         </div>

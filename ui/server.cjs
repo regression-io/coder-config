@@ -1393,7 +1393,16 @@ class ConfigUIServer {
     }
 
     this.manager.saveJson(configPath, config);
-    return { success: true, path: configPath };
+
+    // Auto-apply: Generate .mcp.json immediately after save
+    const applyResult = this.applyConfig(dir);
+
+    return {
+      success: true,
+      path: configPath,
+      applied: applyResult.success,
+      tools: applyResult.tools
+    };
   }
 
   getRegistry() {
@@ -1402,7 +1411,15 @@ class ConfigUIServer {
 
   updateRegistry(body) {
     this.manager.saveJson(this.manager.registryPath, body);
-    return { success: true };
+
+    // Auto-apply: Generate .mcp.json for current project
+    const applyResult = this.applyConfig(this.projectDir);
+
+    return {
+      success: true,
+      applied: applyResult.success,
+      tools: applyResult.tools
+    };
   }
 
   // ==================== Claude Code Plugins ====================
