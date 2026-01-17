@@ -43,6 +43,30 @@ const docSections = [
     ]
   },
   {
+    id: 'workstreams',
+    title: 'Workstreams',
+    icon: Layers,
+    isNew: true,
+    subsections: [
+      { id: 'workstreams-overview', title: 'Overview' },
+      { id: 'creating-workstreams', title: 'Creating Workstreams' },
+      { id: 'workstream-hooks', title: 'Hook Integration' },
+      { id: 'activity-tracking', title: 'Activity Tracking' },
+      { id: 'smart-sync', title: 'Smart Sync' },
+    ]
+  },
+  {
+    id: 'plugins',
+    title: 'Plugins',
+    icon: Package,
+    isNew: true,
+    subsections: [
+      { id: 'plugins-overview', title: 'Overview' },
+      { id: 'installing-plugins', title: 'Installing Plugins' },
+      { id: 'plugin-marketplaces', title: 'Marketplaces' },
+    ]
+  },
+  {
     id: 'mcp-registry',
     title: 'MCP Registry',
     icon: Package,
@@ -100,7 +124,9 @@ const docSections = [
     title: 'Multi-Tool Support',
     icon: Sparkles,
     subsections: [
-      { id: 'antigravity', title: 'Antigravity Support' },
+      { id: 'supported-tools', title: 'Supported Tools' },
+      { id: 'gemini-cli', title: 'Gemini CLI' },
+      { id: 'antigravity', title: 'Antigravity' },
       { id: 'tool-differences', title: 'Tool Differences' },
       { id: 'enabling-tools', title: 'Enabling Tools' },
       { id: 'syncing-rules', title: 'Syncing Rules' },
@@ -1193,6 +1219,20 @@ claude-config env unset KEY       # Remove variable
 claude-config templates           # List templates
 claude-config apply-template X    # Apply template
 \`\`\`
+
+### Workstreams
+
+\`\`\`bash
+claude-config workstream              # List workstreams
+claude-config workstream create "X"   # Create workstream
+claude-config workstream delete "X"   # Delete workstream
+claude-config workstream use "X"      # Set active
+claude-config workstream active       # Show active
+claude-config workstream add-project "X" /path    # Add project
+claude-config workstream remove-project "X" /path # Remove project
+claude-config workstream inject       # Output rules for hooks
+claude-config workstream detect       # Detect from directory
+\`\`\`
     `
   },
   'daemon-mode': {
@@ -1239,39 +1279,6 @@ Daemon logs are stored in \`~/.claude-config/ui.log\`
   },
 
   // Multi-Tool Support
-  'antigravity': {
-    title: 'Antigravity Support',
-    content: `
-## Antigravity Support
-
-claude-config now supports **Antigravity** (Google's AI coding assistant) in addition to Claude Code.
-
-### How It Works
-
-Both tools use the **MCP (Model Context Protocol)** for server configurations. claude-config manages a shared registry and generates tool-specific output files:
-
-| Tool | Output Location |
-|------|-----------------|
-| Claude Code | \`.mcp.json\` (project root) |
-| Antigravity | \`~/.gemini/antigravity/mcp_config.json\` |
-
-### Key Difference
-
-**Environment Variables:**
-- **Claude Code** supports \`\${VAR}\` interpolation in configs
-- **Antigravity** requires resolved paths (no \`\${VAR}\` syntax)
-
-When generating Antigravity configs, claude-config automatically resolves all environment variables to their actual values.
-
-### Project Files
-
-| Purpose | Claude Code | Antigravity |
-|---------|-------------|-------------|
-| Config folder | \`.claude/\` | \`.agent/\` |
-| Rules | \`.claude/rules/*.md\` | \`.agent/rules/*.md\` |
-| Instructions | \`CLAUDE.md\` | \`GEMINI.md\` |
-    `
-  },
   'tool-differences': {
     title: 'Tool Differences',
     content: `
@@ -1279,7 +1286,7 @@ When generating Antigravity configs, claude-config automatically resolves all en
 
 ### Configuration Formats
 
-Both tools use identical JSON format for MCP server definitions:
+All tools use identical JSON format for MCP server definitions:
 
 \`\`\`json
 {
@@ -1295,19 +1302,21 @@ Both tools use identical JSON format for MCP server definitions:
 
 ### Feature Comparison
 
-| Feature | Claude Code | Antigravity |
-|---------|-------------|-------------|
-| MCP Config | \`.mcp.json\` | Global config |
-| Env Interpolation | Yes (\`\${VAR}\`) | No |
-| Commands | \`.claude/commands/\` | Not supported |
-| Workflows | \`.claude/workflows/\` | Not supported |
-| Rules | \`.claude/rules/\` | \`.agent/rules/\` |
+| Feature | Claude Code | Gemini CLI | Antigravity |
+|---------|-------------|------------|-------------|
+| Type | Terminal CLI | Terminal CLI | Full IDE |
+| MCP Config | \`.mcp.json\` | \`~/.gemini/settings.json\` | \`~/.gemini/antigravity/\` |
+| Env Interpolation | Yes (\`\${VAR}\`) | Yes | No |
+| Commands | \`.claude/commands/\` | \`.gemini/commands/\` | Unknown |
+| Rules | \`.claude/rules/\` | \`.gemini/\` | \`.agent/rules/\` |
+| Instructions | \`CLAUDE.md\` | \`GEMINI.md\` | \`GEMINI.md\` |
 
 ### What This Means
 
-- Your MCP registry is shared between tools
-- When you click "Apply Config", both tools get updated
-- Rules need to be managed separately (sync feature coming soon)
+- Your MCP registry is shared between all tools
+- When you click "Apply Config", all enabled tools get updated
+- Rules can be synced between Claude Code and Antigravity
+- Gemini CLI and Antigravity share global instructions (known conflict)
     `
   },
   'enabling-tools': {
@@ -1323,6 +1332,7 @@ Control which tools receive configuration updates.
 2. Find the **Enabled AI Tools** section
 3. Toggle tools on/off:
    - **Claude Code** - Writes to \`.mcp.json\`
+   - **Gemini CLI** - Writes to \`~/.gemini/settings.json\`
    - **Antigravity** - Writes to \`~/.gemini/antigravity/mcp_config.json\`
 
 ### Apply Behavior
@@ -1334,11 +1344,11 @@ When you click **Apply Config**:
 
 ### Config File
 
-Tool preferences are stored in \`~/.claude/config.json\`:
+Tool preferences are stored in \`~/.claude-config/config.json\`:
 
 \`\`\`json
 {
-  "enabledTools": ["claude", "antigravity"]
+  "enabledTools": ["claude", "gemini", "antigravity"]
 }
 \`\`\`
     `
@@ -1348,7 +1358,7 @@ Tool preferences are stored in \`~/.claude/config.json\`:
     content: `
 ## Syncing Rules Between Tools
 
-When both Claude Code and Antigravity are enabled, you can sync rules between them.
+Sync rules between Claude Code and Antigravity to maintain consistency.
 
 ### Accessing Sync
 
@@ -1381,6 +1391,7 @@ The sync dialog allows you to:
 - Target files are **overwritten** if they exist
 - Instructions files (CLAUDE.md / GEMINI.md) are not synced
 - Commands and workflows are Claude-specific (not synced)
+- Gemini CLI uses different paths and is not currently included in rule sync
     `
   },
 
@@ -1492,6 +1503,511 @@ When reporting issues, include:
 - Error messages or logs
     `
   },
+
+  // Workstreams
+  'workstreams-overview': {
+    title: 'Workstreams Overview',
+    content: `
+## Workstreams
+
+Workstreams are **context sets** for multi-project workflows. They group related projects and inject context rules into every Claude session.
+
+### Why Workstreams?
+
+When working on complex features that span multiple repos (e.g., REST API + UI + shared library), you need Claude to understand the broader context. Workstreams solve this by:
+
+1. **Grouping related projects together**
+2. **Defining rules specific to that workflow**
+3. **Automatically injecting those rules into every Claude session**
+
+### Example Use Cases
+
+- **Feature Development**: Group API, frontend, and shared libraries for a feature
+- **Bug Investigation**: Group related services to trace issues across boundaries
+- **Refactoring**: Group all affected repos during large-scale changes
+- **Onboarding**: Create workstreams for different parts of your codebase
+
+### Workstream Structure
+
+Each workstream has:
+- **Name** - Descriptive name (e.g., "User Auth", "Payment Flow")
+- **Projects** - List of project directories included
+- **Rules** - Context and guidelines specific to this workflow
+- **Active Status** - Only one workstream can be active at a time
+    `
+  },
+  'creating-workstreams': {
+    title: 'Creating Workstreams',
+    content: `
+## Creating Workstreams
+
+### Via UI
+
+1. Go to **Workstreams** in the sidebar
+2. Click **Create Workstream** button
+3. Enter a name and optional description
+4. Add projects using the project picker
+5. Write rules for Claude to follow
+6. Click **Create**
+
+### Via CLI
+
+\`\`\`bash
+# Create a workstream
+claude-config workstream create "User Auth"
+
+# Add projects to it
+claude-config workstream add-project "User Auth" ~/projects/api
+claude-config workstream add-project "User Auth" ~/projects/ui
+claude-config workstream add-project "User Auth" ~/projects/shared
+
+# Activate it
+claude-config workstream use "User Auth"
+\`\`\`
+
+### Managing Workstreams
+
+**List all workstreams:**
+\`\`\`bash
+claude-config workstream
+\`\`\`
+
+**Show active workstream:**
+\`\`\`bash
+claude-config workstream active
+\`\`\`
+
+**Delete a workstream:**
+\`\`\`bash
+claude-config workstream delete "User Auth"
+\`\`\`
+
+### Editing Rules
+
+In the UI, click a workstream to expand it and edit rules. Rules are markdown text that gets injected into Claude sessions:
+
+\`\`\`markdown
+Focus on user authentication flow.
+- Use JWT tokens for auth
+- React Query for state management
+- PostgreSQL for persistence
+- Follow REST conventions
+\`\`\`
+    `
+  },
+  'workstream-hooks': {
+    title: 'Workstream Hook Integration',
+    content: `
+## Hook Integration
+
+For workstream rules to be automatically injected into Claude sessions, you need to install a pre-prompt hook.
+
+### One-Click Install (Recommended)
+
+1. Open Web UI → **Workstreams**
+2. Click **Install Hook Automatically**
+3. Done! A green "Hook Installed" badge will appear
+
+### Manual Installation
+
+Add to \`~/.claude/hooks/pre-prompt.sh\`:
+
+\`\`\`bash
+#!/bin/bash
+claude-config workstream inject --silent
+\`\`\`
+
+Make it executable:
+\`\`\`bash
+chmod +x ~/.claude/hooks/pre-prompt.sh
+\`\`\`
+
+### How It Works
+
+1. When you start a Claude session, the pre-prompt hook runs
+2. It checks for an active workstream
+3. If found, it outputs the workstream's rules
+4. These rules are prepended to your Claude session context
+
+### Testing the Hook
+
+\`\`\`bash
+# See what would be injected
+claude-config workstream inject
+
+# Silent mode (no output if no workstream)
+claude-config workstream inject --silent
+\`\`\`
+
+### Auto-Detection
+
+Claude-config can also detect which workstream to use based on your current directory:
+
+\`\`\`bash
+claude-config workstream detect /path/to/project
+\`\`\`
+    `
+  },
+  'activity-tracking': {
+    title: 'Activity Tracking',
+    content: `
+## Activity Tracking
+
+Activity tracking observes which files and projects you work with during Claude sessions, enabling intelligent workstream suggestions.
+
+### How It Works
+
+1. A post-response hook logs file paths accessed during Claude sessions
+2. Co-activity patterns are detected (projects frequently worked on together)
+3. Workstream suggestions appear in the UI based on these patterns
+
+### Setting Up Activity Tracking
+
+Add to \`~/.claude/hooks/post-response.sh\`:
+
+\`\`\`bash
+#!/bin/bash
+source /path/to/claude-config/hooks/activity-track.sh
+\`\`\`
+
+Or use the one-click install in the Workstreams view.
+
+### Activity Insights Panel
+
+In the **Workstreams** view, the Activity Insights panel shows:
+- **Sessions tracked** - Number of Claude sessions logged
+- **Files tracked** - Total file accesses recorded
+- **Active projects** - Projects with recent activity
+- **Top projects** - Most frequently accessed projects
+
+### Workstream Suggestions
+
+Based on co-activity patterns, claude-config suggests workstreams:
+
+- **Co-activity score** - Percentage showing how often projects are worked on together
+- **Create button** - Opens pre-filled dialog (tweak projects as needed)
+- **Dismiss button** - Hide suggestions you don't want (persists to localStorage)
+
+### Privacy
+
+- Activity data is stored locally in \`~/.claude-config/activity.json\`
+- Only file paths are logged (not file contents)
+- You can delete the activity file at any time
+- Activity tracking is read-only and never modifies your code
+    `
+  },
+  'smart-sync': {
+    title: 'Smart Sync',
+    content: `
+## Smart Sync
+
+Smart Sync intelligently suggests workstream switches based on your current coding activity.
+
+### How It Works
+
+1. **Detection**: Monitors which projects you're actively working in
+2. **Matching**: Compares activity against configured workstreams
+3. **Nudging**: Shows non-blocking toast notifications when a switch might help
+4. **Learning**: Remembers your choices to reduce future prompts
+
+### Toast Notifications
+
+When Smart Sync detects you might benefit from switching workstreams:
+
+- **Switch nudge**: "Working on api, ui. Switch to 'User Auth'?" [Yes] [No] [Always] [Never]
+- **Add project nudge**: "New project detected. Add to workstream?" [Yes] [No]
+
+### Auto-Switch
+
+When confidence is high (80%+ by default), Smart Sync can automatically switch workstreams without prompting.
+
+### Settings
+
+In the **Workstreams** view, find the Smart Sync settings panel:
+
+- **Enable/Disable** - Toggle Smart Sync on or off
+- **Threshold slider** - Adjust auto-switch confidence threshold (0-100%)
+
+### Bulletproof Design
+
+Smart Sync is designed to never block your workflow:
+
+- All nudges are dismissible
+- Fails silently if anything goes wrong
+- Rate-limited (max one nudge per 5 minutes)
+- Defaults to last-used workstream if detection fails
+- Learns from your choices to reduce prompts over time
+
+### User Choices
+
+- **Yes** - Switch to suggested workstream
+- **No** - Dismiss this nudge
+- **Always** - Remember to always switch for this project-workstream pair
+- **Never** - Never suggest this workstream for these projects again
+
+Preferences are stored in \`~/.claude-config/smart-sync.json\`.
+    `
+  },
+
+  // Plugins
+  'plugins-overview': {
+    title: 'Plugins Overview',
+    content: `
+## Plugins
+
+Claude Code plugins extend functionality with LSP servers, MCP servers, and commands.
+
+### What Are Plugins?
+
+Plugins are packages that add capabilities to Claude Code:
+
+- **LSP Servers** - Language Server Protocol servers for code intelligence
+- **MCP Servers** - Model Context Protocol servers for additional tools
+- **Commands** - Reusable prompts and workflows
+
+### Plugin Directory
+
+The **Plugins** page shows all available plugins with:
+
+- **Search** - Find plugins by name or description
+- **Category filter** - Filter by plugin category
+- **Source filter** - Anthropic official vs Community plugins
+- **Installed filter** - Show only installed or available plugins
+
+### Plugin Types
+
+| Type | Badge | Description |
+|------|-------|-------------|
+| LSP | \`LSP\` | Language server providing code intelligence |
+| MCP | \`MCP\` | Model context protocol server |
+| Commands | \`CMD\` | Custom commands and prompts |
+    `
+  },
+  'installing-plugins': {
+    title: 'Installing Plugins',
+    content: `
+## Installing Plugins
+
+### From Project Explorer
+
+The recommended way to install plugins:
+
+1. Open **Project Explorer**
+2. Click the **+** menu on any project folder
+3. Select **Install Plugins**
+4. Browse available plugins
+5. Toggle plugins on/off
+6. Select scope (Project/Global/Local)
+
+### Scope Options
+
+| Scope | Location | Description |
+|-------|----------|-------------|
+| Project | \`.claude/plugins.json\` | Only for this project |
+| Global | \`~/.claude/plugins.json\` | All projects |
+| Local | Project-specific | Scoped to workspace |
+
+### From Plugin Directory
+
+1. Go to **Plugins** in the sidebar
+2. Find a plugin you want
+3. Click **Install** button
+4. Select target project and scope
+
+### Via CLI
+
+\`\`\`bash
+# Install a plugin to current project
+claude plugin install plugin-name
+
+# Install globally
+claude plugin install plugin-name --global
+\`\`\`
+    `
+  },
+  'plugin-marketplaces': {
+    title: 'Plugin Marketplaces',
+    content: `
+## Plugin Marketplaces
+
+Plugins are distributed through marketplaces (Git repositories).
+
+### Default Marketplace
+
+**claude-plugins-official** - Anthropic's official plugins
+
+### Adding Marketplaces
+
+1. Go to **Plugins** page
+2. Click **Add Marketplace** button
+3. Enter marketplace URL or shorthand
+
+### Supported Formats
+
+- \`owner/repo\` — GitHub shorthand
+- \`https://github.com/owner/repo\` — Full URL
+- \`/local/path\` — Local directory
+
+### Managing Marketplaces
+
+- **Refresh** - Update plugin list from all marketplaces
+- **Remove** - Remove a marketplace (plugins remain installed)
+- **View external** - Toggle to see external marketplace plugins
+
+### Creating a Marketplace
+
+A marketplace is a Git repo with:
+
+\`\`\`
+marketplace/
+├── plugins.json      # Plugin registry
+└── plugins/
+    ├── plugin-a/
+    │   ├── plugin.json
+    │   └── ...
+    └── plugin-b/
+        └── ...
+\`\`\`
+
+### plugins.json Format
+
+\`\`\`json
+{
+  "plugins": [
+    {
+      "name": "my-plugin",
+      "description": "Does something useful",
+      "category": "utilities",
+      "source": "community"
+    }
+  ]
+}
+\`\`\`
+    `
+  },
+
+  // Multi-Tool Support - Updated sections
+  'supported-tools': {
+    title: 'Supported Tools',
+    content: `
+## Supported AI Coding Tools
+
+claude-config supports multiple AI coding assistants:
+
+| Tool | Type | Config Location |
+|------|------|-----------------|
+| **Claude Code** | Terminal CLI | \`.mcp.json\`, \`~/.claude/\` |
+| **Gemini CLI** | Terminal CLI | \`~/.gemini/settings.json\` |
+| **Antigravity** | Full IDE | \`~/.gemini/antigravity/mcp_config.json\` |
+
+### Shared MCP Registry
+
+All tools use the **MCP (Model Context Protocol)** for server configurations. claude-config maintains a shared registry and generates tool-specific output files.
+
+### Enabling Tools
+
+In **Preferences**, toggle which tools receive configuration updates:
+
+- **Claude Code** - Anthropic's terminal AI assistant
+- **Gemini CLI** - Google's terminal AI assistant
+- **Antigravity** - Google's AI-powered IDE
+
+When you click **Apply Config**, enabled tools get updated configurations.
+    `
+  },
+  'gemini-cli': {
+    title: 'Gemini CLI',
+    content: `
+## Gemini CLI Support
+
+Gemini CLI is Google's terminal-based AI coding assistant, similar to Claude Code.
+
+### Configuration
+
+Gemini CLI settings are stored in \`~/.gemini/settings.json\`:
+
+\`\`\`json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path"]
+    }
+  }
+}
+\`\`\`
+
+### Key Differences from Claude Code
+
+| Feature | Claude Code | Gemini CLI |
+|---------|-------------|------------|
+| MCP Config | Separate \`.mcp.json\` | Embedded in settings.json |
+| Global Instructions | \`~/.claude/CLAUDE.md\` | \`~/.gemini/GEMINI.md\` |
+| Project Instructions | \`CLAUDE.md\` | \`GEMINI.md\` |
+| Commands | \`.claude/commands/\` | \`.gemini/commands/\` (TOML) |
+
+### Gemini Settings Editor
+
+Access via **Gemini CLI** in the sidebar to:
+
+- Configure MCP servers
+- Edit global settings
+- Manage Gemini-specific options
+
+### Project Files
+
+| Purpose | File |
+|---------|------|
+| Project instructions | \`GEMINI.md\` or \`.gemini/GEMINI.md\` |
+| Commands | \`.gemini/commands/*.toml\` |
+| Config folder | \`.gemini/\` |
+    `
+  },
+  'antigravity': {
+    title: 'Antigravity Support',
+    content: `
+## Antigravity Support
+
+Antigravity is Google's full AI-powered IDE (similar to Cursor/Windsurf).
+
+### Configuration
+
+Antigravity MCP config is stored at \`~/.gemini/antigravity/mcp_config.json\`:
+
+\`\`\`json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/absolute/path"]
+    }
+  }
+}
+\`\`\`
+
+### Key Difference: No Environment Variables
+
+**Important**: Antigravity does NOT support \`\${VAR}\` interpolation.
+
+When generating Antigravity configs, claude-config automatically resolves all environment variables to their actual values.
+
+Example:
+- Claude Code: \`"path": "\${HOME}/projects"\`
+- Antigravity: \`"path": "/Users/you/projects"\`
+
+### Project Files
+
+| Purpose | Claude Code | Antigravity |
+|---------|-------------|-------------|
+| Config folder | \`.claude/\` | \`.agent/\` |
+| Rules | \`.claude/rules/*.md\` | \`.agent/rules/*.md\` |
+| Instructions | \`CLAUDE.md\` | \`GEMINI.md\` or \`AGENT.md\` |
+
+### Known Limitation
+
+Antigravity and Gemini CLI share \`~/.gemini/GEMINI.md\` for global instructions. This is a known conflict in Google's tools.
+    `
+  },
 };
 
 export default function DocsView() {
@@ -1539,6 +2055,11 @@ export default function DocsView() {
                 >
                   <section.icon className="w-4 h-4 text-muted-foreground" />
                   <span className="flex-1">{section.title}</span>
+                  {section.isNew && (
+                    <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-green-500/20 text-green-600 dark:text-green-400">
+                      new
+                    </span>
+                  )}
                   {section.subsections.length > 0 && (
                     <ChevronRight className={cn(
                       "w-4 h-4 text-muted-foreground transition-transform",

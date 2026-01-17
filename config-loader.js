@@ -19,7 +19,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const VERSION = '0.30.4';
+const VERSION = '0.32.1';
 
 // Tool-specific path configurations
 const TOOL_PATHS = {
@@ -2125,6 +2125,614 @@ class ClaudeConfigManager {
   workstreamGet(id) {
     const data = this.loadWorkstreams();
     return data.workstreams.find(w => w.id === id) || null;
+  }
+
+  // ===========================================================================
+  // ACTIVITY TRACKING
+  // ===========================================================================
+
+  /**
+   * Get activity file path
+   */
+  getActivityPath() {
+    return path.join(this.installDir, 'activity.json');
+  }
+
+  /**
+   * Load activity data
+   */
+  loadActivity() {
+    const activityPath = this.getActivityPath();
+    if (fs.existsSync(activityPath)) {
+      try {
+        return JSON.parse(fs.readFileSync(activityPath, 'utf8'));
+      } catch (e) {
+        return this.getDefaultActivity();
+      }
+    }
+    return this.getDefaultActivity();
+  }
+
+  /**
+   * Get default activity structure
+   */
+  getDefaultActivity() {
+    return {
+      sessions: [],
+      projectStats: {},
+      coActivity: {},
+      lastUpdated: null
+    };
+  }
+
+  /**
+   * Save activity data
+   */
+  saveActivity(data) {
+    const activityPath = this.getActivityPath();
+    const dir = path.dirname(activityPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    data.lastUpdated = new Date().toISOString();
+    fs.writeFileSync(activityPath, JSON.stringify(data, null, 2) + '\n');
+  }
+
+  /**
+   * Log activity from a Claude session
+   */
+  activityLog(files, sessionId = null) {
+    const data = this.loadActivity();
+    const now = new Date().toISOString();
+
+    if (!sessionId) {
+      sessionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+    }
+
+    let session = data.sessions.find(s => s.id === sessionId);
+    if (!session) {
+      session = { id: sessionId, startedAt: now, files: [], projects: [] };
+      data.sessions.push(session);
+    }
+
+    const projectsInSession = new Set(session.projects);
+
+    for (const file of files) {
+      // Handle both string paths and {path, action} objects
+      const rawPath = typeof file === 'string' ? file : file.path;
+      if (!rawPath) continue;
+      const filePath = path.resolve(rawPath.replace(/^~/, process.env.HOME || ''));
+      const action = typeof file === 'object' ? (file.action || 'access') : 'access';
+
+      session.files.push({ path: filePath, action, timestamp: now });
+
+      const projectPath = this.detectProjectRoot(filePath);
+      if (projectPath) {
+        projectsInSession.add(projectPath);
+
+        if (!data.projectStats[projectPath]) {
+          data.projectStats[projectPath] = { fileCount: 0, lastActive: now, sessionCount: 0 };
+        }
+        data.projectStats[projectPath].fileCount++;
+        data.projectStats[projectPath].lastActive = now;
+      }
+    }
+
+    session.projects = Array.from(projectsInSession);
+
+    // Update co-activity
+    const projects = session.projects;
+    for (let i = 0; i < projects.length; i++) {
+      for (let j = i + 1; j < projects.length; j++) {
+        const p1 = projects[i], p2 = projects[j];
+        if (!data.coActivity[p1]) data.coActivity[p1] = {};
+        if (!data.coActivity[p2]) data.coActivity[p2] = {};
+        data.coActivity[p1][p2] = (data.coActivity[p1][p2] || 0) + 1;
+        data.coActivity[p2][p1] = (data.coActivity[p2][p1] || 0) + 1;
+      }
+    }
+
+    if (data.sessions.length > 100) {
+      data.sessions = data.sessions.slice(-100);
+    }
+
+    this.saveActivity(data);
+    return { sessionId, filesLogged: files.length, projects: session.projects };
+  }
+
+  /**
+   * Detect project root by finding .git or .claude folder
+   */
+  detectProjectRoot(filePath) {
+    let dir = path.dirname(filePath);
+    const home = process.env.HOME || '';
+
+    while (dir && dir !== '/' && dir !== home) {
+      if (fs.existsSync(path.join(dir, '.git')) || fs.existsSync(path.join(dir, '.claude'))) {
+        return dir;
+      }
+      dir = path.dirname(dir);
+    }
+    return null;
+  }
+
+  /**
+   * Get activity summary for UI
+   */
+  activitySummary() {
+    const data = this.loadActivity();
+    const now = new Date();
+    const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000);
+
+    const recentSessions = data.sessions.filter(s => new Date(s.startedAt) > oneDayAgo);
+
+    const projectActivity = Object.entries(data.projectStats)
+      .map(([projectPath, stats]) => ({
+        path: projectPath,
+        name: path.basename(projectPath),
+        ...stats,
+        isRecent: new Date(stats.lastActive) > oneDayAgo
+      }))
+      .sort((a, b) => new Date(b.lastActive) - new Date(a.lastActive));
+
+    const coActiveProjects = [];
+    for (const [project, coProjects] of Object.entries(data.coActivity)) {
+      for (const [otherProject, count] of Object.entries(coProjects)) {
+        if (count >= 2 && project < otherProject) {
+          coActiveProjects.push({
+            projects: [project, otherProject],
+            names: [path.basename(project), path.basename(otherProject)],
+            count
+          });
+        }
+      }
+    }
+    coActiveProjects.sort((a, b) => b.count - a.count);
+
+    // Calculate total files across all sessions
+    const totalFiles = data.sessions.reduce((sum, s) => sum + (s.files?.length || 0), 0);
+
+    return {
+      totalSessions: data.sessions.length,
+      recentSessions: recentSessions.length,
+      totalFiles,
+      projectCount: Object.keys(data.projectStats).length,
+      topProjects: projectActivity.slice(0, 10),
+      projectActivity: projectActivity.slice(0, 20),
+      coActiveProjects: coActiveProjects.slice(0, 10),
+      lastUpdated: data.lastUpdated
+    };
+  }
+
+  /**
+   * Suggest workstreams based on activity patterns
+   */
+  activitySuggestWorkstreams() {
+    const data = this.loadActivity();
+    const workstreams = this.loadWorkstreams();
+    const suggestions = [];
+
+    const coGroups = new Map();
+
+    for (const session of data.sessions) {
+      if (session.projects.length >= 2) {
+        const key = session.projects.sort().join('|');
+        coGroups.set(key, (coGroups.get(key) || 0) + 1);
+      }
+    }
+
+    for (const [key, count] of coGroups) {
+      if (count >= 3) {
+        const projects = key.split('|');
+        const existingWs = workstreams.workstreams.find(ws =>
+          projects.every(p => ws.projects.includes(p))
+        );
+
+        if (!existingWs) {
+          // Calculate co-activity score as percentage of total sessions
+          const totalSessions = data.sessions.length;
+          const coActivityScore = totalSessions > 0 ? Math.round((count / totalSessions) * 100) : 0;
+
+          suggestions.push({
+            projects,
+            name: this.generateWorkstreamName(projects),
+            names: projects.map(p => path.basename(p)),
+            sessionCount: count,
+            coActivityScore: Math.min(coActivityScore, 100),
+          });
+        }
+      }
+    }
+
+    suggestions.sort((a, b) => b.sessionCount - a.sessionCount);
+    return suggestions.slice(0, 5);
+  }
+
+  /**
+   * Generate a workstream name from project names
+   */
+  generateWorkstreamName(projects) {
+    const names = projects.map(p => path.basename(p));
+    if (names.length <= 2) return names.join(' + ');
+    return `${names[0]} + ${names.length - 1} more`;
+  }
+
+  /**
+   * Clear old activity data
+   */
+  activityClear(olderThanDays = 30) {
+    const data = this.loadActivity();
+    const cutoff = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
+
+    data.sessions = data.sessions.filter(s => new Date(s.startedAt) > cutoff);
+    data.projectStats = {};
+    data.coActivity = {};
+
+    for (const session of data.sessions) {
+      for (const file of session.files) {
+        const projectPath = this.detectProjectRoot(file.path);
+        if (projectPath) {
+          if (!data.projectStats[projectPath]) {
+            data.projectStats[projectPath] = { fileCount: 0, lastActive: session.startedAt, sessionCount: 0 };
+          }
+          data.projectStats[projectPath].fileCount++;
+          if (session.startedAt > data.projectStats[projectPath].lastActive) {
+            data.projectStats[projectPath].lastActive = session.startedAt;
+          }
+        }
+      }
+
+      const projects = session.projects;
+      for (let i = 0; i < projects.length; i++) {
+        for (let j = i + 1; j < projects.length; j++) {
+          const p1 = projects[i], p2 = projects[j];
+          if (!data.coActivity[p1]) data.coActivity[p1] = {};
+          if (!data.coActivity[p2]) data.coActivity[p2] = {};
+          data.coActivity[p1][p2] = (data.coActivity[p1][p2] || 0) + 1;
+          data.coActivity[p2][p1] = (data.coActivity[p2][p1] || 0) + 1;
+        }
+      }
+    }
+
+    this.saveActivity(data);
+    return { sessionsRemaining: data.sessions.length };
+  }
+
+  // ===========================================================================
+  // SMART SYNC (Phase 3) - Auto-detect and nudge workstream switching
+  // ===========================================================================
+
+  /**
+   * Get path to smart sync preferences file
+   */
+  getSmartSyncPath() {
+    return path.join(this.installDir, 'smart-sync.json');
+  }
+
+  /**
+   * Load smart sync preferences
+   */
+  loadSmartSyncPrefs() {
+    const prefsPath = this.getSmartSyncPath();
+    try {
+      if (fs.existsSync(prefsPath)) {
+        return JSON.parse(fs.readFileSync(prefsPath, 'utf8'));
+      }
+    } catch (e) {
+      // Ignore errors, return defaults
+    }
+    return {
+      enabled: true,
+      autoSwitchThreshold: 80,  // % of activity that must match
+      projectChoices: {},       // { projectPath: { workstreamId, choice: 'always'|'never'|'ask' } }
+      dismissedNudges: [],      // Array of dismissed nudge keys
+      lastActiveWorkstream: null,
+      lastNudgeTime: null
+    };
+  }
+
+  /**
+   * Save smart sync preferences
+   */
+  saveSmartSyncPrefs(prefs) {
+    const prefsPath = this.getSmartSyncPath();
+    fs.writeFileSync(prefsPath, JSON.stringify(prefs, null, 2));
+  }
+
+  /**
+   * Remember user's choice for a project-workstream association
+   * @param {string} projectPath - The project path
+   * @param {string} workstreamId - The workstream ID
+   * @param {string} choice - 'always', 'never', or 'ask'
+   */
+  smartSyncRememberChoice(projectPath, workstreamId, choice) {
+    const prefs = this.loadSmartSyncPrefs();
+    prefs.projectChoices[projectPath] = { workstreamId, choice, savedAt: new Date().toISOString() };
+    this.saveSmartSyncPrefs(prefs);
+    return { success: true, projectPath, workstreamId, choice };
+  }
+
+  /**
+   * Dismiss a nudge so it won't show again
+   * @param {string} nudgeKey - Unique key for the nudge (e.g., "switch:ws123" or "add:proj:/path")
+   */
+  smartSyncDismissNudge(nudgeKey) {
+    const prefs = this.loadSmartSyncPrefs();
+    if (!prefs.dismissedNudges.includes(nudgeKey)) {
+      prefs.dismissedNudges.push(nudgeKey);
+    }
+    this.saveSmartSyncPrefs(prefs);
+    return { success: true, nudgeKey };
+  }
+
+  /**
+   * Update smart sync settings
+   */
+  smartSyncUpdateSettings(settings) {
+    const prefs = this.loadSmartSyncPrefs();
+    if (settings.enabled !== undefined) prefs.enabled = settings.enabled;
+    if (settings.autoSwitchThreshold !== undefined) prefs.autoSwitchThreshold = settings.autoSwitchThreshold;
+    this.saveSmartSyncPrefs(prefs);
+    return { success: true, settings: prefs };
+  }
+
+  /**
+   * Detect which workstream best matches current activity
+   * @param {string[]} currentProjects - Array of project paths currently being worked on
+   * @returns {Object} Detection result with suggested workstream and confidence
+   */
+  smartSyncDetect(currentProjects = []) {
+    const prefs = this.loadSmartSyncPrefs();
+    const workstreams = this.loadWorkstreams();
+
+    if (!prefs.enabled || !currentProjects.length || !workstreams.workstreams.length) {
+      return { suggestion: null, reason: 'disabled_or_no_data' };
+    }
+
+    // Check for "always" choices first
+    for (const projectPath of currentProjects) {
+      const choice = prefs.projectChoices[projectPath];
+      if (choice && choice.choice === 'always') {
+        const ws = workstreams.workstreams.find(w => w.id === choice.workstreamId);
+        if (ws) {
+          return {
+            suggestion: ws,
+            confidence: 100,
+            reason: 'user_preference',
+            autoSwitch: true
+          };
+        }
+      }
+    }
+
+    // Check for "never" choices - exclude those workstreams
+    const excludedWorkstreams = new Set();
+    for (const projectPath of currentProjects) {
+      const choice = prefs.projectChoices[projectPath];
+      if (choice && choice.choice === 'never') {
+        excludedWorkstreams.add(choice.workstreamId);
+      }
+    }
+
+    // Score each workstream based on project overlap
+    const scores = [];
+    for (const ws of workstreams.workstreams) {
+      if (excludedWorkstreams.has(ws.id)) continue;
+      if (ws.id === workstreams.activeId) continue; // Don't suggest current
+
+      const wsProjects = ws.projects || [];
+      if (wsProjects.length === 0) continue;
+
+      // Calculate overlap
+      const matchingProjects = currentProjects.filter(p => wsProjects.includes(p));
+      const overlapPercent = (matchingProjects.length / currentProjects.length) * 100;
+      const coveragePercent = (matchingProjects.length / wsProjects.length) * 100;
+
+      // Combined score: weighted average of overlap and coverage
+      const confidence = Math.round((overlapPercent * 0.7) + (coveragePercent * 0.3));
+
+      if (confidence > 0) {
+        scores.push({
+          workstream: ws,
+          confidence,
+          matchingProjects,
+          overlapPercent,
+          coveragePercent
+        });
+      }
+    }
+
+    // Sort by confidence
+    scores.sort((a, b) => b.confidence - a.confidence);
+
+    if (scores.length === 0) {
+      return { suggestion: null, reason: 'no_matching_workstream' };
+    }
+
+    const best = scores[0];
+    const shouldAutoSwitch = best.confidence >= prefs.autoSwitchThreshold;
+
+    return {
+      suggestion: best.workstream,
+      confidence: best.confidence,
+      matchingProjects: best.matchingProjects,
+      reason: shouldAutoSwitch ? 'high_confidence_match' : 'partial_match',
+      autoSwitch: shouldAutoSwitch,
+      alternatives: scores.slice(1, 3).map(s => ({
+        workstream: s.workstream,
+        confidence: s.confidence
+      }))
+    };
+  }
+
+  /**
+   * Check if we should show a nudge and what type
+   * @param {string[]} currentProjects - Currently active projects
+   * @returns {Object|null} Nudge to show, or null if none needed
+   */
+  smartSyncCheckNudge(currentProjects = []) {
+    const prefs = this.loadSmartSyncPrefs();
+    const workstreams = this.loadWorkstreams();
+    const activeWs = workstreams.workstreams.find(w => w.id === workstreams.activeId);
+
+    if (!prefs.enabled || !currentProjects.length) {
+      return null;
+    }
+
+    // Rate limit nudges (max once per 5 minutes)
+    if (prefs.lastNudgeTime) {
+      const timeSince = Date.now() - new Date(prefs.lastNudgeTime).getTime();
+      if (timeSince < 5 * 60 * 1000) {
+        return null;
+      }
+    }
+
+    const nudges = [];
+
+    // Check 1: Should we suggest switching workstreams?
+    const detection = this.smartSyncDetect(currentProjects);
+    if (detection.suggestion && detection.confidence >= 50) {
+      const nudgeKey = `switch:${detection.suggestion.id}`;
+      if (!prefs.dismissedNudges.includes(nudgeKey)) {
+        nudges.push({
+          type: 'switch',
+          key: nudgeKey,
+          message: `Working on ${currentProjects.map(p => path.basename(p)).join(', ')}. Switch to "${detection.suggestion.name}"?`,
+          workstream: detection.suggestion,
+          confidence: detection.confidence,
+          autoSwitch: detection.autoSwitch,
+          actions: [
+            { label: 'Yes', action: 'switch' },
+            { label: 'No', action: 'dismiss' },
+            { label: 'Always', action: 'always' }
+          ]
+        });
+      }
+    }
+
+    // Check 2: New project not in active workstream?
+    if (activeWs) {
+      for (const projectPath of currentProjects) {
+        if (!activeWs.projects?.includes(projectPath)) {
+          const nudgeKey = `add:${activeWs.id}:${projectPath}`;
+          if (!prefs.dismissedNudges.includes(nudgeKey)) {
+            // Check if this project isn't in any workstream
+            const inOtherWs = workstreams.workstreams.some(
+              ws => ws.id !== activeWs.id && ws.projects?.includes(projectPath)
+            );
+            if (!inOtherWs) {
+              nudges.push({
+                type: 'add_project',
+                key: nudgeKey,
+                message: `New project "${path.basename(projectPath)}" detected. Add to "${activeWs.name}"?`,
+                workstream: activeWs,
+                projectPath,
+                actions: [
+                  { label: 'Yes', action: 'add' },
+                  { label: 'No', action: 'dismiss' },
+                  { label: 'Never', action: 'never' }
+                ]
+              });
+            }
+          }
+        }
+      }
+    }
+
+    if (nudges.length === 0) {
+      return null;
+    }
+
+    // Return the highest priority nudge (switch > add_project)
+    const nudge = nudges.find(n => n.type === 'switch') || nudges[0];
+
+    // Update last nudge time
+    prefs.lastNudgeTime = new Date().toISOString();
+    this.saveSmartSyncPrefs(prefs);
+
+    return nudge;
+  }
+
+  /**
+   * Handle a nudge action
+   * @param {string} nudgeKey - The nudge key
+   * @param {string} action - The action taken ('switch', 'add', 'dismiss', 'always', 'never')
+   * @param {Object} context - Additional context (workstreamId, projectPath, etc.)
+   */
+  smartSyncHandleAction(nudgeKey, action, context = {}) {
+    const prefs = this.loadSmartSyncPrefs();
+
+    switch (action) {
+      case 'switch':
+        // Switch to the suggested workstream
+        if (context.workstreamId) {
+          this.workstreamUse(context.workstreamId);
+        }
+        break;
+
+      case 'add':
+        // Add project to workstream
+        if (context.workstreamId && context.projectPath) {
+          this.workstreamAddProject(context.workstreamId, context.projectPath);
+        }
+        break;
+
+      case 'always':
+        // Remember to always use this workstream for these projects
+        if (context.workstreamId && context.projects) {
+          for (const projectPath of context.projects) {
+            this.smartSyncRememberChoice(projectPath, context.workstreamId, 'always');
+          }
+        }
+        // Also switch
+        if (context.workstreamId) {
+          this.workstreamUse(context.workstreamId);
+        }
+        break;
+
+      case 'never':
+        // Remember to never suggest this
+        if (context.workstreamId && context.projectPath) {
+          this.smartSyncRememberChoice(context.projectPath, context.workstreamId, 'never');
+        }
+        this.smartSyncDismissNudge(nudgeKey);
+        break;
+
+      case 'dismiss':
+        // Just dismiss this nudge
+        this.smartSyncDismissNudge(nudgeKey);
+        break;
+    }
+
+    return { success: true, action, nudgeKey };
+  }
+
+  /**
+   * Get smart sync status and settings
+   */
+  smartSyncStatus() {
+    const prefs = this.loadSmartSyncPrefs();
+    const activity = this.loadActivity();
+
+    // Get recent projects from activity
+    const recentProjects = [];
+    const recentSessions = activity.sessions.slice(-5);
+    for (const session of recentSessions) {
+      for (const proj of session.projects || []) {
+        if (!recentProjects.includes(proj)) {
+          recentProjects.push(proj);
+        }
+      }
+    }
+
+    return {
+      enabled: prefs.enabled,
+      autoSwitchThreshold: prefs.autoSwitchThreshold,
+      savedChoicesCount: Object.keys(prefs.projectChoices).length,
+      dismissedNudgesCount: prefs.dismissedNudges.length,
+      recentProjects: recentProjects.slice(0, 10),
+      lastNudgeTime: prefs.lastNudgeTime
+    };
   }
 }
 

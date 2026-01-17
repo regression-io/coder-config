@@ -5,6 +5,71 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.32.0] - 2026-01-18
+
+### Added
+
+- **Smart Sync (Phase 3)** - Intelligent workstream switching based on activity patterns
+  - Auto-detect workstream from current coding activity
+  - Non-blocking toast nudges: "Working on X, Y. Switch to 'Auth Feature'?"
+  - Action buttons: Yes / No / Always (remembers choice)
+  - Auto-switch when 80%+ activity matches (configurable threshold)
+  - Remember user choices per project-workstream pair
+  - "Never" option to permanently dismiss specific suggestions
+  - Rate-limited nudges (max once per 5 minutes)
+  - Settings panel in Workstreams view to enable/disable and adjust threshold
+
+- **SmartSyncToast Component** - Floating notification for workstream suggestions
+  - Gradient header with confidence percentage
+  - Switch/Add project action types
+  - Always/Never quick actions for learning preferences
+
+### Changed
+
+- WorkstreamsView now shows Smart Sync settings panel
+- Activity tracking integrates with smart sync for detection
+
+### Technical
+
+- New API endpoints: `/api/smart-sync/*` (status, detect, nudge, action, settings, remember)
+- Smart sync preferences stored in `~/.claude-config/smart-sync.json`
+- Bulletproof design: fails silently, never blocks user, all nudges dismissible
+
+---
+
+## [0.31.0] - 2026-01-17
+
+### Added
+
+- **Activity Tracking** - Track file activity to suggest workstreams
+  - Logs file access from Claude sessions via post-response hook
+  - Detects co-activity patterns (projects worked on together)
+  - Activity Insights panel in Workstreams view (sessions, files, projects)
+  - Top active projects list
+
+- **Workstream Suggestions** - AI-powered workstream recommendations
+  - Suggests workstreams based on co-activity patterns
+  - Shows co-activity score percentage
+  - One-click create from suggestions
+  - Dismiss suggestions you don't want (persists to localStorage)
+
+- **Manual Project Editing** - Full control over workstream projects
+  - Add/remove projects when creating workstreams
+  - Add/remove projects when editing existing workstreams
+  - Project picker shows all registered projects
+  - Pre-fill create dialog from suggestions with ability to tweak
+
+- **Activity Tracking Hook** - `hooks/activity-track.sh`
+  - Post-response hook extracts file paths from Claude responses
+  - Logs activity via API for pattern detection
+
+### Changed
+
+- Create/Edit workstream dialogs now support project management
+- Suggestions filter out already-created workstreams
+
+---
+
 ## [0.30.2] - 2026-01-17
 
 ### Added

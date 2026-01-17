@@ -573,6 +573,69 @@ export const api = {
       method: 'POST',
     });
   },
+
+  // Activity Tracking
+  async getActivitySummary() {
+    return request('/activity');
+  },
+
+  async logActivity(files, sessionId) {
+    return request('/activity/log', {
+      method: 'POST',
+      body: { files, sessionId },
+    });
+  },
+
+  async getWorkstreamSuggestions() {
+    return request('/activity/suggestions');
+  },
+
+  async clearActivity(olderThanDays = 30) {
+    return request('/activity', {
+      method: 'DELETE',
+      body: { olderThanDays },
+    });
+  },
+
+  // Smart Sync
+  async getSmartSyncStatus() {
+    return request('/smart-sync/status');
+  },
+
+  async smartSyncDetect(projects) {
+    return request('/smart-sync/detect', {
+      method: 'POST',
+      body: { projects },
+    });
+  },
+
+  async smartSyncCheckNudge(projects) {
+    return request('/smart-sync/nudge', {
+      method: 'POST',
+      body: { projects },
+    });
+  },
+
+  async smartSyncHandleAction(nudgeKey, action, context = {}) {
+    return request('/smart-sync/action', {
+      method: 'POST',
+      body: { nudgeKey, action, context },
+    });
+  },
+
+  async smartSyncUpdateSettings(settings) {
+    return request('/smart-sync/settings', {
+      method: 'PUT',
+      body: settings,
+    });
+  },
+
+  async smartSyncRememberChoice(projectPath, workstreamId, choice) {
+    return request('/smart-sync/remember', {
+      method: 'POST',
+      body: { projectPath, workstreamId, choice },
+    });
+  },
 };
 
 export default api;

@@ -572,6 +572,94 @@ fi
     }
   }
 
+  // Activity Tracking Methods
+
+  getActivitySummary() {
+    try {
+      return this.manager.activitySummary();
+    } catch (e) {
+      return { error: e.message };
+    }
+  }
+
+  logActivity(files, sessionId) {
+    try {
+      if (!files || !Array.isArray(files)) {
+        return { error: 'files must be an array' };
+      }
+      return this.manager.activityLog(files, sessionId);
+    } catch (e) {
+      return { error: e.message };
+    }
+  }
+
+  getWorkstreamSuggestions() {
+    try {
+      const suggestions = this.manager.activitySuggestWorkstreams();
+      return { suggestions };
+    } catch (e) {
+      return { suggestions: [], error: e.message };
+    }
+  }
+
+  clearActivity(olderThanDays = 30) {
+    try {
+      return this.manager.activityClear(olderThanDays);
+    } catch (e) {
+      return { error: e.message };
+    }
+  }
+
+  // Smart Sync Methods
+
+  getSmartSyncStatus() {
+    try {
+      return this.manager.smartSyncStatus();
+    } catch (e) {
+      return { error: e.message };
+    }
+  }
+
+  smartSyncDetect(projects) {
+    try {
+      return this.manager.smartSyncDetect(projects || []);
+    } catch (e) {
+      return { error: e.message };
+    }
+  }
+
+  smartSyncCheckNudge(projects) {
+    try {
+      return this.manager.smartSyncCheckNudge(projects || []);
+    } catch (e) {
+      return { error: e.message };
+    }
+  }
+
+  smartSyncHandleAction(nudgeKey, action, context) {
+    try {
+      return this.manager.smartSyncHandleAction(nudgeKey, action, context || {});
+    } catch (e) {
+      return { error: e.message };
+    }
+  }
+
+  smartSyncUpdateSettings(settings) {
+    try {
+      return this.manager.smartSyncUpdateSettings(settings);
+    } catch (e) {
+      return { error: e.message };
+    }
+  }
+
+  smartSyncRememberChoice(projectPath, workstreamId, choice) {
+    try {
+      return this.manager.smartSyncRememberChoice(projectPath, workstreamId, choice);
+    } catch (e) {
+      return { error: e.message };
+    }
+  }
+
   start() {
     const server = http.createServer((req, res) => this.handleRequest(req, res));
 
@@ -1163,6 +1251,66 @@ fi
       case '/api/workstreams/install-hook':
         if (req.method === 'POST') {
           return this.json(res, this.installWorkstreamHook());
+        }
+        break;
+
+      // Activity tracking endpoints
+      case '/api/activity':
+        if (req.method === 'GET') {
+          return this.json(res, this.getActivitySummary());
+        }
+        if (req.method === 'DELETE') {
+          const days = body.olderThanDays || 30;
+          return this.json(res, this.clearActivity(days));
+        }
+        break;
+
+      case '/api/activity/log':
+        if (req.method === 'POST') {
+          return this.json(res, this.logActivity(body.files, body.sessionId));
+        }
+        break;
+
+      case '/api/activity/suggestions':
+        if (req.method === 'GET') {
+          return this.json(res, this.getWorkstreamSuggestions());
+        }
+        break;
+
+      // Smart Sync endpoints
+      case '/api/smart-sync/status':
+        if (req.method === 'GET') {
+          return this.json(res, this.getSmartSyncStatus());
+        }
+        break;
+
+      case '/api/smart-sync/detect':
+        if (req.method === 'POST') {
+          return this.json(res, this.smartSyncDetect(body.projects));
+        }
+        break;
+
+      case '/api/smart-sync/nudge':
+        if (req.method === 'POST') {
+          return this.json(res, this.smartSyncCheckNudge(body.projects));
+        }
+        break;
+
+      case '/api/smart-sync/action':
+        if (req.method === 'POST') {
+          return this.json(res, this.smartSyncHandleAction(body.nudgeKey, body.action, body.context));
+        }
+        break;
+
+      case '/api/smart-sync/settings':
+        if (req.method === 'PUT') {
+          return this.json(res, this.smartSyncUpdateSettings(body));
+        }
+        break;
+
+      case '/api/smart-sync/remember':
+        if (req.method === 'POST') {
+          return this.json(res, this.smartSyncRememberChoice(body.projectPath, body.workstreamId, body.choice));
         }
         break;
     }

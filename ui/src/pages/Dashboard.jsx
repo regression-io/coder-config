@@ -7,6 +7,7 @@ import {
 import FileExplorer from "@/components/FileExplorer";
 import ProjectSwitcher from "@/components/ProjectSwitcher";
 import WorkstreamSwitcher from "@/components/WorkstreamSwitcher";
+import SmartSyncToast from "@/components/SmartSyncToast";
 import AddProjectDialog from "@/components/AddProjectDialog";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
@@ -31,17 +32,17 @@ import {
 
 const navItems = [
   { id: 'projects', label: 'All Projects', icon: Layers, section: 'Projects' },
-  { id: 'workstreams', label: 'Workstreams', icon: Workflow, section: 'Projects' },
+  { id: 'workstreams', label: 'Workstreams', icon: Workflow, section: 'Projects', isNew: true },
   { id: 'explorer', label: 'Project Explorer', icon: FolderOpen, section: 'Projects' },
   { id: 'registry', label: 'MCP Registry', icon: Package, section: 'Configuration' },
-  { id: 'plugins', label: 'Plugins', icon: Puzzle, section: 'Configuration' },
+  { id: 'plugins', label: 'Plugins', icon: Puzzle, section: 'Configuration', isNew: true },
   { id: 'memory', label: 'Memory', icon: Brain, section: 'Configuration' },
   { id: 'claude-settings', label: 'Claude Code', icon: Shield, section: 'Configuration' },
   { id: 'gemini-settings', label: 'Gemini CLI', icon: Terminal, section: 'Configuration' },
   { id: 'templates', label: 'Templates', icon: Layout, section: 'Tools' },
   { id: 'create-mcp', label: 'Create MCP', icon: Wand2, section: 'Developer' },
   { id: 'preferences', label: 'Preferences', icon: Wrench, section: 'System' },
-  { id: 'docs', label: 'Docs & Help', icon: BookOpen, section: 'Help' },
+  { id: 'docs', label: 'Docs & Help', icon: BookOpen, section: 'Help', isNew: true },
 ];
 
 // Helper to get/set localStorage with JSON
@@ -436,6 +437,11 @@ export default function Dashboard() {
                             {badges[item.badge]}
                           </span>
                         )}
+                        {item.isNew && (
+                          <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-green-500/20 text-green-600 dark:text-green-400">
+                            new
+                          </span>
+                        )}
                       </button>
                     );
                   })}
@@ -470,6 +476,16 @@ export default function Dashboard() {
         open={addProjectOpen}
         onOpenChange={setAddProjectOpen}
         onAdded={handleProjectAdded}
+      />
+
+      {/* Smart Sync Nudges */}
+      <SmartSyncToast
+        enabled={true}
+        pollInterval={30000}
+        onWorkstreamChange={(ws) => {
+          toast.success(`Switched to workstream: ${ws.name}`);
+          // Refresh workstream state if needed
+        }}
       />
     </div>
   );

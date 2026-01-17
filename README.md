@@ -271,16 +271,72 @@ claude-config workstream inject --silent
 
 Once installed, your active workstream's rules are prepended to every Claude session.
 
+### Activity Tracking & Suggestions
+
+Claude-config can track which files you work on and suggest workstreams based on patterns:
+
+**How it works:**
+1. A post-response hook logs file paths accessed during Claude sessions
+2. Co-activity patterns are detected (projects frequently worked on together)
+3. Workstream suggestions appear in the UI based on these patterns
+
+**Setup (optional):**
+```bash
+# Install the activity tracking hook
+# Add to ~/.claude/hooks/post-response.sh:
+source /path/to/claude-config/hooks/activity-track.sh
+```
+
+**In the Web UI:**
+- Activity Insights panel shows sessions, files tracked, and active projects
+- Suggested Workstreams appear when patterns are detected
+- Click "Create" to open pre-filled dialog (tweak projects as needed)
+- Click "X" to dismiss suggestions you don't want
+
+### Smart Sync
+
+Smart Sync intelligently suggests workstream switches based on your coding activity:
+
+**Features:**
+- Auto-detect which workstream matches your current work
+- Non-blocking toast notifications: "Working on X, Y. Switch to 'Auth Feature'?"
+- Auto-switch when 80%+ activity matches (configurable threshold)
+- Learn from your choices (Always/Never options)
+- Rate-limited nudges (max once per 5 minutes)
+
+**Actions:**
+- **Yes** - Switch to suggested workstream
+- **No** - Dismiss this nudge
+- **Always** - Remember to always switch for this project-workstream pair
+- **Never** - Never suggest this again
+
+**Settings:**
+In Workstreams view, adjust Smart Sync settings:
+- Enable/disable Smart Sync
+- Adjust auto-switch confidence threshold (0-100%)
+
+**Bulletproof design:**
+- Fails silently, never blocks your workflow
+- All nudges are dismissible
+- Defaults to last-used workstream if detection fails
+
 ## Web UI Features
 
 When you run `claude-config ui`:
 
 - **Project Switcher** - Switch between registered projects from header dropdown
 - **Workstream Switcher** - Quick-switch between workstreams from header
-- **File Explorer** - Browse/edit all .claude folders in hierarchy
+- **Project Explorer** - Browse/edit all .claude folders in hierarchy
 - **Workstreams** - Create and manage context sets for multi-project workflows
+  - Activity tracking with co-activity pattern detection
+  - AI-powered workstream suggestions
+  - Smart Sync for intelligent workstream switching
+  - Manual project add/remove in create/edit dialogs
 - **Sub-Projects** - Auto-detects git repos, plus manually add/hide external folders
 - **Plugins** - Browse and install Claude Code plugins with scope control
+  - Plugin directory with search and filtering
+  - Marketplace management
+  - Scope selection (project/global/local)
 - **MCP Registry** - Search GitHub/npm, add/edit/delete MCPs
 - **Claude Code Settings** - Visual editor for `~/.claude/settings.json`
   - Permissions (allow/ask/deny rules)
@@ -288,10 +344,14 @@ When you run `claude-config ui`:
   - Behavior settings
   - Hooks and advanced options
 - **Gemini CLI Settings** - Visual editor for `~/.gemini/settings.json`
+  - MCP server management for Gemini
+  - Gemini-specific options
 - **Memory System** - Manage preferences, corrections, patterns, decisions
 - **Templates** - Apply rule templates to projects
 - **Preferences** - Configure claude-config tool settings
+  - Enabled AI tools (Claude Code, Gemini CLI, Antigravity)
 - **One-Click Updates** - Update badge appears when new version available
+- **Dark Mode** - Theme toggle (light/dark/system)
 
 ## Plugins
 
