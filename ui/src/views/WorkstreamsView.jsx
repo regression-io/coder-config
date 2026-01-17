@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Layers, Plus, Trash2, RefreshCw, Check, Edit2, Save, X,
   FolderPlus, FolderMinus, ChevronDown, ChevronRight, Play,
-  Loader2, FileText, AlertCircle
+  Loader2, FileText, AlertCircle, CheckCircle2, Download
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,9 +40,40 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
   const [newRules, setNewRules] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Hook status
+  const [hookStatus, setHookStatus] = useState({ isInstalled: false, loading: true });
+  const [installingHook, setInstallingHook] = useState(false);
+
   useEffect(() => {
     loadWorkstreams();
+    loadHookStatus();
   }, []);
+
+  const loadHookStatus = async () => {
+    try {
+      const status = await api.getWorkstreamHookStatus();
+      setHookStatus({ ...status, loading: false });
+    } catch (error) {
+      setHookStatus({ isInstalled: false, loading: false, error: error.message });
+    }
+  };
+
+  const handleInstallHook = async () => {
+    setInstallingHook(true);
+    try {
+      const result = await api.installWorkstreamHook();
+      if (result.success) {
+        toast.success(result.message);
+        setHookStatus(prev => ({ ...prev, isInstalled: true }));
+      } else {
+        toast.error(result.error || 'Failed to install hook');
+      }
+    } catch (error) {
+      toast.error('Failed to install hook: ' + error.message);
+    } finally {
+      setInstallingHook(false);
+    }
+  };
 
   const loadWorkstreams = async () => {
     try {
@@ -413,22 +444,48 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
         )}
       </div>
 
-      {/* Hook Info */}
-      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 text-sm text-amber-700 dark:text-amber-400">
-        <div className="flex gap-2">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-medium mb-1">Hook Integration Required</p>
-            <p className="mb-2">
-              To inject workstream rules into Claude, add this hook to <code className="bg-amber-100 dark:bg-amber-900/50 px-1 rounded">~/.claude/hooks/pre-prompt.sh</code>:
-            </p>
-            <pre className="bg-amber-100 dark:bg-amber-900/50 rounded p-2 font-mono text-xs overflow-x-auto">
-{`#!/bin/bash
-claude-config workstream inject --silent`}
-            </pre>
+      {/* Hook Status */}
+      {hookStatus.isInstalled ? (
+        <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4 text-sm text-green-700 dark:text-green-400">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+            <div>
+              <p className="font-medium">Hook Installed</p>
+              <p className="text-green-600 dark:text-green-500">
+                Workstream rules will be automatically injected into every Claude session.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 text-sm text-amber-700 dark:text-amber-400">
+          <div className="flex gap-3">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-medium mb-1">Hook Integration Required</p>
+              <p className="mb-3">
+                Install the pre-prompt hook to automatically inject workstream rules into every Claude session.
+              </p>
+              <Button
+                onClick={handleInstallHook}
+                disabled={installingHook || hookStatus.loading}
+                size="sm"
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                {installingHook ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Download className="w-4 h-4 mr-2" />
+                )}
+                Install Hook Automatically
+              </Button>
+              <p className="text-xs mt-2 text-amber-600 dark:text-amber-500">
+                This will create/update <code className="bg-amber-100 dark:bg-amber-900/50 px-1 rounded">~/.claude/hooks/pre-prompt.sh</code>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CLI Hint */}
       <div className="bg-gray-50 dark:bg-slate-900 rounded-lg p-4 border border-transparent dark:border-slate-800">

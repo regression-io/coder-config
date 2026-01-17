@@ -563,6 +563,16 @@ export const api = {
       body: { dir },
     });
   },
+
+  async getWorkstreamHookStatus() {
+    return request('/workstreams/hook-status');
+  },
+
+  async installWorkstreamHook() {
+    return request('/workstreams/install-hook', {
+      method: 'POST',
+    });
+  },
 };
 
 export default api;

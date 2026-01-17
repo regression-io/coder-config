@@ -493,6 +493,85 @@ class ConfigUIServer {
     return { workstream: ws };
   }
 
+  /**
+   * Check if workstream hook is installed
+   */
+  getWorkstreamHookStatus() {
+    const hookPath = path.join(os.homedir(), '.claude', 'hooks', 'pre-prompt.sh');
+    const hookDir = path.dirname(hookPath);
+
+    const status = {
+      hookPath,
+      dirExists: fs.existsSync(hookDir),
+      fileExists: fs.existsSync(hookPath),
+      isInstalled: false,
+      content: null
+    };
+
+    if (status.fileExists) {
+      try {
+        const content = fs.readFileSync(hookPath, 'utf8');
+        status.content = content;
+        status.isInstalled = content.includes('workstream inject');
+      } catch (e) {
+        status.error = e.message;
+      }
+    }
+
+    return status;
+  }
+
+  /**
+   * Install workstream hook (creates or appends to pre-prompt.sh)
+   */
+  installWorkstreamHook() {
+    const hookDir = path.join(os.homedir(), '.claude', 'hooks');
+    const hookPath = path.join(hookDir, 'pre-prompt.sh');
+
+    const hookCode = `
+# Workstream rule injection (added by claude-config)
+if command -v claude-config &> /dev/null; then
+  claude-config workstream inject --silent
+fi
+`;
+
+    try {
+      // Create hooks directory if needed
+      if (!fs.existsSync(hookDir)) {
+        fs.mkdirSync(hookDir, { recursive: true });
+      }
+
+      let content = '';
+      let alreadyInstalled = false;
+
+      // Check existing file
+      if (fs.existsSync(hookPath)) {
+        content = fs.readFileSync(hookPath, 'utf8');
+        if (content.includes('workstream inject')) {
+          alreadyInstalled = true;
+        }
+      } else {
+        // New file needs shebang
+        content = '#!/bin/bash\n';
+      }
+
+      if (alreadyInstalled) {
+        return { success: true, message: 'Hook already installed', path: hookPath };
+      }
+
+      // Append hook code
+      content += hookCode;
+      fs.writeFileSync(hookPath, content);
+
+      // Make executable
+      fs.chmodSync(hookPath, '755');
+
+      return { success: true, message: 'Hook installed successfully', path: hookPath };
+    } catch (e) {
+      return { error: e.message };
+    }
+  }
+
   start() {
     const server = http.createServer((req, res) => this.handleRequest(req, res));
 
@@ -1072,6 +1151,18 @@ class ConfigUIServer {
       case '/api/workstreams/detect':
         if (req.method === 'POST') {
           return this.json(res, this.detectWorkstream(body.dir));
+        }
+        break;
+
+      case '/api/workstreams/hook-status':
+        if (req.method === 'GET') {
+          return this.json(res, this.getWorkstreamHookStatus());
+        }
+        break;
+
+      case '/api/workstreams/install-hook':
+        if (req.method === 'POST') {
+          return this.json(res, this.installWorkstreamHook());
         }
         break;
     }
