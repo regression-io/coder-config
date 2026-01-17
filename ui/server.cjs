@@ -1464,9 +1464,10 @@ class ConfigUIServer {
   async installPlugin(pluginId, marketplace) {
     // Use claude CLI to install
     return new Promise((resolve) => {
-      const proc = spawn('claude', ['plugins', 'install', `${pluginId}@${marketplace}`], {
+      const proc = spawn('claude', ['plugin', 'install', `${pluginId}@${marketplace}`], {
         cwd: os.homedir(),
-        env: process.env
+        env: process.env,
+        stdio: ['ignore', 'pipe', 'pipe']  // Don't wait for stdin
       });
 
       let stdout = '';
@@ -1492,9 +1493,10 @@ class ConfigUIServer {
   async uninstallPlugin(pluginId) {
     // Use claude CLI to uninstall
     return new Promise((resolve) => {
-      const proc = spawn('claude', ['plugins', 'uninstall', pluginId], {
+      const proc = spawn('claude', ['plugin', 'uninstall', pluginId], {
         cwd: os.homedir(),
-        env: process.env
+        env: process.env,
+        stdio: ['ignore', 'pipe', 'pipe']  // Don't wait for stdin
       });
 
       let stdout = '';
@@ -1520,9 +1522,10 @@ class ConfigUIServer {
   async addMarketplace(name, repo) {
     // Use claude CLI to add marketplace
     return new Promise((resolve) => {
-      const proc = spawn('claude', ['plugins', 'marketplace', 'add', name, '--repo', repo], {
+      const proc = spawn('claude', ['plugin', 'marketplace', 'add', repo], {
         cwd: os.homedir(),
-        env: process.env
+        env: process.env,
+        stdio: ['ignore', 'pipe', 'pipe']
       });
 
       let stdout = '';
@@ -1548,9 +1551,10 @@ class ConfigUIServer {
   async refreshMarketplace(name) {
     // Use claude CLI to refresh/update marketplace
     return new Promise((resolve) => {
-      const proc = spawn('claude', ['plugins', 'marketplace', 'refresh', name], {
+      const proc = spawn('claude', ['plugin', 'marketplace', 'update', name], {
         cwd: os.homedir(),
-        env: process.env
+        env: process.env,
+        stdio: ['ignore', 'pipe', 'pipe']
       });
 
       let stdout = '';
