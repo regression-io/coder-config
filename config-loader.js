@@ -19,7 +19,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const VERSION = '0.30.2';
+const VERSION = '0.30.3';
 
 // Tool-specific path configurations
 const TOOL_PATHS = {
