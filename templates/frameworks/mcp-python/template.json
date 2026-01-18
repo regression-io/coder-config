@@ -1,6 +1,0 @@
-{
-  "name": "mcp-python",
-  "description": "MCP Server in Python",
-  "includes": ["universal", "languages/python"],
-  "mcpDefaults": ["github", "filesystem"]
-}

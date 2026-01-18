@@ -1,6 +1,0 @@
-{
-  "name": "universal",
-  "description": "Universal best practices for all projects",
-  "includes": [],
-  "mcpDefaults": ["github", "filesystem"]
-}

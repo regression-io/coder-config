@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Settings, Package, Layout, RefreshCw, Rocket, Terminal,
+  Settings, Package, RefreshCw, Rocket, Terminal,
   Folder, FolderOpen, Loader2, Brain, Wand2, Wrench, Shield, Download, Layers, BookOpen, Puzzle, Workflow
 } from 'lucide-react';
 import FileExplorer from "@/components/FileExplorer";
@@ -21,7 +21,6 @@ import {
   ClaudeSettingsView,
   GeminiSettingsView,
   CreateMcpView,
-  TemplatesView,
   RegistryView,
   MemoryView,
   ProjectsView,
@@ -39,7 +38,6 @@ const navItems = [
   { id: 'memory', label: 'Memory', icon: Brain, section: 'Configuration' },
   { id: 'claude-settings', label: 'Claude Code', icon: Shield, section: 'Configuration' },
   { id: 'gemini-settings', label: 'Gemini CLI', icon: Terminal, section: 'Configuration' },
-  { id: 'templates', label: 'Templates', icon: Layout, section: 'Tools' },
   { id: 'create-mcp', label: 'Create MCP', icon: Wand2, section: 'Developer' },
   { id: 'preferences', label: 'Preferences', icon: Wrench, section: 'System' },
   { id: 'docs', label: 'Docs & Help', icon: BookOpen, section: 'Help', isNew: true },
@@ -71,7 +69,6 @@ export default function Dashboard() {
   const [registry, setRegistry] = useState({ mcpServers: {} });
   const [rules, setRules] = useState([]);
   const [commands, setCommands] = useState([]);
-  const [templates, setTemplates] = useState([]);
   const [selectedConfig, setSelectedConfig] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -95,13 +92,12 @@ export default function Dashboard() {
   // Load all data
   const loadData = useCallback(async () => {
     try {
-      const [projectData, configsData, registryData, rulesData, commandsData, templatesData] = await Promise.all([
+      const [projectData, configsData, registryData, rulesData, commandsData] = await Promise.all([
         api.getProject(),
         api.getConfigs(),
         api.getRegistry(),
         api.getRules(),
         api.getCommands(),
-        api.getTemplates(),
       ]);
 
       setProject(projectData);
@@ -109,7 +105,6 @@ export default function Dashboard() {
       setRegistry(registryData);
       setRules(rulesData);
       setCommands(commandsData);
-      setTemplates(templatesData);
 
       // Select the project-level config by default
       if (configsData.length > 0 && !selectedConfig) {
@@ -312,8 +307,6 @@ export default function Dashboard() {
         return <PluginsView />;
       case 'memory':
         return <MemoryView project={project} onUpdate={loadData} />;
-      case 'templates':
-        return <TemplatesView templates={templates} project={project} onApply={loadData} />;
       case 'create-mcp':
         return <CreateMcpView project={project} />;
       case 'claude-settings':

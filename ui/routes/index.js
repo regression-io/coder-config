@@ -10,7 +10,6 @@ const subprojects = require('./subprojects');
 const registry = require('./registry');
 const rules = require('./rules');
 const commands = require('./commands');
-const templates = require('./templates');
 const plugins = require('./plugins');
 const updates = require('./updates');
 const search = require('./search');
@@ -30,7 +29,6 @@ module.exports = {
   registry,
   rules,
   commands,
-  templates,
   plugins,
   updates,
   search,

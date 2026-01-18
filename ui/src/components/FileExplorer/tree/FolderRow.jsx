@@ -7,9 +7,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -32,7 +29,6 @@ import {
   Brain,
   EyeOff,
   Puzzle,
-  Layout,
 } from 'lucide-react';
 import TreeItem from './TreeItem';
 
@@ -51,7 +47,6 @@ export default function FolderRow({
   onContextMenu,
   expandedFolders,
   onToggleFolder,
-  templates,
   hasSubprojects,
   onAddSubproject,
   onRemoveSubproject,
@@ -128,12 +123,7 @@ export default function FolderRow({
               {!folder.exists && !isHome && (
                 <Badge variant="outline" className="text-[10px] px-1 py-0">no config</Badge>
               )}
-              {folder.appliedTemplate?.template && (
-                <Badge variant="outline" className="text-[10px] px-1 py-0 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border-purple-300 dark:border-purple-700">
-                  {folder.appliedTemplate.template.split('/').pop()}
-                </Badge>
-              )}
-              {!isSubproject && folder.exists && !folder.appliedTemplate?.template && totalFiles === 0 && (
+              {!isSubproject && folder.exists && totalFiles === 0 && (
                 <span className="text-[10px] text-muted-foreground">configured</span>
               )}
             </div>
@@ -224,50 +214,6 @@ export default function FolderRow({
                 <Trash2 className="w-4 h-4 mr-2" />
                 Remove
               </DropdownMenuItem>
-            )}
-            {/* Only show Apply Template when no template applied yet */}
-            {templates && templates.length > 0 && (isSubproject || !hasSubprojects) && !folder.appliedTemplate?.template && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <Layout className="w-4 h-4 mr-2" />
-                    Apply Template
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    {templates.map((t) => {
-                      const templateId = t.id || t.name;
-                      return (
-                        <DropdownMenuItem
-                          key={templateId}
-                          onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'template', templateId); }}
-                        >
-                          {t.name}
-                        </DropdownMenuItem>
-                      );
-                    })}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger className="text-xs text-muted-foreground">
-                        Mark as Applied (migration)
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent>
-                        {templates.map((t) => {
-                          const templateId = t.id || t.name;
-                          return (
-                            <DropdownMenuItem
-                              key={templateId}
-                              onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'mark-template', templateId); }}
-                            >
-                              {t.name}
-                            </DropdownMenuItem>
-                          );
-                        })}
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Folder, RefreshCw, ExternalLink, FolderPlus, Trash2, ArrowLeft, Settings, Check, X, MoreVertical, FileStack, ChevronDown, Plus } from 'lucide-react';
+import { Folder, RefreshCw, ExternalLink, FolderPlus, Trash2, ArrowLeft, Settings, Check, X, MoreVertical, Plus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -30,9 +30,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -41,13 +38,6 @@ export default function SubprojectsView({ project, rootProject, onRefresh }) {
   const [removeDialog, setRemoveDialog] = useState({ open: false, proj: null });
   const [addDialog, setAddDialog] = useState({ open: false, path: '' });
   const [selectedProjects, setSelectedProjects] = useState(new Set());
-  const [templates, setTemplates] = useState([]);
-  const [applying, setApplying] = useState(false);
-
-  // Load templates for the apply dropdown
-  useEffect(() => {
-    api.getTemplates().then(setTemplates).catch(() => {});
-  }, []);
 
   // Use rootProject subprojects if available (sticky behavior)
   const subprojects = rootProject?.subprojects || project.subprojects || [];
@@ -106,37 +96,6 @@ export default function SubprojectsView({ project, rootProject, onRefresh }) {
     const dirs = Array.from(selectedProjects);
     if (dirs.length === 0) return;
     await handleInitBatch(dirs);
-  };
-
-  // Apply template to projects
-  const handleApplyTemplate = async (templateId, dirs) => {
-    setApplying(true);
-    try {
-      const result = await api.applyTemplateToProjects(templateId, dirs);
-      if (result.success) {
-        toast.success(`Applied template to ${result.count} project${result.count !== 1 ? 's' : ''}`);
-        clearSelection();
-        onRefresh();
-      } else {
-        toast.error(result.error || 'Failed to apply template');
-      }
-    } catch (error) {
-      toast.error('Failed to apply template: ' + error.message);
-    } finally {
-      setApplying(false);
-    }
-  };
-
-  // Apply template to selected
-  const handleApplyTemplateToSelected = async (templateId) => {
-    const dirs = Array.from(selectedProjects);
-    if (dirs.length === 0) return;
-    await handleApplyTemplate(templateId, dirs);
-  };
-
-  // Apply template to single project
-  const handleApplyTemplateToOne = async (templateId, dir) => {
-    await handleApplyTemplate(templateId, [dir]);
   };
 
   const handleSwitchProject = async (dir) => {
@@ -345,24 +304,6 @@ export default function SubprojectsView({ project, rootProject, onRefresh }) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                      {templates.length > 0 && (
-                        <DropdownMenuSub>
-                          <DropdownMenuSubTrigger>
-                            <FileStack className="w-4 h-4 mr-2" />
-                            Apply Template
-                          </DropdownMenuSubTrigger>
-                          <DropdownMenuSubContent>
-                            {templates.map((template) => (
-                              <DropdownMenuItem
-                                key={template.id}
-                                onClick={() => handleApplyTemplateToOne(template.id, proj.dir)}
-                              >
-                                {template.name}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuSubContent>
-                        </DropdownMenuSub>
-                      )}
                       {!proj.hasConfig && (
                         <DropdownMenuItem onClick={() => handleInitClaudeFolder(proj, { stopPropagation: () => {} })}>
                           <FolderPlus className="w-4 h-4 mr-2" />
@@ -454,28 +395,7 @@ export default function SubprojectsView({ project, rootProject, onRefresh }) {
                   {selectedProjects.size} selected
                 </span>
                 <div className="h-4 w-px bg-border" />
-                {templates.length > 0 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button size="sm" variant="default" disabled={applying}>
-                        <FileStack className="w-4 h-4 mr-2" />
-                        Apply Template
-                        <ChevronDown className="w-3 h-3 ml-1" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      {templates.map((template) => (
-                        <DropdownMenuItem
-                          key={template.id}
-                          onClick={() => handleApplyTemplateToSelected(template.id)}
-                        >
-                          {template.name}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-                <Button size="sm" variant="outline" onClick={handleInitSelected}>
+                <Button size="sm" variant="default" onClick={handleInitSelected}>
                   <FolderPlus className="w-4 h-4 mr-2" />
                   Init .claude
                 </Button>

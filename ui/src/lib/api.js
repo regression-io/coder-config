@@ -76,11 +76,6 @@ export const api = {
     return request(`/subprojects/hidden?dir=${encodeURIComponent(projectDir)}`);
   },
 
-  // Detect template for a directory
-  async detectTemplate(dir) {
-    return request(`/detect-template?dir=${encodeURIComponent(dir)}`);
-  },
-
   async switchProject(dir) {
     return request('/switch-project', {
       method: 'POST',
@@ -192,18 +187,6 @@ export const api = {
   async deleteCommand(path) {
     return request(`/command?path=${encodeURIComponent(path)}`, {
       method: 'DELETE',
-    });
-  },
-
-  // Templates
-  async getTemplates() {
-    return request('/templates');
-  },
-
-  async applyTemplate(template, dir) {
-    return request('/apply-template', {
-      method: 'POST',
-      body: { template, dir },
     });
   },
 
@@ -323,14 +306,6 @@ export const api = {
     });
   },
 
-  // Apply template to multiple projects
-  async applyTemplateToProjects(templateId, dirs) {
-    return request('/apply-template-batch', {
-      method: 'POST',
-      body: { templateId, dirs },
-    });
-  },
-
   // Tool Sync (Claude <-> Antigravity)
   async getSyncPreview(dir, source = 'claude', target = 'antigravity') {
     return request('/sync/preview', {
@@ -438,14 +413,6 @@ export const api = {
     return request('/browse', {
       method: 'POST',
       body: { path, type },
-    });
-  },
-
-  // Mark template as applied (for migration)
-  async markTemplateApplied(template, dir) {
-    return request('/mark-template', {
-      method: 'POST',
-      body: { template, dir },
     });
   },
 

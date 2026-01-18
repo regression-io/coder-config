@@ -375,11 +375,6 @@ class ConfigUIServer {
         const hiddenDir = query.dir ? path.resolve(query.dir.replace(/^~/, os.homedir())) : this.projectDir;
         return this.json(res, { hidden: routes.subprojects.getHiddenSubprojects(this.config, hiddenDir) });
 
-      case '/api/detect-template':
-        const detectDir = query.dir ? path.resolve(query.dir.replace(/^~/, os.homedir())) : null;
-        if (!detectDir) return this.json(res, { detected: false, error: 'Missing dir parameter' });
-        return this.json(res, routes.configs.detectTemplate(detectDir, this.manager, () => routes.templates.getTemplates(this.manager)));
-
       case '/api/switch-project':
         if (req.method === 'POST') return this.json(res, this.switchProject(body.dir));
         break;
@@ -474,17 +469,6 @@ class ConfigUIServer {
         if (req.method === 'POST') return this.json(res, routes.commands.createCommand(body, this.projectDir));
         break;
 
-      case '/api/templates':
-        return this.json(res, routes.templates.getTemplates(this.manager));
-
-      case '/api/apply-template':
-        if (req.method === 'POST') return this.json(res, routes.templates.applyTemplate(this.manager, body.template, body.dir));
-        break;
-
-      case '/api/mark-template':
-        if (req.method === 'POST') return this.json(res, routes.templates.markTemplateApplied(this.manager, body.template, body.dir));
-        break;
-
       case '/api/apply':
         if (req.method === 'POST') return this.json(res, this.applyConfig(body.dir));
         break;
@@ -554,16 +538,6 @@ class ConfigUIServer {
 
       case '/api/init-claude-folder-batch':
         if (req.method === 'POST') return this.json(res, routes.fileExplorer.initClaudeFolderBatch(body.dirs));
-        break;
-
-      case '/api/apply-template-batch':
-        if (req.method === 'POST') {
-          return this.json(res, routes.configs.applyTemplateBatch(
-            body.templateId, body.dirs,
-            () => routes.templates.getTemplates(this.manager),
-            routes.configs.applyTemplateToDir
-          ));
-        }
         break;
 
       case '/api/sync/preview':

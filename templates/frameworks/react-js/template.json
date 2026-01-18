@@ -1,6 +1,0 @@
-{
-  "name": "react-js",
-  "description": "React with JavaScript framework",
-  "includes": ["universal", "languages/javascript"],
-  "mcpDefaults": ["github", "filesystem", "puppeteer"]
-}

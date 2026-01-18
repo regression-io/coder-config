@@ -1,7 +1,0 @@
-{
-  "name": "fastapi-react-ts",
-  "description": "FastAPI backend + React TypeScript frontend monorepo",
-  "includes": ["universal"],
-  "mcpDefaults": ["github", "filesystem", "postgres"],
-  "_note": "Uses path-scoped rules in backend-python.md and frontend-react.md"
-}

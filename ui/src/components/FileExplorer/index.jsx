@@ -23,7 +23,6 @@ import {
   Trash2,
   Edit3,
   ArrowLeftRight,
-  Layout,
 } from 'lucide-react';
 
 // Extracted components
@@ -35,7 +34,6 @@ export default function FileExplorer({ project, onRefresh }) {
   const [folders, setFolders] = useState([]);
   const [intermediatePaths, setIntermediatePaths] = useState([]);
   const [registry, setRegistry] = useState(null);
-  const [templates, setTemplates] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [fileContent, setFileContent] = useState(null);
   // Remember last expanded folder in localStorage
@@ -53,7 +51,6 @@ export default function FileExplorer({ project, onRefresh }) {
   const [renameDialog, setRenameDialog] = useState({ open: false, item: null });
   const [syncDialog, setSyncDialog] = useState(false);
   const [addSubprojectDialog, setAddSubprojectDialog] = useState({ open: false, projectDir: null });
-  const [templateSuggestion, setTemplateSuggestion] = useState({ open: false, dir: null, template: null, confidence: null });
   const [pluginDialog, setPluginDialog] = useState({ open: false, dir: null, name: null });
   const [contextMenu, setContextMenu] = useState({ x: 0, y: 0, item: null });
 
@@ -62,17 +59,15 @@ export default function FileExplorer({ project, onRefresh }) {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [foldersData, pathsData, registryData, configData, templatesData] = await Promise.all([
+      const [foldersData, pathsData, registryData, configData] = await Promise.all([
         api.getClaudeFolders(),
         api.getIntermediatePaths(),
         api.getRegistry(),
         api.getConfig(),
-        api.getTemplates().catch(() => []),
       ]);
       setFolders(foldersData);
       setIntermediatePaths(pathsData);
       setRegistry(registryData);
-      setTemplates(templatesData.templates || templatesData || []);
       setEnabledTools(configData.config?.enabledTools || ['claude']);
 
       // Auto-expand root project on first load (if no saved selection)
@@ -144,31 +139,7 @@ export default function FileExplorer({ project, onRefresh }) {
     setContextMenu({ x: e.clientX, y: e.clientY, item });
   };
 
-  const handleCreateFile = async (dir, type, templateId = null) => {
-    if (type === 'template' && templateId) {
-      // Apply template
-      try {
-        await api.applyTemplate(templateId, dir);
-        toast.success(`Applied template: ${templateId}`);
-        loadData();
-      } catch (error) {
-        toast.error('Failed to apply template: ' + error.message);
-      }
-      return;
-    }
-
-    if (type === 'mark-template' && templateId) {
-      // Mark template as applied (for migration, doesn't copy files)
-      try {
-        await api.markTemplateApplied(templateId, dir);
-        toast.success(`Marked template: ${templateId}`);
-        loadData();
-      } catch (error) {
-        toast.error('Failed to mark template: ' + error.message);
-      }
-      return;
-    }
-
+  const handleCreateFile = async (dir, type) => {
     if (type === 'command' || type === 'rule' || type === 'workflow' || type === 'memory') {
       setCreateDialog({ open: true, dir, type });
     } else {
@@ -251,21 +222,6 @@ export default function FileExplorer({ project, onRefresh }) {
         setAddSubprojectDialog({ open: false, projectDir: null });
         loadData();
 
-        // Try to detect template for the new sub-project
-        try {
-          const detection = await api.detectTemplate(selectedPath);
-          if (detection.detected && detection.template) {
-            setTemplateSuggestion({
-              open: true,
-              dir: selectedPath,
-              template: detection.template,
-              confidence: detection.confidence,
-              reason: detection.reason
-            });
-          }
-        } catch (e) {
-          // Silently ignore detection errors
-        }
       } else {
         toast.error(result.error || 'Failed to add sub-project');
       }
@@ -307,23 +263,6 @@ export default function FileExplorer({ project, onRefresh }) {
       }
     } catch (error) {
       toast.error('Failed to hide sub-project: ' + error.message);
-    }
-  };
-
-  const handleApplySuggestedTemplate = async () => {
-    if (!templateSuggestion.dir || !templateSuggestion.template) return;
-
-    try {
-      const result = await api.applyTemplate(templateSuggestion.template.fullName, templateSuggestion.dir);
-      if (result.success) {
-        toast.success(`Applied template: ${templateSuggestion.template.name}`);
-        setTemplateSuggestion({ open: false, dir: null, template: null, confidence: null });
-        loadData();
-      } else {
-        toast.error(result.error || 'Failed to apply template');
-      }
-    } catch (error) {
-      toast.error('Failed to apply template: ' + error.message);
     }
   };
 
@@ -441,7 +380,6 @@ export default function FileExplorer({ project, onRefresh }) {
               onContextMenu={handleContextMenu}
               expandedFolders={expandedFolders}
               onToggleFolder={handleToggleNestedFolder}
-              templates={templates}
               hasSubprojects={hasSubprojects}
               onAddSubproject={(projectDir) => setAddSubprojectDialog({ open: true, projectDir })}
               onRemoveSubproject={handleRemoveSubproject}
@@ -558,46 +496,6 @@ export default function FileExplorer({ project, onRefresh }) {
         initialPath={addSubprojectDialog.projectDir || '~'}
       />
 
-      {/* Template Suggestion Dialog */}
-      <Dialog open={templateSuggestion.open} onOpenChange={(open) => setTemplateSuggestion({ ...templateSuggestion, open })}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Layout className="w-5 h-5" />
-              Template Detected
-            </DialogTitle>
-            <DialogDescription>
-              {templateSuggestion.reason}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="py-4">
-            <div className="p-4 bg-muted rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{templateSuggestion.template?.name}</p>
-                  <p className="text-sm text-muted-foreground">{templateSuggestion.template?.description}</p>
-                </div>
-                <Badge variant={templateSuggestion.confidence === 'high' ? 'default' : 'secondary'}>
-                  {templateSuggestion.confidence} confidence
-                </Badge>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mt-3">
-              Apply this template to <code className="text-xs bg-muted px-1 py-0.5 rounded">{templateSuggestion.dir?.split('/').pop()}</code>?
-            </p>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setTemplateSuggestion({ open: false, dir: null, template: null, confidence: null })}>
-              Skip
-            </Button>
-            <Button onClick={handleApplySuggestedTemplate}>
-              Apply Template
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

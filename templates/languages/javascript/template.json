@@ -1,6 +1,0 @@
-{
-  "name": "javascript",
-  "description": "JavaScript language best practices",
-  "includes": ["universal"],
-  "mcpDefaults": ["github", "filesystem"]
-}

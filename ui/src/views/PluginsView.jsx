@@ -65,6 +65,7 @@ export default function PluginsView() {
   const [sortBy, setSortBy] = useState('name');
   const [refreshing, setRefreshing] = useState(null);
   const [addMarketplaceDialog, setAddMarketplaceDialog] = useState({ open: false, repo: '' });
+  const [marketplacesDialogOpen, setMarketplacesDialogOpen] = useState(false);
   const [enableDialog, setEnableDialog] = useState({ open: false, plugin: null });
   const [savingEnabled, setSavingEnabled] = useState(false);
 
@@ -267,75 +268,6 @@ export default function PluginsView() {
         </div>
       </div>
 
-      {/* Marketplaces Section */}
-      <div className="bg-white dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
-        <div className="p-5 border-b border-gray-200 dark:border-slate-700">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <Store className="w-5 h-5 text-purple-600" />
-              Plugin Marketplaces
-              <Badge variant="outline" className="ml-2 font-normal">{marketplaces.length}</Badge>
-            </h2>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setAddMarketplaceDialog({ open: true, repo: '' })}
-              className="border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Marketplace
-            </Button>
-          </div>
-        </div>
-
-        <div className="p-4">
-          {marketplaces.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {marketplaces.map((mp, index) => {
-                const pluginCount = (mp.plugins?.length || 0) + (mp.externalPlugins?.length || 0);
-                return (
-                  <motion.div
-                    key={mp.name}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    className="bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800 p-4"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-purple-900 dark:text-purple-200">{mp.name}</h3>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRefreshMarketplace(mp.name)}
-                        disabled={refreshing === mp.name}
-                        className="h-7 w-7 p-0"
-                      >
-                        <RefreshCw className={`w-4 h-4 text-purple-600 dark:text-purple-400 ${refreshing === mp.name ? 'animate-spin' : ''}`} />
-                      </Button>
-                    </div>
-                    <p className="text-sm text-purple-700 dark:text-purple-300 mb-2 truncate">
-                      {typeof mp.source === 'string' ? mp.source : mp.source?.repo || 'Unknown source'}
-                    </p>
-                    <div className="flex items-center justify-between text-xs text-purple-600 dark:text-purple-400">
-                      <span>{pluginCount} plugins</span>
-                      {mp.lastUpdated && (
-                        <span>Updated: {new Date(mp.lastUpdated).toLocaleDateString()}</span>
-                      )}
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500 dark:text-slate-400">
-              <Store className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>No marketplaces configured.</p>
-              <p className="text-sm mt-1">Add a marketplace to discover plugins.</p>
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Plugins Discovery Section */}
       <div className="bg-white dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
         <div className="p-5 border-b border-gray-200 dark:border-slate-700">
@@ -399,7 +331,7 @@ export default function PluginsView() {
               <DropdownMenuContent align="start" className="w-56">
                 <DropdownMenuLabel className="text-xs">Filter by marketplace</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {marketplaces.map(mp => (
+                {marketplaces.length > 0 ? marketplaces.map(mp => (
                   <DropdownMenuCheckboxItem
                     key={mp.name}
                     checked={selectedMarketplaces.includes(mp.name)}
@@ -407,7 +339,14 @@ export default function PluginsView() {
                   >
                     {mp.name}
                   </DropdownMenuCheckboxItem>
-                ))}
+                )) : (
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground">No marketplaces</div>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setMarketplacesDialogOpen(true)}>
+                  <Settings className="w-3 h-3 mr-2" />
+                  Manage Marketplaces
+                </DropdownMenuItem>
                 {selectedMarketplaces.length > 0 && (
                   <>
                     <DropdownMenuSeparator />
@@ -683,6 +622,82 @@ export default function PluginsView() {
               Cancel
             </Button>
             <Button onClick={handleAddMarketplace} className="bg-purple-600 hover:bg-purple-700 text-white">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Marketplace
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Marketplaces Management Dialog */}
+      <Dialog open={marketplacesDialogOpen} onOpenChange={setMarketplacesDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Store className="w-5 h-5 text-purple-600" />
+              Plugin Marketplaces
+              <Badge variant="outline" className="ml-2 font-normal">{marketplaces.length}</Badge>
+            </DialogTitle>
+            <DialogDescription>
+              Manage your plugin marketplaces. Add external marketplaces to discover more plugins.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            {marketplaces.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {marketplaces.map((mp) => {
+                  const pluginCount = (mp.plugins?.length || 0) + (mp.externalPlugins?.length || 0);
+                  return (
+                    <div
+                      key={mp.name}
+                      className="bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800 p-4"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-purple-900 dark:text-purple-200">{mp.name}</h3>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRefreshMarketplace(mp.name)}
+                          disabled={refreshing === mp.name}
+                          className="h-7 w-7 p-0"
+                        >
+                          <RefreshCw className={`w-4 h-4 text-purple-600 dark:text-purple-400 ${refreshing === mp.name ? 'animate-spin' : ''}`} />
+                        </Button>
+                      </div>
+                      <p className="text-sm text-purple-700 dark:text-purple-300 mb-2 truncate">
+                        {typeof mp.source === 'string' ? mp.source : mp.source?.repo || 'Unknown source'}
+                      </p>
+                      <div className="flex items-center justify-between text-xs text-purple-600 dark:text-purple-400">
+                        <span>{pluginCount} plugins</span>
+                        {mp.lastUpdated && (
+                          <span>Updated: {new Date(mp.lastUpdated).toLocaleDateString()}</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-slate-400">
+                <Store className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>No marketplaces configured.</p>
+                <p className="text-sm mt-1">Add a marketplace to discover plugins.</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMarketplacesDialogOpen(false)}>
+              Close
+            </Button>
+            <Button
+              onClick={() => {
+                setMarketplacesDialogOpen(false);
+                setAddMarketplaceDialog({ open: true, repo: '' });
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Add Marketplace
             </Button>

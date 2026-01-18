@@ -5,6 +5,61 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.34.0] - 2026-01-18
+
+### Removed
+
+- **Template System** - Templates have been removed in favor of plugins
+  - Removed `templates/` directory and all bundled templates
+  - Removed `lib/templates.js` template library
+  - Removed `claude-config templates` CLI command
+  - Removed `claude-config apply-template` CLI command
+  - Removed `--template` flag from `claude-config init`
+  - Removed TemplatesView from Web UI
+  - Removed template detection and suggestion features
+  - Removed batch template application from Sub-Projects view
+  - Removed template-related API endpoints
+
+### Changed
+
+- **Plugins Replace Templates** - Use Claude Code plugins for framework/language guidance
+  - Plugins are always-on (not static files that can become stale)
+  - Updates via plugin refresh instead of re-applying templates
+  - Discoverable via marketplaces
+  - Recommended marketplace: `regression-io/claude-config-plugins`
+
+- **Marketplace Management** - Moved to popup dialog
+  - "Manage Marketplaces" link in marketplace filter dropdown
+  - Dialog shows all marketplaces with refresh buttons
+  - Cleaner Plugins view without inline marketplace section
+
+- **Marketplace Filtering** - Filter plugins by marketplace
+  - Marketplace dropdown in Plugins view filter bar
+  - Toggle individual marketplaces on/off
+  - "All Marketplaces" option to show everything
+
+### Updated
+
+- README.md - Removed all template references, updated Quick Start for plugins
+- Documentation - Removed templates section from docs
+
+---
+
+## [0.33.2] - 2026-01-18
+
+### Added
+
+- **Marketplace Filtering** - Filter plugins by marketplace in Plugins view
+  - Marketplace dropdown with checkboxes for each marketplace
+  - Shows marketplace count badges
+  - "Clear all filters" now includes marketplace filters
+
+### Changed
+
+- Moved Marketplaces section above Plugin Directory in Plugins view
+
+---
+
 ## [0.32.0] - 2026-01-18
 
 ### Added

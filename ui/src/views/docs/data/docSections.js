@@ -1,6 +1,6 @@
 import {
   BookOpen, Folder, Package, Brain, Terminal,
-  Layout, Layers, Keyboard, Shield, HelpCircle, Sparkles
+  Layers, Keyboard, Shield, HelpCircle, Sparkles
 } from 'lucide-react';
 
 const docSections = [
@@ -92,16 +92,6 @@ const docSections = [
       { id: 'model-selection', title: 'Model Selection' },
       { id: 'behavior', title: 'Behavior Settings' },
       { id: 'hooks', title: 'Hooks' },
-    ]
-  },
-  {
-    id: 'templates',
-    title: 'Templates',
-    icon: Layout,
-    subsections: [
-      { id: 'using-templates', title: 'Using Templates' },
-      { id: 'available-templates', title: 'Available Templates' },
-      { id: 'custom-templates', title: 'Custom Templates' },
     ]
   },
   {

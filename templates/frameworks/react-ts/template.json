@@ -1,6 +1,0 @@
-{
-  "name": "react-ts",
-  "description": "React with TypeScript framework",
-  "includes": ["universal", "languages/typescript"],
-  "mcpDefaults": ["github", "filesystem", "puppeteer"]
-}

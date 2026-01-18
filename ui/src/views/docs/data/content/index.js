@@ -7,7 +7,6 @@ import { pluginsContent } from './plugins';
 import { mcpRegistryContent } from './mcp-registry';
 import { memoryContent } from './memory';
 import { claudeSettingsContent } from './claude-settings';
-import { templatesContent } from './templates';
 import { cliContent } from './cli';
 import { multiToolContent } from './multi-tool';
 import { keyboardContent } from './keyboard';
@@ -22,7 +21,6 @@ const docContent = {
   ...mcpRegistryContent,
   ...memoryContent,
   ...claudeSettingsContent,
-  ...templatesContent,
   ...cliContent,
   ...multiToolContent,
   ...keyboardContent,

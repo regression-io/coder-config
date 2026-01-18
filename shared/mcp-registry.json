@@ -64,6 +64,13 @@
         "AWS_SECRET_ACCESS_KEY": "${AWS_SECRET_ACCESS_KEY}",
         "AWS_REGION": "${AWS_REGION}"
       }
+    },
+    "DesktopCommanderMCP": {
+      "command": "node",
+      "args": [
+        "/Users/ruze/reg/tools/DesktopCommanderMCP/index.js"
+      ],
+      "description": "MCP server for terminal operations and file editing"
     }
   }
 }

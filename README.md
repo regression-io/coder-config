@@ -24,14 +24,18 @@ The Web UI automatically detects when updates are available and shows a notifica
 ## Quick Start
 
 ```bash
-# Initialize a project with a template
-claude-config init --template fastapi
+# Initialize a project
+claude-config init
 
 # Add MCPs to your project
 claude-config add postgres github
 
 # Generate .mcp.json for Claude Code
 claude-config apply
+
+# Install plugins for framework guidance
+claude plugin marketplace add regression-io/claude-config-plugins
+claude plugin install fastapi-support@claude-config-plugins
 
 # Or open the Web UI
 claude-config ui
@@ -42,12 +46,10 @@ claude-config ui
 ### Project Commands
 
 ```bash
-claude-config init [--template <name>]   # Initialize project
+claude-config init                        # Initialize project
 claude-config apply                       # Generate .mcp.json from config
-claude-config apply-template <name>       # Add template to existing project
 claude-config show                        # Show current project config
 claude-config list                        # List available MCPs (✓ = active)
-claude-config templates                   # List available templates
 claude-config add <mcp> [mcp...]          # Add MCP(s) to project
 claude-config remove <mcp> [mcp...]       # Remove MCP(s) from project
 ```
@@ -116,34 +118,6 @@ claude-config ui stop               # Stop the daemon
 **Daemon Mode**: By default, `claude-config ui` runs as a background daemon.
 The UI runs from your home directory and persists across terminal sessions.
 Switch between registered projects using the dropdown in the header.
-
-## Templates
-
-Initialize projects with pre-configured rules and settings:
-
-```bash
-# List available templates
-claude-config templates
-
-# Frameworks
-claude-config init --template fastapi
-claude-config init --template react-ts
-claude-config init --template python-cli
-claude-config init --template mcp-python
-
-# Languages
-claude-config init --template python
-claude-config init --template typescript
-
-# Monorepos
-claude-config init --template fastapi-react-ts
-claude-config init --template fastapi-react-js
-```
-
-Add templates to existing projects:
-```bash
-claude-config apply-template python
-```
 
 ## Shell Integration
 
@@ -347,7 +321,6 @@ When you run `claude-config ui`:
   - MCP server management for Gemini
   - Gemini-specific options
 - **Memory System** - Manage preferences, corrections, patterns, decisions
-- **Templates** - Apply rule templates to projects
 - **Preferences** - Configure claude-config tool settings
   - Enabled AI tools (Claude Code, Gemini CLI, Antigravity)
 - **One-Click Updates** - Update badge appears when new version available
@@ -355,11 +328,32 @@ When you run `claude-config ui`:
 
 ## Plugins
 
-Claude Code plugins extend functionality with LSP servers, MCP servers, and commands.
+Claude Code plugins extend functionality with LSP servers, MCP servers, commands, and always-on guidance. **Plugins replace templates** - instead of static files that can become stale, plugins are always active and update automatically.
+
+### Why Plugins Over Templates?
+
+| Aspect | Plugins |
+|--------|---------|
+| Delivery | Enable plugin once |
+| Updates | Auto-refresh from marketplace |
+| Freshness | Always current |
+| Scope | Global, project, or local |
+| Discovery | Browse marketplaces |
 
 ### Installing Plugins
 
-From the Web UI:
+**From CLI:**
+```bash
+# Add the claude-config plugins marketplace
+claude plugin marketplace add regression-io/claude-config-plugins
+
+# Install framework-specific plugins
+claude plugin install fastapi-support@claude-config-plugins
+claude plugin install react-typescript@claude-config-plugins
+claude plugin install python-support@claude-config-plugins
+```
+
+**From Web UI:**
 1. Open Project Explorer
 2. Click the **+** menu on any project folder
 3. Select **Install Plugins**
@@ -368,7 +362,7 @@ From the Web UI:
 ### Plugin Directory
 
 The **Plugins** page shows all available plugins:
-- Filter by category, source type (Anthropic/Community), installed status
+- Filter by marketplace, category, source type (Anthropic/Community), installed status
 - Search by name or description
 - View plugin details (LSP/MCP/Commands included)
 
@@ -376,7 +370,8 @@ The **Plugins** page shows all available plugins:
 
 Plugins come from marketplaces (Git repositories):
 - **claude-plugins-official** - Anthropic's official plugins
-- Add community marketplaces via "Add Marketplace"
+- **regression-io/claude-config-plugins** - Framework and language plugins
+- Add community marketplaces via "Manage Marketplaces" in the filter dropdown
 
 Supported marketplace formats:
 - `owner/repo` — GitHub shorthand
