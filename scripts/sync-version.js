@@ -14,7 +14,7 @@ const path = require('path');
 
 const rootDir = path.join(__dirname, '..');
 const packageJsonPath = path.join(rootDir, 'package.json');
-const configLoaderPath = path.join(rootDir, 'config-loader.js');
+const constantsPath = path.join(rootDir, 'lib', 'constants.js');
 const uiPackageJsonPath = path.join(rootDir, 'ui', 'package.json');
 
 // Read version from package.json (source of truth)
@@ -38,17 +38,17 @@ if (shouldBump) {
   console.log(`Syncing version: ${version}`);
 }
 
-// Update config-loader.js
-let configLoader = fs.readFileSync(configLoaderPath, 'utf8');
+// Update lib/constants.js
+let constants = fs.readFileSync(constantsPath, 'utf8');
 const versionRegex = /const VERSION = ['"][^'"]+['"]/;
 
-if (versionRegex.test(configLoader)) {
-  const oldVersion = configLoader.match(versionRegex)[0];
-  configLoader = configLoader.replace(versionRegex, `const VERSION = '${version}'`);
-  fs.writeFileSync(configLoaderPath, configLoader, 'utf8');
-  console.log(`  config-loader.js: ${oldVersion} -> const VERSION = '${version}'`);
+if (versionRegex.test(constants)) {
+  const oldVersion = constants.match(versionRegex)[0];
+  constants = constants.replace(versionRegex, `const VERSION = '${version}'`);
+  fs.writeFileSync(constantsPath, constants, 'utf8');
+  console.log(`  lib/constants.js: ${oldVersion} -> const VERSION = '${version}'`);
 } else {
-  console.error('Warning: Could not find VERSION constant in config-loader.js');
+  console.error('Warning: Could not find VERSION constant in lib/constants.js');
 }
 
 // Update ui/package.json
