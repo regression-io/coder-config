@@ -37,3 +37,6 @@ build/
 .claude/
 .mcp.json
 package-lock.json
+
+# Separate plugin marketplace repo
+claude-config-plugins/

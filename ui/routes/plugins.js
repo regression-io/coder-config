@@ -8,10 +8,76 @@ const os = require('os');
 const { spawn } = require('child_process');
 
 /**
+ * Default marketplace to auto-install
+ */
+const DEFAULT_MARKETPLACE = 'regression-io/claude-config-plugins';
+
+/**
  * Get plugins directory path
  */
 function getPluginsDir() {
   return path.join(os.homedir(), '.claude', 'plugins');
+}
+
+/**
+ * Ensure the default marketplace is installed
+ * Called automatically on first plugin view load
+ */
+let defaultMarketplaceChecked = false;
+async function ensureDefaultMarketplace() {
+  if (defaultMarketplaceChecked) return;
+  defaultMarketplaceChecked = true;
+
+  const pluginsDir = getPluginsDir();
+  const marketplacesPath = path.join(pluginsDir, 'known_marketplaces.json');
+
+  // Check if any marketplaces exist
+  let hasDefaultMarketplace = false;
+  if (fs.existsSync(marketplacesPath)) {
+    try {
+      const known = JSON.parse(fs.readFileSync(marketplacesPath, 'utf8'));
+      // Check if our default marketplace is already installed
+      hasDefaultMarketplace = Object.values(known).some(
+        m => m.source && m.source.includes('claude-config-plugins')
+      );
+    } catch (e) {}
+  }
+
+  // Auto-install if not present
+  if (!hasDefaultMarketplace) {
+    console.log(`Auto-installing default marketplace: ${DEFAULT_MARKETPLACE}`);
+    try {
+      await addMarketplaceInternal(DEFAULT_MARKETPLACE);
+    } catch (e) {
+      console.warn('Failed to auto-install default marketplace:', e.message);
+    }
+  }
+}
+
+/**
+ * Internal marketplace add (no repo parameter needed)
+ */
+function addMarketplaceInternal(repo) {
+  return new Promise((resolve, reject) => {
+    const proc = spawn('claude', ['plugin', 'marketplace', 'add', repo], {
+      cwd: os.homedir(),
+      env: process.env,
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+
+    let stderr = '';
+    proc.stderr?.on('data', (data) => { stderr += data.toString(); });
+
+    proc.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(stderr || 'Failed to add marketplace'));
+      }
+    });
+
+    proc.on('error', reject);
+  });
 }
 
 /**
@@ -396,4 +462,5 @@ module.exports = {
   getEnabledPluginsForDir,
   setPluginEnabled,
   getPluginsWithEnabledState,
+  ensureDefaultMarketplace,
 };

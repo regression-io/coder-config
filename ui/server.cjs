@@ -419,7 +419,11 @@ class ConfigUIServer {
         break;
 
       case '/api/plugins':
-        if (req.method === 'GET') return this.json(res, routes.plugins.getPluginsWithEnabledState(this.manager, this.projectDir));
+        if (req.method === 'GET') {
+          // Ensure default marketplace is installed on first access
+          await routes.plugins.ensureDefaultMarketplace();
+          return this.json(res, routes.plugins.getPluginsWithEnabledState(this.manager, this.projectDir));
+        }
         break;
 
       case '/api/plugins/install':

@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.34.3] - 2026-01-18
+
+### Added
+
+- **Auto-install Default Marketplace** - The `regression-io/claude-config-plugins` marketplace is now automatically installed when opening the Plugins view for the first time
+  - No manual `claude plugin marketplace add` command needed
+  - Seamless onboarding experience for new users
+  - Marketplace includes all converted templates as plugins
+
+### Changed
+
+- Updated `lib/init.js` to reflect automatic marketplace installation
+- Moved marketplace installation from manual to automatic
+
+---
+
 ## [0.34.0] - 2026-01-18
 
 ### Removed
