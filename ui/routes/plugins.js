@@ -274,6 +274,117 @@ async function refreshMarketplace(name) {
   });
 }
 
+/**
+ * Get enabled plugins for a directory (with hierarchy merging)
+ */
+function getEnabledPluginsForDir(manager, dir) {
+  const homeDir = os.homedir();
+  const configs = manager.findAllConfigs(dir);
+
+  // Merge enabledPlugins from all configs (child overrides parent)
+  const merged = {};
+  for (const { configPath } of configs) {
+    try {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      if (config.enabledPlugins) {
+        Object.assign(merged, config.enabledPlugins);
+      }
+    } catch (e) {}
+  }
+
+  // Build per-directory breakdown
+  const perDir = configs.map(({ dir: d, configPath }) => {
+    let enabledPlugins = {};
+    try {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      enabledPlugins = config.enabledPlugins || {};
+    } catch (e) {}
+
+    return {
+      dir: d,
+      label: d === homeDir ? '~' : path.relative(dir, d) || '.',
+      enabledPlugins
+    };
+  });
+
+  return {
+    merged,
+    perDir
+  };
+}
+
+/**
+ * Set plugin enabled/disabled for a specific directory
+ */
+function setPluginEnabled(manager, dir, pluginId, enabled) {
+  const configPath = path.join(dir, '.claude', 'mcps.json');
+  const claudeDir = path.join(dir, '.claude');
+
+  // Ensure .claude directory exists
+  if (!fs.existsSync(claudeDir)) {
+    fs.mkdirSync(claudeDir, { recursive: true });
+  }
+
+  // Load existing config or create new
+  let config = { include: [], mcpServers: {}, enabledPlugins: {} };
+  if (fs.existsSync(configPath)) {
+    try {
+      config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      if (!config.enabledPlugins) {
+        config.enabledPlugins = {};
+      }
+    } catch (e) {}
+  }
+
+  // Set the plugin state
+  if (enabled === null || enabled === undefined) {
+    // Remove the override (inherit from parent)
+    delete config.enabledPlugins[pluginId];
+  } else {
+    config.enabledPlugins[pluginId] = enabled;
+  }
+
+  // Clean up empty enabledPlugins
+  if (Object.keys(config.enabledPlugins).length === 0) {
+    delete config.enabledPlugins;
+  }
+
+  // Save config
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+  return { success: true, dir, pluginId, enabled };
+}
+
+/**
+ * Get all plugins with their enabled state per directory
+ */
+function getPluginsWithEnabledState(manager, projectDir) {
+  const pluginsData = getPlugins(manager);
+  const enabledData = getEnabledPluginsForDir(manager, projectDir);
+
+  // Add enabled state to each plugin
+  const pluginsWithState = pluginsData.allPlugins.map(plugin => {
+    const pluginId = `${plugin.name}@${plugin.marketplace}`;
+    return {
+      ...plugin,
+      enabledState: {
+        merged: enabledData.merged[pluginId] ?? null, // null means no explicit setting
+        perDir: enabledData.perDir.map(d => ({
+          dir: d.dir,
+          label: d.label,
+          enabled: d.enabledPlugins[pluginId] ?? null
+        }))
+      }
+    };
+  });
+
+  return {
+    ...pluginsData,
+    allPlugins: pluginsWithState,
+    enabledPlugins: enabledData
+  };
+}
+
 module.exports = {
   getPluginsDir,
   getPlugins,
@@ -282,4 +393,7 @@ module.exports = {
   uninstallPlugin,
   addMarketplace,
   refreshMarketplace,
+  getEnabledPluginsForDir,
+  setPluginEnabled,
+  getPluginsWithEnabledState,
 };

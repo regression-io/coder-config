@@ -424,7 +424,7 @@ class ConfigUIServer {
         break;
 
       case '/api/plugins':
-        if (req.method === 'GET') return this.json(res, routes.plugins.getPlugins(this.manager));
+        if (req.method === 'GET') return this.json(res, routes.plugins.getPluginsWithEnabledState(this.manager, this.projectDir));
         break;
 
       case '/api/plugins/install':
@@ -433,6 +433,16 @@ class ConfigUIServer {
 
       case '/api/plugins/uninstall':
         if (req.method === 'POST') return this.json(res, await routes.plugins.uninstallPlugin(body.pluginId));
+        break;
+
+      case '/api/plugins/enabled':
+        if (req.method === 'GET') {
+          const targetDir = query.dir || this.projectDir;
+          return this.json(res, routes.plugins.getEnabledPluginsForDir(this.manager, targetDir));
+        }
+        if (req.method === 'POST') {
+          return this.json(res, routes.plugins.setPluginEnabled(this.manager, body.dir, body.pluginId, body.enabled));
+        }
         break;
 
       case '/api/plugins/marketplaces':

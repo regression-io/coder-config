@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import {
   Puzzle, Plus, Trash2, RefreshCw, ExternalLink, Search,
   MoreVertical, Loader2, Check, Store, Package, Server, Globe,
-  Building2, Filter, ChevronDown, Info, Terminal
+  Building2, Filter, ChevronDown, Info, Terminal, Settings, FolderTree,
+  Power, PowerOff, Minus, ChevronRight
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -47,7 +54,7 @@ const CATEGORY_COLORS = {
 
 export default function PluginsView() {
   const [loading, setLoading] = useState(true);
-  const [pluginsData, setPluginsData] = useState({ allPlugins: [], categories: [], marketplaces: [] });
+  const [pluginsData, setPluginsData] = useState({ allPlugins: [], categories: [], marketplaces: [], enabledPlugins: null });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showInternal, setShowInternal] = useState(true);
@@ -57,6 +64,8 @@ export default function PluginsView() {
   const [sortBy, setSortBy] = useState('name');
   const [refreshing, setRefreshing] = useState(null);
   const [addMarketplaceDialog, setAddMarketplaceDialog] = useState({ open: false, repo: '' });
+  const [enableDialog, setEnableDialog] = useState({ open: false, plugin: null });
+  const [savingEnabled, setSavingEnabled] = useState(false);
 
   // Load plugins
   const loadData = async () => {
@@ -170,6 +179,49 @@ export default function PluginsView() {
     } catch (error) {
       toast.error('Failed to add marketplace: ' + error.message);
     }
+  };
+
+  // Handle plugin enable/disable toggle
+  const handleTogglePlugin = async (dir, pluginId, currentState) => {
+    setSavingEnabled(true);
+    try {
+      // Toggle: if currently enabled, disable; if disabled/null, enable
+      const newState = currentState === true ? false : true;
+      const result = await api.setPluginEnabled(dir, pluginId, newState);
+      if (result.success) {
+        toast.success(`Plugin ${newState ? 'enabled' : 'disabled'} for ${dir === process.env.HOME ? '~' : dir}`);
+        await loadData();
+      } else {
+        toast.error(result.error || 'Failed to update plugin state');
+      }
+    } catch (error) {
+      toast.error('Failed to update plugin: ' + error.message);
+    } finally {
+      setSavingEnabled(false);
+    }
+  };
+
+  // Clear plugin override (inherit from parent)
+  const handleClearPluginOverride = async (dir, pluginId) => {
+    setSavingEnabled(true);
+    try {
+      const result = await api.setPluginEnabled(dir, pluginId, null);
+      if (result.success) {
+        toast.success('Plugin override removed');
+        await loadData();
+      } else {
+        toast.error(result.error || 'Failed to remove override');
+      }
+    } catch (error) {
+      toast.error('Failed to update plugin: ' + error.message);
+    } finally {
+      setSavingEnabled(false);
+    }
+  };
+
+  // Open enable dialog for a plugin
+  const openEnableDialog = (plugin) => {
+    setEnableDialog({ open: true, plugin });
   };
 
   const installedCount = (pluginsData.allPlugins || []).filter(p => p.installed).length;
@@ -332,15 +384,21 @@ export default function PluginsView() {
             const categoryColor = CATEGORY_COLORS[plugin.category] || CATEGORY_COLORS.default;
             const mcpCount = plugin.mcpServers ? Object.keys(plugin.mcpServers).length : 0;
             const lspCount = plugin.lspServers ? Object.keys(plugin.lspServers).length : 0;
+            const pluginId = `${plugin.name}@${plugin.marketplace}`;
+            const enabledState = plugin.enabledState;
+            const isEnabled = enabledState?.merged === true;
+            const hasExplicitSetting = enabledState?.merged !== null && enabledState?.merged !== undefined;
 
             return (
               <motion.div
-                key={`${plugin.name}@${plugin.marketplace}`}
+                key={pluginId}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(index * 0.02, 0.3) }}
                 className={`rounded-lg border p-4 transition-all hover:shadow-md ${
-                  plugin.installed
+                  isEnabled
+                    ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800'
+                    : plugin.installed
                     ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800'
                     : 'bg-white border-gray-200 dark:bg-slate-900 dark:border-slate-700'
                 }`}
@@ -353,23 +411,52 @@ export default function PluginsView() {
                         <Globe className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" title="Community plugin" />
                       )}
                     </div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {plugin.installed && (
+                        <Badge variant="outline" className="text-green-600 border-green-300 dark:text-green-400 dark:border-green-700 text-[10px]">
+                          <Check className="w-2.5 h-2.5 mr-0.5" />
+                          Installed
+                        </Badge>
+                      )}
+                      {isEnabled && (
+                        <Badge variant="outline" className="text-emerald-600 border-emerald-300 dark:text-emerald-400 dark:border-emerald-700 text-[10px]">
+                          <Power className="w-2.5 h-2.5 mr-0.5" />
+                          Enabled
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
                     {plugin.installed && (
-                      <Badge variant="outline" className="text-green-600 border-green-300 dark:text-green-400 dark:border-green-700 text-[10px]">
-                        <Check className="w-2.5 h-2.5 mr-0.5" />
-                        Installed
-                      </Badge>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 opacity-60 hover:opacity-100"
+                              onClick={() => openEnableDialog(plugin)}
+                            >
+                              <Settings className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Configure per-directory</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                    {plugin.homepage && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 opacity-60 hover:opacity-100"
+                        onClick={() => window.open(plugin.homepage, '_blank')}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </Button>
                     )}
                   </div>
-                  {plugin.homepage && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 w-7 p-0 opacity-60 hover:opacity-100"
-                      onClick={() => window.open(plugin.homepage, '_blank')}
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </Button>
-                  )}
                 </div>
 
                 <p className="text-sm text-gray-600 dark:text-slate-400 mb-3 line-clamp-2">
@@ -546,6 +633,134 @@ export default function PluginsView() {
             <Button onClick={handleAddMarketplace} className="bg-purple-600 hover:bg-purple-700 text-white">
               <Plus className="w-4 h-4 mr-2" />
               Add Marketplace
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Plugin Enable/Disable Dialog */}
+      <Dialog open={enableDialog.open} onOpenChange={(open) => setEnableDialog({ ...enableDialog, open })}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FolderTree className="w-5 h-5 text-emerald-600" />
+              Configure Plugin: {enableDialog.plugin?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Enable or disable this plugin for specific directories. Child directories inherit parent settings unless overridden.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-4 max-h-[400px] overflow-y-auto">
+            {enableDialog.plugin?.enabledState?.perDir?.map((dirInfo, index) => {
+              const pluginId = `${enableDialog.plugin.name}@${enableDialog.plugin.marketplace}`;
+              const isExplicit = dirInfo.enabled !== null && dirInfo.enabled !== undefined;
+              const isEnabled = dirInfo.enabled === true;
+              const isDisabled = dirInfo.enabled === false;
+
+              // Calculate inherited value from parent
+              let inheritedValue = null;
+              if (!isExplicit && index > 0) {
+                for (let i = index - 1; i >= 0; i--) {
+                  const parentDir = enableDialog.plugin.enabledState.perDir[i];
+                  if (parentDir.enabled !== null && parentDir.enabled !== undefined) {
+                    inheritedValue = parentDir.enabled;
+                    break;
+                  }
+                }
+              }
+
+              return (
+                <div
+                  key={dirInfo.dir}
+                  className={`flex items-center justify-between p-3 rounded-lg border ${
+                    isEnabled
+                      ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800'
+                      : isDisabled
+                      ? 'bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800'
+                      : 'bg-gray-50 border-gray-200 dark:bg-slate-800/50 dark:border-slate-700'
+                  }`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <code className="text-sm font-mono text-gray-700 dark:text-slate-300 truncate">
+                        {dirInfo.label}
+                      </code>
+                      {!isExplicit && inheritedValue !== null && (
+                        <Badge variant="outline" className="text-[10px] text-gray-500">
+                          inherited: {inheritedValue ? 'on' : 'off'}
+                        </Badge>
+                      )}
+                    </div>
+                    {isExplicit && (
+                      <p className="text-[10px] text-gray-500 dark:text-slate-400 mt-0.5">
+                        {isEnabled ? 'Explicitly enabled' : 'Explicitly disabled'}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {isExplicit && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 text-gray-400 hover:text-gray-600"
+                              onClick={() => handleClearPluginOverride(dirInfo.dir, pluginId)}
+                              disabled={savingEnabled}
+                            >
+                              <Minus className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Remove override (inherit from parent)</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                    <div className="flex items-center gap-1 border rounded-lg overflow-hidden">
+                      <Button
+                        variant={isEnabled ? "default" : "ghost"}
+                        size="sm"
+                        className={`h-7 px-2 rounded-none ${
+                          isEnabled ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''
+                        }`}
+                        onClick={() => handleTogglePlugin(dirInfo.dir, pluginId, false)}
+                        disabled={savingEnabled || isEnabled}
+                      >
+                        <Power className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant={isDisabled ? "default" : "ghost"}
+                        size="sm"
+                        className={`h-7 px-2 rounded-none ${
+                          isDisabled ? 'bg-red-600 hover:bg-red-700 text-white' : ''
+                        }`}
+                        onClick={() => handleTogglePlugin(dirInfo.dir, pluginId, true)}
+                        disabled={savingEnabled || isDisabled}
+                      >
+                        <PowerOff className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {(!enableDialog.plugin?.enabledState?.perDir || enableDialog.plugin.enabledState.perDir.length === 0) && (
+              <div className="text-center py-8 text-gray-500 dark:text-slate-400">
+                <FolderTree className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>No config hierarchy found.</p>
+                <p className="text-sm mt-1">Create a .claude/mcps.json in your project first.</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEnableDialog({ open: false, plugin: null })}>
+              Done
             </Button>
           </DialogFooter>
         </DialogContent>

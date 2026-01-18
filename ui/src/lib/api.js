@@ -485,6 +485,18 @@ export const api = {
     });
   },
 
+  async getEnabledPlugins(dir) {
+    const params = dir ? `?dir=${encodeURIComponent(dir)}` : '';
+    return request(`/plugins/enabled${params}`);
+  },
+
+  async setPluginEnabled(dir, pluginId, enabled) {
+    return request('/plugins/enabled', {
+      method: 'POST',
+      body: { dir, pluginId, enabled },
+    });
+  },
+
   async getMarketplaces() {
     return request('/plugins/marketplaces');
   },
