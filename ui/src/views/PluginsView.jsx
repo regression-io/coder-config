@@ -57,6 +57,7 @@ export default function PluginsView() {
   const [pluginsData, setPluginsData] = useState({ allPlugins: [], categories: [], marketplaces: [], enabledPlugins: null });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedMarketplaces, setSelectedMarketplaces] = useState([]);
   const [showInternal, setShowInternal] = useState(true);
   const [showExternal, setShowExternal] = useState(true);
   const [showInstalled, setShowInstalled] = useState(true);
@@ -117,6 +118,11 @@ export default function PluginsView() {
       plugins = plugins.filter(p => selectedCategories.includes(p.category));
     }
 
+    // Filter by marketplace
+    if (selectedMarketplaces.length > 0) {
+      plugins = plugins.filter(p => selectedMarketplaces.includes(p.marketplace));
+    }
+
     // Sort
     plugins.sort((a, b) => {
       if (sortBy === 'installed') {
@@ -131,7 +137,7 @@ export default function PluginsView() {
     });
 
     return plugins;
-  }, [pluginsData.allPlugins, searchQuery, showExternal, showInternal, showInstalled, showAvailable, selectedCategories, sortBy]);
+  }, [pluginsData.allPlugins, searchQuery, showExternal, showInternal, showInstalled, showAvailable, selectedCategories, selectedMarketplaces, sortBy]);
 
   // Toggle category filter
   const toggleCategory = (category) => {
@@ -139,6 +145,15 @@ export default function PluginsView() {
       prev.includes(category)
         ? prev.filter(c => c !== category)
         : [...prev, category]
+    );
+  };
+
+  // Toggle marketplace filter
+  const toggleMarketplace = (marketplace) => {
+    setSelectedMarketplaces(prev =>
+      prev.includes(marketplace)
+        ? prev.filter(m => m !== marketplace)
+        : [...prev, marketplace]
     );
   };
 
@@ -252,6 +267,75 @@ export default function PluginsView() {
         </div>
       </div>
 
+      {/* Marketplaces Section */}
+      <div className="bg-white dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
+        <div className="p-5 border-b border-gray-200 dark:border-slate-700">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <Store className="w-5 h-5 text-purple-600" />
+              Plugin Marketplaces
+              <Badge variant="outline" className="ml-2 font-normal">{marketplaces.length}</Badge>
+            </h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setAddMarketplaceDialog({ open: true, repo: '' })}
+              className="border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Marketplace
+            </Button>
+          </div>
+        </div>
+
+        <div className="p-4">
+          {marketplaces.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {marketplaces.map((mp, index) => {
+                const pluginCount = (mp.plugins?.length || 0) + (mp.externalPlugins?.length || 0);
+                return (
+                  <motion.div
+                    key={mp.name}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    className="bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800 p-4"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-purple-900 dark:text-purple-200">{mp.name}</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRefreshMarketplace(mp.name)}
+                        disabled={refreshing === mp.name}
+                        className="h-7 w-7 p-0"
+                      >
+                        <RefreshCw className={`w-4 h-4 text-purple-600 dark:text-purple-400 ${refreshing === mp.name ? 'animate-spin' : ''}`} />
+                      </Button>
+                    </div>
+                    <p className="text-sm text-purple-700 dark:text-purple-300 mb-2 truncate">
+                      {typeof mp.source === 'string' ? mp.source : mp.source?.repo || 'Unknown source'}
+                    </p>
+                    <div className="flex items-center justify-between text-xs text-purple-600 dark:text-purple-400">
+                      <span>{pluginCount} plugins</span>
+                      {mp.lastUpdated && (
+                        <span>Updated: {new Date(mp.lastUpdated).toLocaleDateString()}</span>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500 dark:text-slate-400">
+              <Store className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p>No marketplaces configured.</p>
+              <p className="text-sm mt-1">Add a marketplace to discover plugins.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Plugins Discovery Section */}
       <div className="bg-white dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
         <div className="p-5 border-b border-gray-200 dark:border-slate-700">
@@ -298,6 +382,43 @@ export default function PluginsView() {
 
           {/* Filters */}
           <div className="flex items-center gap-4 flex-wrap">
+            {/* Marketplace Filter */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 text-xs gap-1">
+                  <Store className="w-3 h-3" />
+                  Marketplace
+                  {selectedMarketplaces.length > 0 && (
+                    <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
+                      {selectedMarketplaces.length}
+                    </Badge>
+                  )}
+                  <ChevronDown className="w-3 h-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuLabel className="text-xs">Filter by marketplace</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {marketplaces.map(mp => (
+                  <DropdownMenuCheckboxItem
+                    key={mp.name}
+                    checked={selectedMarketplaces.includes(mp.name)}
+                    onCheckedChange={() => toggleMarketplace(mp.name)}
+                  >
+                    {mp.name}
+                  </DropdownMenuCheckboxItem>
+                ))}
+                {selectedMarketplaces.length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setSelectedMarketplaces([])}>
+                      Clear filters
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* Category Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -506,85 +627,16 @@ export default function PluginsView() {
               <Puzzle className="w-12 h-12 mx-auto mb-3 opacity-30" />
               <p className="font-medium">No plugins found</p>
               <p className="text-sm mt-1">Try adjusting your filters or search query</p>
-              {(selectedCategories.length > 0 || searchQuery) && (
+              {(selectedCategories.length > 0 || selectedMarketplaces.length > 0 || searchQuery) && (
                 <Button
                   variant="link"
                   size="sm"
-                  onClick={() => { setSelectedCategories([]); setSearchQuery(''); }}
+                  onClick={() => { setSelectedCategories([]); setSelectedMarketplaces([]); setSearchQuery(''); }}
                   className="mt-2"
                 >
                   Clear all filters
                 </Button>
               )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Marketplaces Section */}
-      <div className="bg-white dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
-        <div className="p-5 border-b border-gray-200 dark:border-slate-700">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <Store className="w-5 h-5 text-purple-600" />
-              Plugin Marketplaces
-              <Badge variant="outline" className="ml-2 font-normal">{marketplaces.length}</Badge>
-            </h2>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setAddMarketplaceDialog({ open: true, repo: '' })}
-              className="border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Marketplace
-            </Button>
-          </div>
-        </div>
-
-        <div className="p-4">
-          {marketplaces.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {marketplaces.map((mp, index) => {
-                const pluginCount = (mp.plugins?.length || 0) + (mp.externalPlugins?.length || 0);
-                return (
-                  <motion.div
-                    key={mp.name}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    className="bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800 p-4"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-purple-900 dark:text-purple-200">{mp.name}</h3>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRefreshMarketplace(mp.name)}
-                        disabled={refreshing === mp.name}
-                        className="h-7 w-7 p-0"
-                      >
-                        <RefreshCw className={`w-4 h-4 text-purple-600 dark:text-purple-400 ${refreshing === mp.name ? 'animate-spin' : ''}`} />
-                      </Button>
-                    </div>
-                    <p className="text-sm text-purple-700 dark:text-purple-300 mb-2 truncate">
-                      {typeof mp.source === 'string' ? mp.source : mp.source?.repo || 'Unknown source'}
-                    </p>
-                    <div className="flex items-center justify-between text-xs text-purple-600 dark:text-purple-400">
-                      <span>{pluginCount} plugins</span>
-                      {mp.lastUpdated && (
-                        <span>Updated: {new Date(mp.lastUpdated).toLocaleDateString()}</span>
-                      )}
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500 dark:text-slate-400">
-              <Store className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>No marketplaces configured.</p>
-              <p className="text-sm mt-1">Add a marketplace to discover plugins.</p>
             </div>
           )}
         </div>
