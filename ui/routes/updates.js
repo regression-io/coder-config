@@ -8,14 +8,28 @@ const https = require('https');
 const { execSync } = require('child_process');
 
 /**
- * Get version from file
+ * Get version from file (checks both config-loader.js and lib/constants.js)
  */
 function getVersionFromFile(filePath) {
   try {
     if (!fs.existsSync(filePath)) return null;
-    const content = fs.readFileSync(filePath, 'utf8');
-    const match = content.match(/const VERSION = ['"]([^'"]+)['"]/);
-    return match ? match[1] : null;
+
+    // First try the file directly
+    let content = fs.readFileSync(filePath, 'utf8');
+    let match = content.match(/const VERSION = ['"]([^'"]+)['"]/);
+    if (match) return match[1];
+
+    // If not found and this is config-loader.js, check lib/constants.js
+    if (filePath.endsWith('config-loader.js')) {
+      const constantsPath = path.join(path.dirname(filePath), 'lib', 'constants.js');
+      if (fs.existsSync(constantsPath)) {
+        content = fs.readFileSync(constantsPath, 'utf8');
+        match = content.match(/const VERSION = ['"]([^'"]+)['"]/);
+        if (match) return match[1];
+      }
+    }
+
+    return null;
   } catch (e) {
     return null;
   }
