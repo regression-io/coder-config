@@ -105,6 +105,16 @@ claude-config registry add <name> '<json>'   # Add MCP to global registry
 claude-config registry remove <name>         # Remove MCP from registry
 ```
 
+### Updates
+
+```bash
+claude-config update             # Check npm and install updates if available
+claude-config update --check     # Check for updates without installing
+claude-config update /path/src   # Update from local development source
+```
+
+The UI also checks for updates automatically and shows a notification when a new version is available.
+
 ### Web UI
 
 ```bash

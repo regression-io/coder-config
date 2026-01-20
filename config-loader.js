@@ -153,14 +153,96 @@ class ClaudeConfigManager {
   smartSyncHandleAction(nudgeKey, action, context) { return smartSyncHandleAction(this.installDir, nudgeKey, action, context); }
   smartSyncStatus() { return smartSyncStatus(this.installDir); }
 
-  // Update
-  update(sourcePath) {
-    if (!sourcePath) {
-      console.error('Usage: claude-config update /path/to/claude-config');
-      console.log('\nThis copies updated files from the source to your installation.');
+  // Update - check npm for updates or update from local source
+  async update(args = []) {
+    const https = require('https');
+    const { execSync } = require('child_process');
+
+    // Parse args
+    const checkOnly = args.includes('--check') || args.includes('-c');
+    const sourcePath = args.find(a => !a.startsWith('-'));
+
+    // If source path provided, use local update
+    if (sourcePath) {
+      return this._updateFromLocal(sourcePath);
+    }
+
+    // Check npm for updates
+    console.log('Checking for updates...');
+
+    const npmVersion = await this._fetchNpmVersion(https);
+    if (!npmVersion) {
+      console.error('Failed to check npm registry');
       return false;
     }
 
+    const isNewer = this._isNewerVersion(npmVersion, VERSION);
+
+    if (!isNewer) {
+      console.log(`✓ You're up to date (v${VERSION})`);
+      return true;
+    }
+
+    console.log(`\nUpdate available: v${VERSION} → v${npmVersion}`);
+
+    if (checkOnly) {
+      console.log('\nRun "claude-config update" to install the update.');
+      return true;
+    }
+
+    // Perform npm update
+    console.log('\nUpdating via npm...');
+    try {
+      execSync('npm update -g @regression-io/claude-config', {
+        stdio: 'inherit',
+        timeout: 120000
+      });
+      console.log(`\n✅ Updated to v${npmVersion}`);
+      console.log('Run "claude-config ui" to restart the UI with the new version.');
+      return true;
+    } catch (error) {
+      console.error('Update failed:', error.message);
+      console.log('\nTry manually: npm install -g @regression-io/claude-config@latest');
+      return false;
+    }
+  }
+
+  // Fetch latest version from npm registry
+  _fetchNpmVersion(https) {
+    return new Promise((resolve) => {
+      const url = 'https://registry.npmjs.org/@regression-io/claude-config/latest';
+      https.get(url, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const parsed = JSON.parse(data);
+            resolve(parsed.version || null);
+          } catch (e) {
+            resolve(null);
+          }
+        });
+      }).on('error', () => resolve(null));
+    });
+  }
+
+  // Compare semver versions
+  _isNewerVersion(source, installed) {
+    if (!source || !installed) return false;
+    const parseVersion = (v) => v.split('.').map(n => parseInt(n, 10) || 0);
+    const s = parseVersion(source);
+    const i = parseVersion(installed);
+    for (let j = 0; j < Math.max(s.length, i.length); j++) {
+      const sv = s[j] || 0;
+      const iv = i[j] || 0;
+      if (sv > iv) return true;
+      if (sv < iv) return false;
+    }
+    return false;
+  }
+
+  // Update from local source directory
+  _updateFromLocal(sourcePath) {
     if (!fs.existsSync(sourcePath)) {
       console.error(`Source not found: ${sourcePath}`);
       return false;
