@@ -93,8 +93,8 @@ claude-config workstream create "Name"     # Create new workstream
 claude-config workstream delete <name>     # Delete workstream
 claude-config workstream use <name>        # Set active workstream
 claude-config workstream active            # Show current active workstream
-claude-config workstream add-project <ws> <path>     # Add project to workstream
-claude-config workstream remove-project <ws> <path>  # Remove project from workstream
+claude-config workstream add <ws> <path>     # Add project to workstream
+claude-config workstream remove <ws> <path>  # Remove project from workstream
 claude-config workstream inject [--silent] # Output active workstream rules (for hooks)
 claude-config workstream detect [path]     # Detect workstream for directory
 ```
