@@ -38,7 +38,7 @@ export default function PermissionRuleChip({
             <Badge
               variant="secondary"
               className={cn(
-                "transition-all text-xs font-mono py-1 px-2 h-7",
+                "cursor-default transition-all text-xs font-mono py-1 px-2 h-7",
                 category === 'allow' && "bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300",
                 category === 'ask' && "bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300",
                 category === 'deny' && "bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300",
