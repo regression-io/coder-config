@@ -8,10 +8,9 @@
  *
  * Files:
  *   ~/.claude-config/mcp-registry.json   - All available MCPs (copy/paste friendly)
- *   ~/.claude-config/templates/          - Rule and command templates
  *   project/.claude/mcps.json            - Which MCPs this project uses
- *   project/.claude/rules/*.md           - Project rules (from templates)
- *   project/.claude/commands/*.md        - Project commands (from templates)
+ *   project/.claude/rules/*.md           - Project rules
+ *   project/.claude/commands/*.md        - Project commands
  *   project/.mcp.json                    - Generated output for Claude Code
  */
 
@@ -22,11 +21,10 @@ const path = require('path');
 const { VERSION, TOOL_PATHS } = require('./lib/constants');
 const { loadJson, saveJson, loadEnvFile, interpolate, resolveEnvVars, copyDirRecursive } = require('./lib/utils');
 const { findProjectRoot, findAllConfigs, mergeConfigs, getConfigPath, collectFilesFromHierarchy, findAllConfigsForTool } = require('./lib/config');
-const { listTemplates, findTemplate, resolveTemplateChain, copyTemplateFiles, trackAppliedTemplate, getAppliedTemplate } = require('./lib/templates');
 const { apply, applyForAntigravity, applyForGemini, detectInstalledTools, applyForTools } = require('./lib/apply');
 const { list, add, remove } = require('./lib/mcps');
 const { registryList, registryAdd, registryRemove } = require('./lib/registry');
-const { init, applyTemplate, show } = require('./lib/init');
+const { init, show } = require('./lib/init');
 const { memoryList, memoryInit, memoryAdd, memorySearch } = require('./lib/memory');
 const { envList, envSet, envUnset } = require('./lib/env');
 const { getProjectsRegistryPath, loadProjectsRegistry, saveProjectsRegistry, projectList, projectAdd, projectRemove } = require('./lib/projects');
@@ -46,13 +44,6 @@ class ClaudeConfigManager {
       path.join(this.installDir, 'shared', 'mcp-registry.json')
     ];
     this.registryPath = possiblePaths.find(p => fs.existsSync(p)) || possiblePaths[0];
-
-    // Template directory
-    const templatePaths = [
-      path.join(__dirname, 'templates'),
-      path.join(this.installDir, 'templates')
-    ];
-    this.templatesDir = templatePaths.find(p => fs.existsSync(p)) || templatePaths[0];
   }
 
   // Utils
@@ -81,14 +72,6 @@ class ClaudeConfigManager {
     return collectFilesFromHierarchy(configLocations, 'commands');
   }
 
-  // Templates
-  listTemplates() { return listTemplates(this.templatesDir); }
-  findTemplate(name) { return findTemplate(this.templatesDir, name); }
-  resolveTemplateChain(templatePath, visited) { return resolveTemplateChain(this.templatesDir, templatePath, visited); }
-  copyTemplateFiles(templatePath, projectDir, options) { return copyTemplateFiles(templatePath, projectDir, options); }
-  trackAppliedTemplate(dir, templateName) { return trackAppliedTemplate(dir, templateName); }
-  getAppliedTemplate(dir) { return getAppliedTemplate(dir); }
-
   // Apply
   apply(projectDir) { return apply(this.registryPath, projectDir); }
   applyForAntigravity(projectDir) { return applyForAntigravity(this.registryPath, projectDir); }
@@ -108,8 +91,7 @@ class ClaudeConfigManager {
   registryRemove(name) { return registryRemove(this.registryPath, name); }
 
   // Init
-  init(projectDir, templateName) { return init(this.templatesDir, this.registryPath, projectDir, templateName); }
-  applyTemplate(templateName, projectDir) { return applyTemplate(this.templatesDir, templateName, projectDir); }
+  init(projectDir) { return init(this.registryPath, projectDir); }
   show(projectDir) { return show(projectDir); }
 
   // Memory
@@ -206,15 +188,6 @@ class ClaudeConfigManager {
       }
     }
 
-    // Copy templates directory
-    const srcTemplates = path.join(sourcePath, 'templates');
-    const destTemplates = path.join(this.installDir, 'templates');
-    if (fs.existsSync(srcTemplates)) {
-      copyDirRecursive(srcTemplates, destTemplates);
-      console.log(`✓ Updated templates/`);
-      updated++;
-    }
-
     if (updated > 0) {
       console.log(`\n✅ Updated ${updated} item(s)`);
       console.log('Restart your shell or run: source ~/.zshrc');
@@ -230,7 +203,6 @@ class ClaudeConfigManager {
     console.log(`claude-config v${VERSION}`);
     console.log(`Install: ${this.installDir}`);
     console.log(`Registry: ${this.registryPath}`);
-    console.log(`Templates: ${this.templatesDir}`);
   }
 }
 
