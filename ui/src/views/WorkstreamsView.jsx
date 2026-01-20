@@ -303,14 +303,6 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
   const handleAddProject = async (projectPath) => {
     if (!selectedWorkstreamForProject) return;
 
-    // Check if project is in another workstream
-    const existingWs = getProjectWorkstream(projectPath, selectedWorkstreamForProject.id);
-    if (existingWs) {
-      if (!confirm(`This project is already in "${existingWs.name}".\n\nA project should typically belong to one workstream (one product).\n\nAdd anyway?`)) {
-        return;
-      }
-    }
-
     try {
       const result = await api.addProjectToWorkstream(selectedWorkstreamForProject.id, projectPath);
       if (result.success) {
