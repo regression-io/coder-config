@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.36.14] - 2026-01-21
+
+### Added
+
+- **Subproject selection in all workstream dialogs** - Expand projects to select individual sub-projects
+  - Add Project dialog now shows expandable chevrons
+  - Edit dialog project picker now shows expandable chevrons
+  - Create dialog already had this functionality
+
 ## [0.36.12] - 2026-01-20
 
 ### Fixed

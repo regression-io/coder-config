@@ -1206,43 +1206,115 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                   </p>
                 )}
 
-                {/* Project Picker for Edit */}
+                {/* Project Picker for Edit with Subprojects */}
                 {editingWorkstream.showPicker && projects.length > 0 && (
-                  <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-2 max-h-40 overflow-y-auto bg-white dark:bg-slate-900">
-                    {projects
-                      .filter(p => !editingWorkstream.projects?.includes(p.path))
-                      .map(p => {
-                        const existingWs = getProjectWorkstream(p.path, editingWorkstream.id);
-                        return (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onClick={() => setEditingWorkstream(prev => ({
-                              ...prev,
-                              projects: [...(prev.projects || []), p.path],
-                              showPicker: false
-                            }))}
-                            className="w-full text-left p-2 rounded hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors"
-                          >
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="font-medium text-gray-900 dark:text-white">{p.name}</span>
-                              {existingWs && (
-                                <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
-                                  shared
-                                </span>
+                  <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-2 max-h-48 overflow-y-auto bg-white dark:bg-slate-900">
+                    {projects.map(p => {
+                      const isAlreadyAdded = editingWorkstream.projects?.includes(p.path);
+                      const existingWs = getProjectWorkstream(p.path, editingWorkstream.id);
+                      const isExpanded = expandedProjects[p.path];
+                      const isLoading = loadingSubprojects[p.path];
+                      const subprojects = subprojectsCache[p.path] || [];
+
+                      return (
+                        <div key={p.id} className="mb-1">
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => toggleProjectExpand(p.path)}
+                              className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded"
+                              title="Show sub-projects"
+                            >
+                              {isLoading ? (
+                                <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                              ) : isExpanded ? (
+                                <ChevronDown className="w-4 h-4 text-gray-400" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4 text-gray-400" />
                               )}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => !isAlreadyAdded && setEditingWorkstream(prev => ({
+                                ...prev,
+                                projects: [...(prev.projects || []), p.path]
+                              }))}
+                              disabled={isAlreadyAdded}
+                              className={`flex-1 text-left p-2 rounded transition-colors ${
+                                isAlreadyAdded
+                                  ? 'bg-purple-50 dark:bg-purple-950/30 opacity-50'
+                                  : 'hover:bg-purple-50 dark:hover:bg-purple-950/30'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="font-medium text-gray-900 dark:text-white">{p.name}</span>
+                                <div className="flex items-center gap-1">
+                                  {existingWs && (
+                                    <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
+                                      shared
+                                    </span>
+                                  )}
+                                  {isAlreadyAdded && (
+                                    <Check className="w-4 h-4 text-purple-600" />
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-slate-400 font-mono truncate">
+                                {p.path.replace(/^\/Users\/[^/]+/, '~')}
+                              </div>
+                            </button>
+                          </div>
+
+                          {/* Subprojects */}
+                          {isExpanded && subprojects.length > 0 && (
+                            <div className="ml-6 mt-1 space-y-1 border-l-2 border-gray-200 dark:border-slate-700 pl-2">
+                              {subprojects.map(sub => {
+                                const subAlreadyAdded = editingWorkstream.projects?.includes(sub.dir);
+                                const subExistingWs = getProjectWorkstream(sub.dir, editingWorkstream.id);
+                                return (
+                                  <button
+                                    key={sub.dir}
+                                    type="button"
+                                    onClick={() => !subAlreadyAdded && setEditingWorkstream(prev => ({
+                                      ...prev,
+                                      projects: [...(prev.projects || []), sub.dir]
+                                    }))}
+                                    disabled={subAlreadyAdded}
+                                    className={`w-full text-left p-2 rounded transition-colors ${
+                                      subAlreadyAdded
+                                        ? 'bg-purple-50 dark:bg-purple-950/30 opacity-50'
+                                        : 'hover:bg-purple-50 dark:hover:bg-purple-950/30'
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-between text-sm">
+                                      <span className="text-gray-700 dark:text-slate-300">{sub.name}</span>
+                                      <div className="flex items-center gap-1">
+                                        {subExistingWs && (
+                                          <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
+                                            shared
+                                          </span>
+                                        )}
+                                        {subAlreadyAdded && (
+                                          <Check className="w-4 h-4 text-purple-600" />
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="text-xs text-gray-500 dark:text-slate-400 font-mono truncate">
+                                      {sub.relativePath}
+                                    </div>
+                                  </button>
+                                );
+                              })}
                             </div>
-                            <div className="text-xs text-gray-500 dark:text-slate-400 font-mono truncate">
-                              {p.path.replace(/^\/Users\/[^/]+/, '~')}
+                          )}
+                          {isExpanded && subprojects.length === 0 && !isLoading && (
+                            <div className="ml-6 mt-1 pl-2 text-xs text-gray-400 dark:text-slate-500 italic">
+                              No sub-projects found
                             </div>
-                          </button>
-                        );
-                      })}
-                    {projects.filter(p => !editingWorkstream.projects?.includes(p.path)).length === 0 && (
-                      <p className="text-sm text-gray-500 dark:text-slate-400 text-center py-2">
-                        All registered projects added
-                      </p>
-                    )}
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -1277,7 +1349,10 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
       </Dialog>
 
       {/* Add Project Dialog */}
-      <Dialog open={addProjectDialogOpen} onOpenChange={setAddProjectDialogOpen}>
+      <Dialog open={addProjectDialogOpen} onOpenChange={(open) => {
+        setAddProjectDialogOpen(open);
+        if (!open) setExpandedProjects({});
+      }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1287,39 +1362,111 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
           </DialogHeader>
           <div className="py-4">
             <p className="text-sm text-gray-600 dark:text-slate-400 mb-4">
-              Select a registered project to add to this workstream:
+              Select a project or sub-project to add to this workstream:
             </p>
             {projects.length > 0 ? (
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {projects
-                  .filter(p => !selectedWorkstreamForProject?.projects?.includes(p.path))
-                  .map(p => {
-                    const existingWs = getProjectWorkstream(p.path, selectedWorkstreamForProject?.id);
-                    return (
-                      <button
-                        key={p.id}
-                        onClick={() => handleAddProject(p.path)}
-                        className="w-full text-left p-3 rounded-lg border border-gray-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-900 dark:text-white">{p.name}</span>
-                          {existingWs && (
-                            <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
-                              shared
-                            </span>
+              <div className="space-y-1 max-h-64 overflow-y-auto border border-gray-200 dark:border-slate-700 rounded-lg p-2 bg-white dark:bg-slate-900">
+                {projects.map(p => {
+                  const isAlreadyAdded = selectedWorkstreamForProject?.projects?.includes(p.path);
+                  const existingWs = getProjectWorkstream(p.path, selectedWorkstreamForProject?.id);
+                  const isExpanded = expandedProjects[p.path];
+                  const isLoading = loadingSubprojects[p.path];
+                  const subprojects = subprojectsCache[p.path] || [];
+
+                  return (
+                    <div key={p.id} className="mb-1">
+                      {/* Main project row */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => toggleProjectExpand(p.path)}
+                          className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded"
+                          title="Show sub-projects"
+                        >
+                          {isLoading ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                          ) : isExpanded ? (
+                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4 text-gray-400" />
                           )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => !isAlreadyAdded && handleAddProject(p.path)}
+                          disabled={isAlreadyAdded}
+                          className={`flex-1 text-left p-2 rounded transition-colors ${
+                            isAlreadyAdded
+                              ? 'bg-purple-50 dark:bg-purple-950/30 opacity-50'
+                              : 'hover:bg-purple-50 dark:hover:bg-purple-950/30'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="font-medium text-gray-900 dark:text-white">{p.name}</span>
+                            <div className="flex items-center gap-1">
+                              {existingWs && (
+                                <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
+                                  shared
+                                </span>
+                              )}
+                              {isAlreadyAdded && (
+                                <Check className="w-4 h-4 text-purple-600" />
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-slate-400 font-mono truncate">
+                            {p.path.replace(/^\/Users\/[^/]+/, '~')}
+                          </div>
+                        </button>
+                      </div>
+
+                      {/* Subprojects */}
+                      {isExpanded && subprojects.length > 0 && (
+                        <div className="ml-6 mt-1 space-y-1 border-l-2 border-gray-200 dark:border-slate-700 pl-2">
+                          {subprojects.map(sub => {
+                            const subAlreadyAdded = selectedWorkstreamForProject?.projects?.includes(sub.dir);
+                            const subExistingWs = getProjectWorkstream(sub.dir, selectedWorkstreamForProject?.id);
+                            return (
+                              <button
+                                key={sub.dir}
+                                type="button"
+                                onClick={() => !subAlreadyAdded && handleAddProject(sub.dir)}
+                                disabled={subAlreadyAdded}
+                                className={`w-full text-left p-2 rounded transition-colors ${
+                                  subAlreadyAdded
+                                    ? 'bg-purple-50 dark:bg-purple-950/30 opacity-50'
+                                    : 'hover:bg-purple-50 dark:hover:bg-purple-950/30'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between text-sm">
+                                  <span className="text-gray-700 dark:text-slate-300">{sub.name}</span>
+                                  <div className="flex items-center gap-1">
+                                    {subExistingWs && (
+                                      <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
+                                        shared
+                                      </span>
+                                    )}
+                                    {subAlreadyAdded && (
+                                      <Check className="w-4 h-4 text-purple-600" />
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-slate-400 font-mono truncate">
+                                  {sub.relativePath}
+                                </div>
+                              </button>
+                            );
+                          })}
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-slate-400 font-mono truncate">
-                          {p.path.replace(/^\/Users\/[^/]+/, '~')}
+                      )}
+                      {isExpanded && subprojects.length === 0 && !isLoading && (
+                        <div className="ml-6 mt-1 pl-2 text-xs text-gray-400 dark:text-slate-500 italic">
+                          No sub-projects found
                         </div>
-                      </button>
-                    );
-                  })}
-                {projects.filter(p => !selectedWorkstreamForProject?.projects?.includes(p.path)).length === 0 && (
-                  <p className="text-sm text-gray-500 dark:text-slate-400 text-center py-4">
-                    All registered projects are already in this workstream.
-                  </p>
-                )}
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <p className="text-sm text-gray-500 dark:text-slate-400 text-center py-4">
