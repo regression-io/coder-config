@@ -307,11 +307,12 @@ In Workstreams view, adjust Smart Sync settings:
 |---------|-------------|
 | **Project Explorer** | Browse and edit `.claude/` folders across your project hierarchy |
 | **Claude Code Settings** | Visual editor for permissions, model, hooks, and behavior |
+| **Gemini CLI Settings** | Configure model, display options, and sandbox mode |
+| **Antigravity Settings** | Configure security policies, browser allowlist, and agent mode |
 | **MCP Registry** | Search GitHub/npm, add and configure MCP servers |
 | **Plugins** | Browse marketplaces, install plugins with scope control |
 | **Memory** | Manage preferences, corrections, patterns, and decisions |
 | **Workstreams** | Group related projects with shared context rules |
-| **Gemini CLI** | Configure Gemini alongside Claude Code |
 
 Additional features: project/workstream switchers in header, sub-project detection, dark mode, auto-updates.
 
@@ -393,6 +394,44 @@ Choose your preferred Claude model (Sonnet 4, Opus 4.5, etc.)
 - Auto-accept edits
 - Verbose mode
 - Enable/disable MCP servers
+
+## Gemini CLI Settings
+
+The Web UI provides a visual editor for `~/.gemini/settings.json`:
+
+### Model Selection
+Choose Gemini model (2.5 Pro, 2.5 Flash, etc.) and enable preview features.
+
+### Display Options
+Configure theme, token count display, diff view, and streaming.
+
+### General Settings
+- Vim keybindings
+- Auto-save
+- Check for updates
+
+### Sandbox Mode
+Control command execution safety (enabled/disabled).
+
+## Antigravity Settings
+
+The Web UI provides a visual editor for `~/.gemini/antigravity/settings.json`:
+
+### Security Policies
+| Policy | Options |
+|--------|---------|
+| **Terminal Execution** | Off, Auto, Turbo |
+| **Code Review** | Enabled, Disabled |
+| **JS Execution** | Sandboxed, Direct |
+
+### MCP Servers
+Configure MCP servers for Antigravity. Note: Antigravity does NOT support `${VAR}` interpolation - variables are resolved to actual values.
+
+### Browser Allowlist
+Control which URLs Antigravity can access during sessions.
+
+### Agent Mode
+Configure autonomous multi-step operations, iteration limits, and confirmation requirements.
 
 ## Preferences
 

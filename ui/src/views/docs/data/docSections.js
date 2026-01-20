@@ -1,6 +1,6 @@
 import {
   BookOpen, Folder, Package, Brain, Terminal,
-  Layers, Keyboard, Shield, HelpCircle, Sparkles
+  Layers, Keyboard, Shield, HelpCircle, Sparkles, Rocket
 } from 'lucide-react';
 
 const docSections = [
@@ -92,6 +92,30 @@ const docSections = [
       { id: 'model-selection', title: 'Model Selection' },
       { id: 'behavior', title: 'Behavior Settings' },
       { id: 'hooks', title: 'Hooks' },
+    ]
+  },
+  {
+    id: 'gemini-settings',
+    title: 'Gemini CLI Settings',
+    icon: Terminal,
+    isNew: true,
+    subsections: [
+      { id: 'gemini-model', title: 'Model Selection' },
+      { id: 'gemini-display', title: 'Display Options' },
+      { id: 'gemini-general', title: 'General Settings' },
+      { id: 'gemini-sandbox', title: 'Sandbox Mode' },
+    ]
+  },
+  {
+    id: 'antigravity-settings',
+    title: 'Antigravity Settings',
+    icon: Rocket,
+    isNew: true,
+    subsections: [
+      { id: 'antigravity-security', title: 'Security Policies' },
+      { id: 'antigravity-mcp', title: 'MCP Servers' },
+      { id: 'antigravity-browser', title: 'Browser Allowlist' },
+      { id: 'antigravity-agent', title: 'Agent Mode' },
     ]
   },
   {

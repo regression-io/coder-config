@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.36.4] - 2026-01-20
+
+### Added
+
+- **Gemini CLI Settings Documentation** - In-app docs for model selection, display, sandbox
+- **Antigravity Settings Documentation** - In-app docs for security policies, MCP, browser, agent mode
+
+### Changed
+
+- **Smart Sync UX** - Removed confusing "Phase 3" badge, added setup indicator when activity tracking not configured
+
+---
+
 ## [0.36.0] - 2026-01-20
 
 ### Added
