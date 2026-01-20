@@ -791,9 +791,6 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
               <h3 className="font-medium text-gray-900 dark:text-white">Smart Sync</h3>
-              <span className="text-xs bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 px-1.5 py-0.5 rounded">
-                Phase 3
-              </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500 dark:text-slate-400">
@@ -817,8 +814,25 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
 
           <p className="text-sm text-gray-600 dark:text-slate-400 mb-4">
             Automatically suggest workstream switches based on your coding patterns.
-            Non-blocking toasts appear when activity matches a workstream.
           </p>
+
+          {/* Setup warning if no activity data */}
+          {(!activitySummary || activitySummary.totalSessions === 0) && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mb-4">
+              <div className="flex items-start gap-2">
+                <HelpCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium text-amber-800 dark:text-amber-300">Activity tracking not configured</p>
+                  <p className="text-amber-700 dark:text-amber-400 mt-1">
+                    Smart Sync needs activity data to work. Add to <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded text-xs">~/.claude/hooks/post-response.sh</code>:
+                  </p>
+                  <pre className="mt-2 bg-amber-100 dark:bg-amber-900/50 p-2 rounded text-xs font-mono overflow-x-auto">
+                    source ~/.claude-config/hooks/activity-track.sh
+                  </pre>
+                </div>
+              </div>
+            </div>
+          )}
 
           {smartSyncStatus.enabled && (
             <div className="space-y-4">
