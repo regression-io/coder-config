@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { X, Pencil } from 'lucide-react';
+import { X, Pencil, Shield, HelpCircle, AlertTriangle } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import {
   Tooltip, TooltipContent, TooltipTrigger
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { parsePermissionRule, getPermissionTypeConfig } from './utils';
+import { parsePermissionRule, getPermissionTypeConfig, getFriendlyExplanation } from './utils';
 
 export default function PermissionRuleChip({
   rule,
@@ -17,6 +17,7 @@ export default function PermissionRuleChip({
   const [showActions, setShowActions] = useState(false);
   const parsed = parsePermissionRule(rule);
   const typeConfig = getPermissionTypeConfig(parsed.type);
+  const explanation = getFriendlyExplanation(rule, category);
 
   // Truncate long rules for display
   const displayRule = rule.length > 30 ? rule.substring(0, 27) + '...' : rule;
@@ -65,10 +66,36 @@ export default function PermissionRuleChip({
           )}
         </Badge>
       </TooltipTrigger>
-      <TooltipContent side="bottom" className="max-w-sm">
-        <div className="space-y-1">
-          <code className="text-xs break-all block">{rule}</code>
-          <p className="text-xs text-gray-400">{parsed.description}</p>
+      <TooltipContent side="bottom" className="max-w-md p-3">
+        <div className="space-y-2">
+          {/* What this rule does */}
+          <div>
+            <p className="text-sm font-medium text-white">{explanation.summary}</p>
+            <p className="text-xs text-gray-300 mt-1">{explanation.detail}</p>
+          </div>
+
+          {/* Category meaning */}
+          <div className={cn(
+            "text-xs px-2 py-1 rounded",
+            category === 'allow' && "bg-green-900/50 text-green-300",
+            category === 'ask' && "bg-amber-900/50 text-amber-300",
+            category === 'deny' && "bg-red-900/50 text-red-300"
+          )}>
+            {explanation.categoryMeaning}
+          </div>
+
+          {/* Examples if any */}
+          {explanation.examples && explanation.examples.length > 0 && (
+            <div className="text-xs text-gray-400">
+              <span className="font-medium">Examples: </span>
+              {explanation.examples.join(', ')}
+            </div>
+          )}
+
+          {/* Technical pattern */}
+          <code className="text-[10px] text-gray-500 block break-all">
+            Pattern: {rule}
+          </code>
         </div>
       </TooltipContent>
     </Tooltip>

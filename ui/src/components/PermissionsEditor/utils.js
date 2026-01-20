@@ -207,6 +207,147 @@ export function getCategoryConfig(category) {
 }
 
 /**
+ * Get a user-friendly explanation for a permission rule
+ */
+export function getFriendlyExplanation(rule, category) {
+  const parsed = parsePermissionRule(rule);
+  const { type, value } = parsed;
+
+  // Category meanings
+  const categoryMeanings = {
+    allow: {
+      prefix: '✓ Allowed automatically',
+      meaning: 'Claude will do this without asking you first'
+    },
+    ask: {
+      prefix: '? Requires approval',
+      meaning: 'Claude will ask for your permission each time'
+    },
+    deny: {
+      prefix: '✗ Blocked',
+      meaning: 'Claude cannot do this at all'
+    }
+  };
+
+  const catInfo = categoryMeanings[category] || categoryMeanings.ask;
+  let summary = '';
+  let detail = '';
+  let examples = [];
+
+  switch (type) {
+    case 'Bash':
+      if (value.includes(':')) {
+        const [cmd, args] = value.split(':');
+        if (args === '*') {
+          summary = `Run "${cmd}" command`;
+          detail = `Allows running the ${cmd} command with any arguments`;
+          examples = [`${cmd} build`, `${cmd} test`, `${cmd} --help`];
+        } else {
+          summary = `Run "${cmd} ${args}"`;
+          detail = `Allows running this specific command`;
+          examples = [`${cmd} ${args}`];
+        }
+      } else if (value === '*') {
+        summary = 'Run any terminal command';
+        detail = 'Allows executing any command in the terminal. Use with caution!';
+        examples = ['npm install', 'git push', 'rm files'];
+      } else {
+        summary = `Run "${value}" command`;
+        detail = `Allows running this specific command`;
+        examples = [value];
+      }
+      break;
+
+    case 'Read':
+      if (value === '**') {
+        summary = 'Read any file';
+        detail = 'Allows reading the contents of any file in the project';
+        examples = ['package.json', 'src/index.ts', '.env'];
+      } else if (value.includes('**/*.')) {
+        const ext = value.split('**.')[1];
+        summary = `Read ${ext} files`;
+        detail = `Allows reading any file ending in .${ext}`;
+        examples = [`file.${ext}`, `src/component.${ext}`];
+      } else if (value.startsWith('./')) {
+        summary = `Read files in ${value}`;
+        detail = `Allows reading files in the ${value.replace('./', '')} directory`;
+      } else {
+        summary = `Read "${value}"`;
+        detail = 'Allows reading files matching this pattern';
+      }
+      break;
+
+    case 'Edit':
+      if (value === '**') {
+        summary = 'Edit any file';
+        detail = 'Allows modifying the contents of any file. Changes can be undone with git.';
+        examples = ['package.json', 'src/index.ts'];
+      } else if (value.includes('**/*.')) {
+        const ext = value.split('**.')[1];
+        summary = `Edit ${ext} files`;
+        detail = `Allows modifying any file ending in .${ext}`;
+      } else if (value.startsWith('./')) {
+        summary = `Edit files in ${value}`;
+        detail = `Allows modifying files in the ${value.replace('./', '')} directory`;
+      } else {
+        summary = `Edit "${value}"`;
+        detail = 'Allows modifying files matching this pattern';
+      }
+      break;
+
+    case 'Write':
+      if (value === '**') {
+        summary = 'Create any file';
+        detail = 'Allows creating new files anywhere in the project';
+      } else {
+        summary = `Create files in "${value}"`;
+        detail = 'Allows creating new files matching this pattern';
+      }
+      break;
+
+    case 'WebFetch':
+      if (value === '*') {
+        summary = 'Fetch any URL';
+        detail = 'Allows making HTTP requests to any website';
+        examples = ['api.github.com', 'docs.example.com'];
+      } else {
+        summary = `Fetch from ${value}`;
+        detail = 'Allows making HTTP requests to URLs matching this pattern';
+      }
+      break;
+
+    case 'WebSearch':
+      summary = 'Search the web';
+      detail = 'Allows Claude to search the internet for information';
+      break;
+
+    case 'mcp':
+      const parts = rule.split('__');
+      const server = parts[1] || 'unknown';
+      const tool = parts[2] || '*';
+      if (tool === '*' || rule.endsWith('*')) {
+        summary = `Use ${server} tools`;
+        detail = `Allows using any tool from the ${server} MCP server`;
+      } else {
+        summary = `Use ${server}/${tool}`;
+        detail = `Allows using the ${tool} tool from the ${server} MCP server`;
+      }
+      break;
+
+    default:
+      summary = rule;
+      detail = 'Custom permission rule';
+  }
+
+  return {
+    summary,
+    detail,
+    examples,
+    categoryMeaning: `${catInfo.prefix} — ${catInfo.meaning}`
+  };
+}
+
+/**
  * Group rules by their type
  */
 export function groupRulesByType(rules) {
