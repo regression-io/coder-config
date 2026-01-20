@@ -5,6 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.35.25] - 2026-01-20
+
+### Changed
+
+- **CLI Command Standardization** - All commands now use space-separated subcommands
+  - `workstream add-project` → `workstream add`
+  - `workstream remove-project` → `workstream remove`
+  - `registry add/remove` (was already correct)
+  - Consistent pattern across all CLI commands
+
+## [0.35.21] - 2026-01-20
+
+### Added
+
+- **CLI Commands Sections** - Added CLI reference to all relevant views
+  - Memory, Environment, Registry, Claude Settings, Gemini Settings
+  - Consistent with Workstreams view pattern
+
+## [0.35.19] - 2026-01-20
+
+### Added
+
+- **Hook Integration Explainer** - Info icon with tooltip in Workstreams view
+  - Explains what hooks are and how they work
+  - Helps users understand automatic rule injection
+
+## [0.35.15] - 2026-01-20
+
+### Added
+
+- **Shared Project Indicator** - Shows when a project belongs to multiple workstreams
+  - "shared" badge appears next to projects in workstream dialogs
+  - Non-blocking indicator (no confirmation required)
+
+### Changed
+
+- **README Quick Start** - `claude-config ui` now listed first as recommended approach
+
+## [0.35.9] - 2026-01-20
+
+### Changed
+
+- **Workstreams Documentation** - Clarified mental model
+  - Workstreams are "virtual project sets" for multi-repo products
+  - Each workstream represents one product/feature spanning multiple repos
+
+## [0.35.7] - 2026-01-20
+
+### Fixed
+
+- **Tutorial Navigation** - Scrolls to top when clicking Next/Previous buttons
+
+## [0.35.5] - 2026-01-20
+
+### Fixed
+
+- **Tutorial Code Blocks** - Fixed escaped backticks showing as `\`\`\``
+  - Properly unescapes nested backticks in code blocks
+
 ## [0.35.2] - 2026-01-20
 
 ### Fixed

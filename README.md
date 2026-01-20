@@ -222,9 +222,9 @@ When working on complex features that span multiple repos (e.g., REST API + UI +
 claude-config workstream create "User Auth"
 
 # Add related projects
-claude-config workstream add-project "User Auth" ~/projects/api
-claude-config workstream add-project "User Auth" ~/projects/ui
-claude-config workstream add-project "User Auth" ~/projects/shared
+claude-config workstream add "User Auth" ~/projects/api
+claude-config workstream add "User Auth" ~/projects/ui
+claude-config workstream add "User Auth" ~/projects/shared
 
 # Activate it
 claude-config workstream use "User Auth"
