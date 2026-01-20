@@ -57,9 +57,9 @@ Each workstream has:
 claude-config workstream create "Acme App"
 
 # Add repos to it
-claude-config workstream add-project "Acme App" ~/projects/acme-frontend
-claude-config workstream add-project "Acme App" ~/projects/acme-api
-claude-config workstream add-project "Acme App" ~/projects/acme-shared
+claude-config workstream add "Acme App" ~/projects/acme-frontend
+claude-config workstream add "Acme App" ~/projects/acme-api
+claude-config workstream add "Acme App" ~/projects/acme-shared
 
 # Activate it
 claude-config workstream use "Acme App"

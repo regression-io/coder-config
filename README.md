@@ -1,6 +1,14 @@
 # Claude Config
 
-Configuration management for **Claude Code** with CLI and optional Web UI.
+Configuration helper for **Claude Code** - manage MCPs, rules, permissions, and memory through a visual UI or CLI.
+
+## Why?
+
+Claude Code works great out of the box. This tool helps when you want to:
+- Configure MCP servers without editing JSON
+- Manage permissions and rules visually
+- Share configurations across projects
+- Set up persistent memory for Claude sessions
 
 ## Installation
 
@@ -8,27 +16,14 @@ Configuration management for **Claude Code** with CLI and optional Web UI.
 npm install -g @regression-io/claude-config
 ```
 
-Or from GitHub:
-```bash
-npm install -g github:regression-io/claude-config
-```
-
-## Updating
-
-```bash
-npm update -g @regression-io/claude-config
-```
-
-The Web UI automatically detects when updates are available and shows a notification in the Preferences page.
-
 ## Quick Start
 
 ```bash
-# Launch the Web UI (recommended)
+# Open the configuration UI
 claude-config ui
 ```
 
-The Web UI provides a visual interface for managing all your Claude Code configuration.
+Then use Claude Code as normal - just run `claude` in your project directory.
 
 ### CLI Alternative
 

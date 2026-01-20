@@ -52,11 +52,12 @@ claude-config show                # Show configuration
 ### MCP Commands
 
 \`\`\`bash
-claude-config list                # List available MCPs
-claude-config add <mcp>           # Add MCP to project
-claude-config remove <mcp>        # Remove MCP
-claude-config registry-add        # Add to registry
-claude-config registry-remove     # Remove from registry
+claude-config list                      # List available MCPs
+claude-config add <mcp>                 # Add MCP to project
+claude-config remove <mcp>              # Remove MCP
+claude-config registry                  # List registry
+claude-config registry add <name> '{}'  # Add to registry
+claude-config registry remove <name>    # Remove from registry
 \`\`\`
 
 ### Project Registry
@@ -99,8 +100,8 @@ claude-config workstream create "X"   # Create workstream
 claude-config workstream delete "X"   # Delete workstream
 claude-config workstream use "X"      # Set active
 claude-config workstream active       # Show active
-claude-config workstream add-project "X" /path    # Add project
-claude-config workstream remove-project "X" /path # Remove project
+claude-config workstream add "X" /path     # Add project
+claude-config workstream remove "X" /path  # Remove project
 claude-config workstream inject       # Output rules for hooks
 claude-config workstream detect       # Detect from directory
 \`\`\`

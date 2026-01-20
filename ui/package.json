@@ -1,7 +1,7 @@
 {
   "name": "claude-config-ui",
   "private": true,
-  "version": "0.35.29",
+  "version": "0.35.31",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -37,51 +37,40 @@ This should display the version number and installation paths.
     content: `
 ## Quick Start
 
-### 1. Start the UI
+Claude Code works great out of the box. This tool helps you manage its configuration visually.
+
+### 1. Start the Config UI
 
 \`\`\`bash
 claude-config ui
 \`\`\`
 
-This starts the web UI as a background daemon on port 3333.
+This opens a web UI for managing Claude Code settings.
 
-### 2. Open in Browser
+### 2. Add Your Projects
 
-Navigate to **http://localhost:3333**
+Click "Add Project" to register directories where you use Claude Code.
 
-### 3. Add a Project
+### 3. Configure as Needed
 
-Click "Add Project" in the header or go to All Projects view to register your project directories.
+For each project, you can manage:
+- **Rules** - Guidelines Claude follows in this project
+- **Commands** - Reusable prompts (slash commands)
+- **MCPs** - External tools Claude can use
+- **Permissions** - What Claude can do automatically
 
-### 4. Initialize Configuration
+### 4. Use Claude Code Normally
 
-For each project, you can:
-- Create a \`.claude\` folder with configuration
-- Add rules (guidelines for Claude)
-- Add commands (reusable prompts)
-- Configure MCPs (Model Context Protocol servers)
+\`\`\`bash
+cd ~/your-project
+claude
+\`\`\`
 
-### 5. Apply Templates
+Claude Code automatically reads configuration from the \`.claude/\` folder.
 
-Use pre-built templates to quickly set up rules for your project type:
-- **fastapi** - Python FastAPI projects
-- **react-ts** - React with TypeScript
-- **python-cli** - Python CLI tools
-- And more...
+### Optional: Install as App
 
-### 6. Install as App (Optional)
-
-Claude Config is a PWA (Progressive Web App). Install it to your taskbar:
-
-**Chrome/Edge:** Click the install icon in the address bar
-**Safari:** Share → Add to Dock
-
-### 7. Theme
-
-Use the theme toggle in the header to switch between:
-- **Light** - Light mode
-- **Dark** - Dark mode
-- **Auto** - Follow system preference
+The UI is a PWA - install it to your taskbar via Chrome/Edge's install button or Safari's Share → Add to Dock.
     `
   },
   'updating': {
