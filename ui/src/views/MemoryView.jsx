@@ -671,6 +671,18 @@ export default function MemoryView({ project, onUpdate }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* CLI Commands */}
+      <div className="bg-gray-50 dark:bg-slate-900 rounded-lg p-4 border border-transparent dark:border-slate-800">
+        <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">CLI Commands</h4>
+        <div className="space-y-1 text-sm text-gray-600 dark:text-slate-400 font-mono">
+          <p>claude-config memory                         # Show memory status</p>
+          <p>claude-config memory init                    # Initialize project memory</p>
+          <p>claude-config memory add &lt;type&gt; "&lt;content&gt;"  # Add entry</p>
+          <p>claude-config memory search &lt;query&gt;          # Search all memory</p>
+          <p className="text-gray-400 dark:text-slate-500 text-xs mt-2"># Types: preference, correction, fact (global) | context, pattern, decision, issue, history (project)</p>
+        </div>
+      </div>
     </div>
   );
 }
