@@ -39,6 +39,8 @@ Plugins come from **marketplaces** - curated collections maintained by the commu
 
 Let's install your first plugin!
 
+![Plugins View](/tutorial/plugins-view.png)
+
 ### Step by Step
 
 1. Click **"Plugins"** in the sidebar

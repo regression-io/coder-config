@@ -44,6 +44,8 @@ Claude reads these automatically when you start a conversation.
 
 Let's add some memory entries to make Claude smarter about your work.
 
+![Memory View](/tutorial/memory-view.png)
+
 ### Accessing Memory
 
 1. Click **"Memory"** in the sidebar

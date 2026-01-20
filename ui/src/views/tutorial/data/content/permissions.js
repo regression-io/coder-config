@@ -49,6 +49,8 @@ This gives you speed AND safety.
 
 Let's configure some permissions for your workflow.
 
+![Claude Code Settings](/tutorial/claude-settings.png)
+
 ### Getting There
 
 1. Click **"Claude Code"** in the sidebar

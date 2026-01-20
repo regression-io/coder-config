@@ -3,12 +3,15 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { Sparkles, Settings, Shield, Package, GraduationCap, ArrowRight } from 'lucide-react';
 
 const STORAGE_KEY = 'claude-config-welcome-seen';
 
 export default function WelcomeModal({ onStartTutorial }) {
   const [open, setOpen] = useState(false);
+  const [dontAskAgain, setDontAskAgain] = useState(true);
 
   useEffect(() => {
     // Check if user has seen the welcome modal
@@ -21,12 +24,16 @@ export default function WelcomeModal({ onStartTutorial }) {
   }, []);
 
   const handleSkip = () => {
-    localStorage.setItem(STORAGE_KEY, 'true');
+    if (dontAskAgain) {
+      localStorage.setItem(STORAGE_KEY, 'true');
+    }
     setOpen(false);
   };
 
   const handleStartTutorial = () => {
-    localStorage.setItem(STORAGE_KEY, 'true');
+    if (dontAskAgain) {
+      localStorage.setItem(STORAGE_KEY, 'true');
+    }
     setOpen(false);
     onStartTutorial?.();
   };
@@ -70,6 +77,17 @@ export default function WelcomeModal({ onStartTutorial }) {
           <p className="text-sm text-muted-foreground">
             Take our guided tutorial to learn the basics, or dive in and explore on your own.
           </p>
+
+          <div className="flex items-center gap-2 pt-2">
+            <Checkbox
+              id="dont-ask"
+              checked={dontAskAgain}
+              onCheckedChange={setDontAskAgain}
+            />
+            <Label htmlFor="dont-ask" className="text-sm text-muted-foreground cursor-pointer">
+              Don't show this again
+            </Label>
+          </div>
         </div>
 
         <DialogFooter className="flex gap-2 sm:gap-2">

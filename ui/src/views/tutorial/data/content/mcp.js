@@ -48,6 +48,8 @@ Claude: "Read the config file at /etc/myapp/config.json"
 
 Let's add an MCP to your project. We'll use the popular **filesystem** MCP as an example.
 
+![MCP Registry](/tutorial/mcp-registry.png)
+
 ### Step by Step
 
 1. Click **"MCP Registry"** in the sidebar

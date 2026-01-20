@@ -6,6 +6,8 @@ export const welcomeContent = {
 
 Think of Claude Config as your **control center** for Claude Code (and other AI coding tools). Instead of manually editing JSON files or remembering command-line flags, you get a friendly UI to manage everything.
 
+![Welcome to Claude Config](/tutorial/welcome-modal.png)
+
 ### What can you do here?
 
 - **Register projects** you're working on

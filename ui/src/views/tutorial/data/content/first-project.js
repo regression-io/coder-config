@@ -8,6 +8,8 @@ A "project" in Claude Config is simply a directory on your computer - usually a 
 
 ### How to Add a Project
 
+![All Projects View](/tutorial/projects-view.png)
+
 **Option 1: From the Header**
 1. Look at the top of the screen - you'll see a project dropdown
 2. Click it and select **"Add Project"**
@@ -44,6 +46,8 @@ Now that you've added a project, let's explore what you can do with it.
 ### The Project Explorer
 
 Click **"Project Explorer"** in the sidebar. This shows you the configuration files inside your project's \`.claude\` folder.
+
+![Project Explorer](/tutorial/project-explorer.png)
 
 If you see "No .claude folder found", that's okay! We'll create one in the next section.
 
