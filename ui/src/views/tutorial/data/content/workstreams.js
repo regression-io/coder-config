@@ -2,8 +2,6 @@ export const workstreamsContent = {
   'what-are-workstreams': {
     title: 'What Are Workstreams?',
     content: `
-## What Are Workstreams?
-
 Workstreams are for when you work on **multiple related projects** together. They group projects and share context between them.
 
 ### When to Use Workstreams
@@ -36,8 +34,6 @@ With a workstream:
   'creating-workstream': {
     title: 'Creating a Workstream',
     content: `
-## Creating a Workstream
-
 Let's set up a workstream for related projects.
 
 ### Step by Step

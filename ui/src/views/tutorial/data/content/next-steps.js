@@ -2,9 +2,7 @@ export const nextStepsContent = {
   'next-steps': {
     title: 'Next Steps',
     content: `
-## Congratulations!
-
-You've completed the Claude Config tutorial. You now know how to:
+You've completed the Claude Config tutorial! You now know how to:
 
 - Add and manage projects
 - Create rules for Claude

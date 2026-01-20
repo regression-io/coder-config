@@ -2,8 +2,6 @@ export const welcomeContent = {
   'intro': {
     title: 'What is Claude Config?',
     content: `
-## Welcome to Claude Config!
-
 Think of Claude Config as your **control center** for Claude Code (and other AI coding tools). Instead of manually editing JSON files or remembering command-line flags, you get a friendly UI to manage everything.
 
 ### What can you do here?
@@ -28,8 +26,6 @@ Let's get started!
   'what-youll-learn': {
     title: "What You'll Learn",
     content: `
-## What You'll Learn
-
 This tutorial walks you through Claude Config step-by-step. By the end, you'll know how to:
 
 ### The Basics

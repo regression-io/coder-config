@@ -2,8 +2,6 @@ export const memoryContent = {
   'what-is-memory': {
     title: 'What is Memory?',
     content: `
-## What is Memory?
-
 Memory lets Claude **remember things** across conversations. Instead of repeating yourself, teach Claude once and it remembers.
 
 ### Types of Memory
@@ -40,8 +38,6 @@ Claude reads these automatically when you start a conversation.
   'using-memory': {
     title: 'Using Memory',
     content: `
-## Using Memory
-
 Let's add some memory entries to make Claude smarter about your work.
 
 ![Memory View](/tutorial/memory-view.png)

@@ -2,8 +2,6 @@ export const rulesContent = {
   'what-are-rules': {
     title: 'What Are Rules?',
     content: `
-## What Are Rules?
-
 Rules are **instructions for Claude** written in plain Markdown. They tell Claude things like:
 
 - How your project is structured
@@ -44,8 +42,6 @@ For example, you might want Claude to:
   'creating-rules': {
     title: 'Creating Your First Rule',
     content: `
-## Creating Your First Rule
-
 Let's create a simple rule file. This takes just a minute!
 
 ### Step by Step
@@ -96,8 +92,6 @@ You can have multiple rule files. Claude reads them all. Organize by topic:
   'rule-tips': {
     title: 'Tips for Great Rules',
     content: `
-## Tips for Writing Great Rules
-
 Good rules make Claude more helpful. Here's what works best.
 
 ### Be Specific, Not Vague

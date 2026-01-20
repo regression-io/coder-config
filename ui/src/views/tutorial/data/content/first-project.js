@@ -2,8 +2,6 @@ export const firstProjectContent = {
   'adding-project': {
     title: 'Adding a Project',
     content: `
-## Adding Your First Project
-
 A "project" in Claude Config is simply a directory on your computer - usually a git repository or a folder containing code.
 
 ### How to Add a Project
@@ -39,8 +37,6 @@ Try adding a project now, then continue to the next section!
   'exploring-project': {
     title: 'Exploring Your Project',
     content: `
-## Exploring Your Project
-
 Now that you've added a project, let's explore what you can do with it.
 
 ### The Project Explorer
@@ -79,8 +75,6 @@ Let's create the .claude folder next!
   'claude-folder': {
     title: 'The .claude Folder',
     content: `
-## The .claude Folder
-
 The \`.claude\` folder is where all your project's Claude configuration lives. Think of it as Claude's "instruction manual" for your project.
 
 ### Creating the Folder

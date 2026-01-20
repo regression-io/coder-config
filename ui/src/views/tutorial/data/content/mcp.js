@@ -2,8 +2,6 @@ export const mcpContent = {
   'what-are-mcps': {
     title: 'What Are MCPs?',
     content: `
-## What Are MCPs?
-
 MCP stands for **Model Context Protocol**. Think of MCPs as "plugins" that give Claude new abilities.
 
 ### What Can MCPs Do?
@@ -44,8 +42,6 @@ Claude: "Read the config file at /etc/myapp/config.json"
   'adding-mcp': {
     title: 'Adding Your First MCP',
     content: `
-## Adding Your First MCP
-
 Let's add an MCP to your project. We'll use the popular **filesystem** MCP as an example.
 
 ![MCP Registry](/tutorial/mcp-registry.png)
@@ -100,8 +96,6 @@ If Claude can list the files, your MCP is working!
   'mcp-config': {
     title: 'Configuring MCPs',
     content: `
-## Configuring MCPs
-
 Each MCP has its own configuration options. Here's how to manage them.
 
 ### The Configuration Panel

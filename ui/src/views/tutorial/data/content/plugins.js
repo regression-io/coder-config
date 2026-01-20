@@ -2,8 +2,6 @@ export const pluginsContent = {
   'what-are-plugins': {
     title: 'What Are Plugins?',
     content: `
-## What Are Plugins?
-
 Plugins are **pre-built configurations** you can install with one click. Instead of writing rules from scratch, use plugins created by the community.
 
 ### What's in a Plugin?
@@ -35,8 +33,6 @@ Plugins come from **marketplaces** - curated collections maintained by the commu
   'installing-plugin': {
     title: 'Installing a Plugin',
     content: `
-## Installing a Plugin
-
 Let's install your first plugin!
 
 ![Plugins View](/tutorial/plugins-view.png)

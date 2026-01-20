@@ -2,8 +2,6 @@ export const permissionsContent = {
   'understanding-permissions': {
     title: 'How Permissions Work',
     content: `
-## How Permissions Work
-
 Permissions control what Claude can do **automatically** vs what requires your approval.
 
 ### The Three Categories
@@ -45,8 +43,6 @@ This gives you speed AND safety.
   'setting-permissions': {
     title: 'Setting Up Permissions',
     content: `
-## Setting Up Permissions
-
 Let's configure some permissions for your workflow.
 
 ![Claude Code Settings](/tutorial/claude-settings.png)
@@ -92,8 +88,6 @@ Hover over any rule chip to see:
   'permission-patterns': {
     title: 'Permission Patterns',
     content: `
-## Permission Patterns
-
 Permissions use **patterns** to match operations. Here's how they work.
 
 ### File Patterns

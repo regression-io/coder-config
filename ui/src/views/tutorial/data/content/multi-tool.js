@@ -2,8 +2,6 @@ export const multiToolContent = {
   'other-tools': {
     title: 'Beyond Claude Code',
     content: `
-## Beyond Claude Code
-
 Claude Config isn't just for Claude Code! It also supports other AI coding tools.
 
 ### Supported Tools
@@ -43,8 +41,6 @@ With Claude Config, you configure once and use everywhere.
   'syncing-tools': {
     title: 'Syncing Between Tools',
     content: `
-## Syncing Between Tools
-
 Keep your rules consistent across all your AI coding tools.
 
 ### The Sync Feature

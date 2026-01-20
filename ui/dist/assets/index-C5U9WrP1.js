@@ -2204,8 +2204,6 @@ This cannot be undone.`))try{const He=await ke.deleteWorkstream(Z.id);He.success
   - \`null\` or \`undefined\` if the progress is indeterminate.
 
 Defaulting to \`null\`.`}var F2=L2,kH=O2;const $2=C.forwardRef(({className:e,value:t,...r},n)=>s.jsx(F2,{ref:n,className:Pe("relative h-2 w-full overflow-hidden rounded-full bg-primary/20",e),...r,children:s.jsx(kH,{className:"h-full w-full flex-1 bg-primary transition-all",style:{transform:`translateX(-${100-(t||0)}%)`}})}));$2.displayName=F2.displayName;const Ba=[{id:"welcome",title:"Welcome",icon:Ht,subsections:[{id:"intro",title:"What is Claude Config?"},{id:"what-youll-learn",title:"What You'll Learn"}]},{id:"first-project",title:"Your First Project",icon:qs,subsections:[{id:"adding-project",title:"Adding a Project"},{id:"exploring-project",title:"Exploring Your Project"},{id:"claude-folder",title:"The .claude Folder"}]},{id:"rules-guide",title:"Working with Rules",icon:hr,subsections:[{id:"what-are-rules",title:"What Are Rules?"},{id:"creating-rules",title:"Creating Your First Rule"},{id:"rule-tips",title:"Tips for Great Rules"}]},{id:"mcp-guide",title:"MCP Servers",icon:Hn,subsections:[{id:"what-are-mcps",title:"What Are MCPs?"},{id:"adding-mcp",title:"Adding Your First MCP"},{id:"mcp-config",title:"Configuring MCPs"}]},{id:"permissions-guide",title:"Permissions",icon:$i,subsections:[{id:"understanding-permissions",title:"How Permissions Work"},{id:"setting-permissions",title:"Setting Up Permissions"},{id:"permission-patterns",title:"Permission Patterns"}]},{id:"memory-guide",title:"Memory System",icon:Ri,subsections:[{id:"what-is-memory",title:"What is Memory?"},{id:"using-memory",title:"Using Memory"}]},{id:"plugins-guide",title:"Plugins",icon:Mi,subsections:[{id:"what-are-plugins",title:"What Are Plugins?"},{id:"installing-plugin",title:"Installing a Plugin"}]},{id:"workstreams-guide",title:"Workstreams",icon:qa,subsections:[{id:"what-are-workstreams",title:"What Are Workstreams?"},{id:"creating-workstream",title:"Creating a Workstream"}]},{id:"multi-tool-guide",title:"Multi-Tool Support",icon:On,subsections:[{id:"other-tools",title:"Beyond Claude Code"},{id:"syncing-tools",title:"Syncing Between Tools"}]},{id:"next-steps",title:"Next Steps",icon:_1,subsections:[]}],jH={intro:{title:"What is Claude Config?",content:`
-## Welcome to Claude Config!
-
 Think of Claude Config as your **control center** for Claude Code (and other AI coding tools). Instead of manually editing JSON files or remembering command-line flags, you get a friendly UI to manage everything.
 
 ### What can you do here?
@@ -2226,8 +2224,6 @@ Anyone using Claude Code! Whether you're:
 
 Let's get started!
     `},"what-youll-learn":{title:"What You'll Learn",content:`
-## What You'll Learn
-
 This tutorial walks you through Claude Config step-by-step. By the end, you'll know how to:
 
 ### The Basics
@@ -2250,8 +2246,6 @@ Each section takes about **5 minutes**. You can stop anytime and pick up where y
 
 Ready? Click **"Adding a Project"** in the sidebar to begin.
     `}},NH={"adding-project":{title:"Adding a Project",content:`
-## Adding Your First Project
-
 A "project" in Claude Config is simply a directory on your computer - usually a git repository or a folder containing code.
 
 ### How to Add a Project
@@ -2283,8 +2277,6 @@ Once you add a project:
 
 Try adding a project now, then continue to the next section!
     `},"exploring-project":{title:"Exploring Your Project",content:`
-## Exploring Your Project
-
 Now that you've added a project, let's explore what you can do with it.
 
 ### The Project Explorer
@@ -2319,8 +2311,6 @@ At the top, you'll see project info:
 
 Let's create the .claude folder next!
     `},"claude-folder":{title:"The .claude Folder",content:`
-## The .claude Folder
-
 The \`.claude\` folder is where all your project's Claude configuration lives. Think of it as Claude's "instruction manual" for your project.
 
 ### Creating the Folder
@@ -2355,8 +2345,6 @@ You can also create a \`CLAUDE.md\` file in your project root. Claude reads this
 
 Next, let's learn about rules - the most powerful part of Claude Config!
     `}},EH={"what-are-rules":{title:"What Are Rules?",content:`
-## What Are Rules?
-
 Rules are **instructions for Claude** written in plain Markdown. They tell Claude things like:
 
 - How your project is structured
@@ -2393,8 +2381,6 @@ For example, you might want Claude to:
 - Never modify certain files
 - Use specific patterns for error handling
     `},"creating-rules":{title:"Creating Your First Rule",content:`
-## Creating Your First Rule
-
 Let's create a simple rule file. This takes just a minute!
 
 ### Step by Step
@@ -2441,8 +2427,6 @@ You can have multiple rule files. Claude reads them all. Organize by topic:
 - \`architecture.md\` - Project structure
 - \`testing.md\` - Test guidelines
     `},"rule-tips":{title:"Tips for Great Rules",content:`
-## Tips for Writing Great Rules
-
 Good rules make Claude more helpful. Here's what works best.
 
 ### Be Specific, Not Vague
@@ -2491,8 +2475,6 @@ Claude is smart. You don't need to specify everything. Focus on:
 - Project-specific patterns
 - Things Claude might not know about your codebase
     `}},PH={"what-are-mcps":{title:"What Are MCPs?",content:`
-## What Are MCPs?
-
 MCP stands for **Model Context Protocol**. Think of MCPs as "plugins" that give Claude new abilities.
 
 ### What Can MCPs Do?
@@ -2529,8 +2511,6 @@ Claude: "Read the config file at /etc/myapp/config.json"
 - **Community MCPs** - Open source on npm and GitHub
 - **Custom MCPs** - Build your own for specific needs
     `},"adding-mcp":{title:"Adding Your First MCP",content:`
-## Adding Your First MCP
-
 Let's add an MCP to your project. We'll use the popular **filesystem** MCP as an example.
 
 ![MCP Registry](/tutorial/mcp-registry.png)
@@ -2581,8 +2561,6 @@ If Claude can list the files, your MCP is working!
 - **@anthropic/mcp-server-github** - GitHub integration
 - **@anthropic/mcp-server-postgres** - PostgreSQL queries
     `},"mcp-config":{title:"Configuring MCPs",content:`
-## Configuring MCPs
-
 Each MCP has its own configuration options. Here's how to manage them.
 
 ### The Configuration Panel
@@ -2625,8 +2603,6 @@ If an MCP isn't working:
 3. Restart Claude Code
 4. Check Claude's output for error messages
     `}},AH={"understanding-permissions":{title:"How Permissions Work",content:`
-## How Permissions Work
-
 Permissions control what Claude can do **automatically** vs what requires your approval.
 
 ### The Three Categories
@@ -2664,8 +2640,6 @@ With permissions:
 
 This gives you speed AND safety.
     `},"setting-permissions":{title:"Setting Up Permissions",content:`
-## Setting Up Permissions
-
 Let's configure some permissions for your workflow.
 
 ![Claude Code Settings](/tutorial/claude-settings.png)
@@ -2707,8 +2681,6 @@ Hover over any rule chip to see:
 - Examples of what it matches
 - What category means for this operation
     `},"permission-patterns":{title:"Permission Patterns",content:`
-## Permission Patterns
-
 Permissions use **patterns** to match operations. Here's how they work.
 
 ### File Patterns
@@ -2749,8 +2721,6 @@ mcp__*__*           → Any MCP tool (broad!)
 - Use specific patterns for sensitive operations
 - Group related permissions (all npm stuff in one rule)
     `}},TH={"what-is-memory":{title:"What is Memory?",content:`
-## What is Memory?
-
 Memory lets Claude **remember things** across conversations. Instead of repeating yourself, teach Claude once and it remembers.
 
 ### Types of Memory
@@ -2783,8 +2753,6 @@ Claude reads these automatically when you start a conversation.
 - Learned: 2024-01-15
 \`\`\`
     `},"using-memory":{title:"Using Memory",content:`
-## Using Memory
-
 Let's add some memory entries to make Claude smarter about your work.
 
 ![Memory View](/tutorial/memory-view.png)
@@ -2829,8 +2797,6 @@ What to do instead: Use the logger at src/utils/logger.ts
 - Delete outdated entries
 - Use project memory for project-specific stuff
     `}},RH={"what-are-plugins":{title:"What Are Plugins?",content:`
-## What Are Plugins?
-
 Plugins are **pre-built configurations** you can install with one click. Instead of writing rules from scratch, use plugins created by the community.
 
 ### What's in a Plugin?
@@ -2858,8 +2824,6 @@ A plugin can include:
 
 Plugins come from **marketplaces** - curated collections maintained by the community. The default marketplace has popular, vetted plugins.
     `},"installing-plugin":{title:"Installing a Plugin",content:`
-## Installing a Plugin
-
 Let's install your first plugin!
 
 ![Plugins View](/tutorial/plugins-view.png)
@@ -2900,8 +2864,6 @@ Want more plugins? You can:
 2. Create your own plugins
 3. Share plugins with your team
     `}},MH={"what-are-workstreams":{title:"What Are Workstreams?",content:`
-## What Are Workstreams?
-
 Workstreams are for when you work on **multiple related projects** together. They group projects and share context between them.
 
 ### When to Use Workstreams
@@ -2930,8 +2892,6 @@ With a workstream:
 - **Smart switching** - Auto-switch when you change projects
 - **Activity tracking** - See which projects you're actively working on
     `},"creating-workstream":{title:"Creating a Workstream",content:`
-## Creating a Workstream
-
 Let's set up a workstream for related projects.
 
 ### Step by Step
@@ -2971,8 +2931,6 @@ The workstream view shows:
 
 This helps you see your workflow at a glance.
     `}},DH={"other-tools":{title:"Beyond Claude Code",content:`
-## Beyond Claude Code
-
 Claude Config isn't just for Claude Code! It also supports other AI coding tools.
 
 ### Supported Tools
@@ -3008,8 +2966,6 @@ With Claude Config, you configure once and use everywhere.
 3. Check the tools you want to use
 4. New tabs appear in the sidebar for each tool
     `},"syncing-tools":{title:"Syncing Between Tools",content:`
-## Syncing Between Tools
-
 Keep your rules consistent across all your AI coding tools.
 
 ### The Sync Feature
@@ -3052,9 +3008,7 @@ Each tool has its own settings page in the sidebar:
 - **Gemini CLI** - MCP configuration
 - Configure each tool separately for tool-specific needs
     `}},LH={"next-steps":{title:"Next Steps",content:`
-## Congratulations!
-
-You've completed the Claude Config tutorial. You now know how to:
+You've completed the Claude Config tutorial! You now know how to:
 
 - Add and manage projects
 - Create rules for Claude
