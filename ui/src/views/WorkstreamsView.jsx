@@ -936,7 +936,7 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                             <span className="font-medium text-gray-900 dark:text-white">{p.name}</span>
                             {existingWs && (
                               <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
-                                in {existingWs.name}
+                                shared
                               </span>
                             )}
                           </div>
@@ -1083,7 +1083,7 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                               <span className="font-medium text-gray-900 dark:text-white">{p.name}</span>
                               {existingWs && (
                                 <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
-                                  in {existingWs.name}
+                                  shared
                                 </span>
                               )}
                             </div>
@@ -1160,7 +1160,7 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                           <span className="font-medium text-gray-900 dark:text-white">{p.name}</span>
                           {existingWs && (
                             <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
-                              in {existingWs.name}
+                              shared
                             </span>
                           )}
                         </div>
