@@ -9,7 +9,7 @@ claude-config supports multiple AI coding assistants:
 | Tool | Type | Config Location |
 |------|------|-----------------|
 | **Claude Code** | Terminal CLI | \`.mcp.json\`, \`~/.claude/\` |
-| **Gemini CLI** | Terminal CLI | \`~/.gemini/settings.json\` |
+| **Gemini CLI** | Terminal CLI | \`.gemini/settings.json\`, \`~/.gemini/settings.json\` |
 | **Antigravity** | Full IDE | \`~/.gemini/antigravity/mcp_config.json\` |
 
 ### Shared MCP Registry
@@ -36,7 +36,11 @@ Gemini CLI is Google's terminal-based AI coding assistant, similar to Claude Cod
 
 ### Configuration
 
-Gemini CLI settings are stored in \`~/.gemini/settings.json\`:
+Gemini CLI settings are stored in two locations:
+- **Global**: \`~/.gemini/settings.json\`
+- **Per-project**: \`.gemini/settings.json\` (in project directory)
+
+When you apply config, both files are generated:
 
 \`\`\`json
 {
@@ -146,17 +150,17 @@ All tools use identical JSON format for MCP server definitions:
 | Feature | Claude Code | Gemini CLI | Antigravity |
 |---------|-------------|------------|-------------|
 | Type | Terminal CLI | Terminal CLI | Full IDE |
-| MCP Config | \`.mcp.json\` | \`~/.gemini/settings.json\` | \`~/.gemini/antigravity/\` |
+| MCP Config | \`.mcp.json\` | \`.gemini/settings.json\` + global | \`~/.gemini/antigravity/\` |
 | Env Interpolation | Yes (\`\${VAR}\`) | Yes | No |
 | Commands | \`.claude/commands/\` | \`.gemini/commands/\` | Unknown |
-| Rules | \`.claude/rules/\` | \`.gemini/\` | \`.agent/rules/\` |
+| Rules | \`.claude/rules/\` | \`.gemini/rules/\` | \`.agent/rules/\` |
 | Instructions | \`CLAUDE.md\` | \`GEMINI.md\` | \`GEMINI.md\` |
 
 ### What This Means
 
 - Your MCP registry is shared between all tools
 - When you click "Apply Config", all enabled tools get updated
-- Rules can be synced between Claude Code and Antigravity
+- Rules can be synced between Claude Code, Gemini CLI, and Antigravity
 - Gemini CLI and Antigravity share global instructions (known conflict)
     `
   },
@@ -199,11 +203,11 @@ Tool preferences are stored in \`~/.claude-config/config.json\`:
     content: `
 ## Syncing Rules Between Tools
 
-Sync rules between Claude Code and Antigravity to maintain consistency.
+Sync rules between Claude Code, Gemini CLI, and Antigravity to maintain consistency.
 
 ### Accessing Sync
 
-1. Enable **both tools** in Preferences
+1. Enable **multiple tools** in Preferences
 2. Go to **Project Explorer**
 3. Click the **Sync** button in the toolbar
 
@@ -211,7 +215,7 @@ Sync rules between Claude Code and Antigravity to maintain consistency.
 
 The sync dialog allows you to:
 
-- **Choose direction**: Claude Code → Antigravity or vice versa
+- **Choose direction**: Any tool → Any tool (Claude Code ↔ Gemini CLI ↔ Antigravity)
 - **Preview changes**: See which files will be copied
 - **Selective sync**: Choose specific files to sync
 - **Status indicators**:
@@ -221,10 +225,13 @@ The sync dialog allows you to:
 
 ### What Gets Synced
 
-| From | To |
-|------|-----|
-| \`.claude/rules/*.md\` | \`.agent/rules/*.md\` |
-| \`.agent/rules/*.md\` | \`.claude/rules/*.md\` |
+| Tool | Rules Location |
+|------|----------------|
+| Claude Code | \`.claude/rules/*.md\` |
+| Gemini CLI | \`.gemini/rules/*.md\` |
+| Antigravity | \`.agent/rules/*.md\` |
+
+Rules can be synced in any direction between these three tools.
 
 ### Notes
 
@@ -232,7 +239,6 @@ The sync dialog allows you to:
 - Target files are **overwritten** if they exist
 - Instructions files (CLAUDE.md / GEMINI.md) are not synced
 - Commands and workflows are Claude-specific (not synced)
-- Gemini CLI uses different paths and is not currently included in rule sync
     `
   },
 };

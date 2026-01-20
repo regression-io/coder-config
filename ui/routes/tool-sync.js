@@ -1,16 +1,28 @@
 /**
- * Tool Sync Routes (Claude <-> Antigravity)
+ * Tool Sync Routes (Claude <-> Gemini <-> Antigravity)
  */
 
 const fs = require('fs');
 const path = require('path');
 
 /**
+ * Get the folder name for a tool
+ */
+function getToolFolder(tool) {
+  const folders = {
+    claude: '.claude',
+    gemini: '.gemini',
+    antigravity: '.agent'
+  };
+  return folders[tool] || '.claude';
+}
+
+/**
  * Get preview of files that would be synced between tools
  */
 function getSyncPreview(projectDir, source = 'claude', target = 'antigravity') {
-  const sourceFolder = source === 'claude' ? '.claude' : '.agent';
-  const targetFolder = target === 'claude' ? '.claude' : '.agent';
+  const sourceFolder = getToolFolder(source);
+  const targetFolder = getToolFolder(target);
   const sourceRulesDir = path.join(projectDir, sourceFolder, 'rules');
   const targetRulesDir = path.join(projectDir, targetFolder, 'rules');
 
@@ -65,8 +77,8 @@ function getSyncPreview(projectDir, source = 'claude', target = 'antigravity') {
  * Sync rules between tools
  */
 function syncRules(projectDir, source = 'claude', target = 'antigravity', files = null) {
-  const sourceFolder = source === 'claude' ? '.claude' : '.agent';
-  const targetFolder = target === 'claude' ? '.claude' : '.agent';
+  const sourceFolder = getToolFolder(source);
+  const targetFolder = getToolFolder(target);
   const sourceRulesDir = path.join(projectDir, sourceFolder, 'rules');
   const targetRulesDir = path.join(projectDir, targetFolder, 'rules');
 
