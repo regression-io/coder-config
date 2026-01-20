@@ -49,6 +49,11 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
   const [saving, setSaving] = useState(false);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
 
+  // Subprojects state
+  const [expandedProjects, setExpandedProjects] = useState({}); // { projectPath: boolean }
+  const [subprojectsCache, setSubprojectsCache] = useState({}); // { projectPath: subprojects[] }
+  const [loadingSubprojects, setLoadingSubprojects] = useState({});
+
   // Hook status
   const [hookStatus, setHookStatus] = useState({ isInstalled: false, loading: true });
   const [installingHook, setInstallingHook] = useState(false);
@@ -152,7 +157,26 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
     if (!newProjects.includes(projectPath)) {
       setNewProjects(prev => [...prev, projectPath]);
     }
-    setShowProjectPicker(false);
+  };
+
+  const toggleProjectExpand = async (projectPath) => {
+    const isExpanded = expandedProjects[projectPath];
+
+    if (!isExpanded && !subprojectsCache[projectPath]) {
+      // Load subprojects
+      setLoadingSubprojects(prev => ({ ...prev, [projectPath]: true }));
+      try {
+        const result = await api.getSubprojects(projectPath);
+        setSubprojectsCache(prev => ({ ...prev, [projectPath]: result.subprojects || [] }));
+      } catch (err) {
+        console.error('Failed to load subprojects:', err);
+        setSubprojectsCache(prev => ({ ...prev, [projectPath]: [] }));
+      } finally {
+        setLoadingSubprojects(prev => ({ ...prev, [projectPath]: false }));
+      }
+    }
+
+    setExpandedProjects(prev => ({ ...prev, [projectPath]: !isExpanded }));
   };
 
   const handleDismissSuggestion = (suggestion) => {
@@ -898,6 +922,7 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
           setNewRules('');
           setNewProjects([]);
           setShowProjectPicker(false);
+          setExpandedProjects({});
         }
       }}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
@@ -965,39 +990,111 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                 </p>
               )}
 
-              {/* Project Picker */}
+              {/* Project Picker with Subprojects */}
               {showProjectPicker && projects.length > 0 && (
-                <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-2 max-h-40 overflow-y-auto bg-white dark:bg-slate-900">
-                  {projects
-                    .filter(p => !newProjects.includes(p.path))
-                    .map(p => {
-                      const existingWs = getProjectWorkstream(p.path);
-                      return (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => handleAddNewProject(p.path)}
-                          className="w-full text-left p-2 rounded hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors"
-                        >
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="font-medium text-gray-900 dark:text-white">{p.name}</span>
-                            {existingWs && (
-                              <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
-                                shared
-                              </span>
+                <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-2 max-h-64 overflow-y-auto bg-white dark:bg-slate-900">
+                  {projects.map(p => {
+                    const existingWs = getProjectWorkstream(p.path);
+                    const isExpanded = expandedProjects[p.path];
+                    const isLoading = loadingSubprojects[p.path];
+                    const subprojects = subprojectsCache[p.path] || [];
+                    const projectAdded = newProjects.includes(p.path);
+
+                    return (
+                      <div key={p.id} className="mb-1">
+                        {/* Main project row */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => toggleProjectExpand(p.path)}
+                            className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded"
+                            title="Show sub-projects"
+                          >
+                            {isLoading ? (
+                              <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                            ) : isExpanded ? (
+                              <ChevronDown className="w-4 h-4 text-gray-400" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4 text-gray-400" />
                             )}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddNewProject(p.path)}
+                            disabled={projectAdded}
+                            className={`flex-1 text-left p-2 rounded transition-colors ${
+                              projectAdded
+                                ? 'bg-purple-50 dark:bg-purple-950/30 opacity-50'
+                                : 'hover:bg-purple-50 dark:hover:bg-purple-950/30'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="font-medium text-gray-900 dark:text-white">{p.name}</span>
+                              <div className="flex items-center gap-1">
+                                {existingWs && (
+                                  <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
+                                    shared
+                                  </span>
+                                )}
+                                {projectAdded && (
+                                  <Check className="w-4 h-4 text-purple-600" />
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-slate-400 font-mono truncate">
+                              {p.path.replace(/^\/Users\/[^/]+/, '~')}
+                            </div>
+                          </button>
+                        </div>
+
+                        {/* Subprojects */}
+                        {isExpanded && subprojects.length > 0 && (
+                          <div className="ml-6 mt-1 space-y-1 border-l-2 border-gray-200 dark:border-slate-700 pl-2">
+                            {subprojects.map(sub => {
+                              const subAdded = newProjects.includes(sub.dir);
+                              const subExistingWs = getProjectWorkstream(sub.dir);
+                              return (
+                                <button
+                                  key={sub.dir}
+                                  type="button"
+                                  onClick={() => handleAddNewProject(sub.dir)}
+                                  disabled={subAdded}
+                                  className={`w-full text-left p-2 rounded transition-colors ${
+                                    subAdded
+                                      ? 'bg-purple-50 dark:bg-purple-950/30 opacity-50'
+                                      : 'hover:bg-purple-50 dark:hover:bg-purple-950/30'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-700 dark:text-slate-300">{sub.name}</span>
+                                    <div className="flex items-center gap-1">
+                                      {subExistingWs && (
+                                        <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
+                                          shared
+                                        </span>
+                                      )}
+                                      {subAdded && (
+                                        <Check className="w-4 h-4 text-purple-600" />
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-slate-400 font-mono">
+                                    {sub.relativePath}
+                                  </div>
+                                </button>
+                              );
+                            })}
                           </div>
-                          <div className="text-xs text-gray-500 dark:text-slate-400 font-mono truncate">
-                            {p.path.replace(/^\/Users\/[^/]+/, '~')}
+                        )}
+
+                        {isExpanded && subprojects.length === 0 && !isLoading && (
+                          <div className="ml-6 mt-1 pl-2 text-xs text-gray-400 dark:text-slate-500 italic">
+                            No sub-projects found
                           </div>
-                        </button>
-                      );
-                    })}
-                  {projects.filter(p => !newProjects.includes(p.path)).length === 0 && (
-                    <p className="text-sm text-gray-500 dark:text-slate-400 text-center py-2">
-                      All registered projects added
-                    </p>
-                  )}
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -1024,6 +1121,7 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
               setNewRules('');
               setNewProjects([]);
               setShowProjectPicker(false);
+              setExpandedProjects({});
             }}>
               Cancel
             </Button>

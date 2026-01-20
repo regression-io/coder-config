@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.36.8] - 2026-01-20
+
+### Added
+
+- **Subproject Selection in Workstreams** - Expandable project picker shows sub-projects
+  - Click chevron to expand a project and see its sub-projects
+  - Select specific sub-projects to include in workstream
+  - Visual indicators for already-added and shared projects
+
 ## [0.36.6] - 2026-01-20
 
 ### Added
