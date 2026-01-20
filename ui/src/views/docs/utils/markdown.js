@@ -5,7 +5,9 @@
 export function formatMarkdown(text) {
   // Process fenced code blocks FIRST (before inline code)
   let result = text.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-    const escaped = code.replace(/</g, '&lt;').replace(/>/g, '&gt;').trim();
+    // Unescape nested backticks and escape HTML
+    const unescaped = code.replace(/\\\`/g, '`');
+    const escaped = unescaped.replace(/</g, '&lt;').replace(/>/g, '&gt;').trim();
     return `<pre class="bg-zinc-900 text-zinc-100 p-4 rounded-lg overflow-x-auto my-4"><code class="text-sm">${escaped}</code></pre>`;
   });
 
