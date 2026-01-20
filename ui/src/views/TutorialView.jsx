@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -36,6 +36,17 @@ export default function TutorialView() {
       return [];
     }
   });
+  const contentRef = useRef(null);
+
+  // Scroll to top when section changes
+  useEffect(() => {
+    if (contentRef.current) {
+      const scrollContainer = contentRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      }
+    }
+  }, [activeSection]);
 
   // Mark section as visited when viewed
   useEffect(() => {
@@ -225,7 +236,7 @@ export default function TutorialView() {
           </div>
         </div>
 
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1" ref={contentRef}>
           <div className="max-w-3xl mx-auto p-8">
             {currentDoc ? (
               <div
