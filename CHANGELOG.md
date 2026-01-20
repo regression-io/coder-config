@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.36.0] - 2026-01-20
+
+### Added
+
+- **Antigravity Settings View** - Full configuration UI for Google Antigravity
+  - Security policies (terminal execution, review, JavaScript)
+  - MCP server management
+  - Browser URL allowlist
+  - Agent mode selection (Planning/Fast)
+
+- **Enhanced Gemini CLI Settings** - Major improvements to match actual CLI format
+  - Model selection with Gemini 2.5 Pro/Flash options
+  - Preview features toggle
+  - Correct settings structure matching Gemini CLI v2
+  - Auto-update, checkpointing, vim mode
+  - Screen reader accessibility option
+
+### Changed
+
+- **Professional Documentation** - Improved formatting throughout
+  - Tables replace basic bullet lists
+  - Consistent layout across README and UI docs
+  - Clearer feature-benefit presentation
+
+- **Claude Code Positioning** - Documentation emphasizes Claude Code as primary product
+  - claude-config framed as configuration helper
+  - Quick start shows normal Claude Code usage
+
+---
+
 ## [0.35.25] - 2026-01-20
 
 ### Changed

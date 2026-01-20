@@ -25,6 +25,13 @@ const THEMES = [
   { id: 'SolarizedLight', name: 'Solarized Light' },
 ];
 
+const GEMINI_MODELS = [
+  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', description: 'Most capable' },
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', description: 'Fast and efficient' },
+  { id: 'gemini-2.0-pro', name: 'Gemini 2.0 Pro', description: 'Previous generation' },
+  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', description: 'Previous generation fast' },
+];
+
 export default function GeminiSettingsEditor({ settings, onSave, loading, settingsPath }) {
   const [localSettings, setLocalSettings] = useState(settings || {});
   const [saving, setSaving] = useState(false);
@@ -223,6 +230,49 @@ export default function GeminiSettingsEditor({ settings, onSave, loading, settin
         </div>
       </div>
 
+      {/* Model Section */}
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-blue-500" />
+          Model
+        </h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-foreground">Default Model</label>
+              <p className="text-xs text-muted-foreground">Model used for Gemini CLI sessions</p>
+            </div>
+            <Select
+              value={getSetting('model', 'name', '')}
+              onValueChange={(value) => updateSetting('model', 'name', value)}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Select model" />
+              </SelectTrigger>
+              <SelectContent>
+                {GEMINI_MODELS.map(model => (
+                  <SelectItem key={model.id} value={model.id}>
+                    <div className="flex flex-col">
+                      <span>{model.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-foreground">Preview Features</label>
+              <p className="text-xs text-muted-foreground">Enable access to experimental models and features</p>
+            </div>
+            <Switch
+              checked={getSetting('general', 'previewFeatures', false)}
+              onCheckedChange={(checked) => updateSetting('general', 'previewFeatures', checked)}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Theme Section */}
       <div className="border border-border rounded-lg p-4 bg-card">
         <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
@@ -236,8 +286,8 @@ export default function GeminiSettingsEditor({ settings, onSave, loading, settin
               <p className="text-xs text-muted-foreground">Color theme for the CLI interface</p>
             </div>
             <Select
-              value={getSetting('theme', 'name', 'Default')}
-              onValueChange={(value) => updateSetting('theme', 'name', value)}
+              value={getSetting('ui', 'theme', 'Default')}
+              onValueChange={(value) => updateSetting('ui', 'theme', value)}
             >
               <SelectTrigger className="w-40">
                 <SelectValue />
@@ -256,8 +306,8 @@ export default function GeminiSettingsEditor({ settings, onSave, loading, settin
               <p className="text-xs text-muted-foreground">Format for CLI output</p>
             </div>
             <Select
-              value={getSetting('core', 'outputFormat', 'text')}
-              onValueChange={(value) => updateSetting('core', 'outputFormat', value)}
+              value={getSetting('output', 'format', 'text')}
+              onValueChange={(value) => updateSetting('output', 'format', value)}
             >
               <SelectTrigger className="w-40">
                 <SelectValue />
@@ -280,12 +330,12 @@ export default function GeminiSettingsEditor({ settings, onSave, loading, settin
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-medium text-foreground">Update Window Title</label>
-              <p className="text-xs text-muted-foreground">Show status icons in terminal title</p>
+              <label className="text-sm font-medium text-foreground">Dynamic Window Title</label>
+              <p className="text-xs text-muted-foreground">Update title with status icons (Ready, Working, etc.)</p>
             </div>
             <Switch
-              checked={getSetting('ui', 'updateWindowTitle', true)}
-              onCheckedChange={(checked) => updateSetting('ui', 'updateWindowTitle', checked)}
+              checked={getSetting('ui', 'dynamicWindowTitle', true)}
+              onCheckedChange={(checked) => updateSetting('ui', 'dynamicWindowTitle', checked)}
             />
           </div>
 
@@ -295,7 +345,7 @@ export default function GeminiSettingsEditor({ settings, onSave, loading, settin
               <p className="text-xs text-muted-foreground">Display line numbers in chat</p>
             </div>
             <Switch
-              checked={getSetting('ui', 'showLineNumbers', false)}
+              checked={getSetting('ui', 'showLineNumbers', true)}
               onCheckedChange={(checked) => updateSetting('ui', 'showLineNumbers', checked)}
             />
           </div>
@@ -303,7 +353,7 @@ export default function GeminiSettingsEditor({ settings, onSave, loading, settin
           <div className="flex items-center justify-between">
             <div>
               <label className="text-sm font-medium text-foreground">Show Citations</label>
-              <p className="text-xs text-muted-foreground">Show citations for generated text</p>
+              <p className="text-xs text-muted-foreground">Display citations for generated text</p>
             </div>
             <Switch
               checked={getSetting('ui', 'showCitations', false)}
@@ -324,79 +374,88 @@ export default function GeminiSettingsEditor({ settings, onSave, loading, settin
 
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-medium text-foreground">Hide Working Directory</label>
-              <p className="text-xs text-muted-foreground">Hide current directory path in footer</p>
+              <label className="text-sm font-medium text-foreground">Hide Footer</label>
+              <p className="text-xs text-muted-foreground">Remove footer entirely from the UI</p>
             </div>
             <Switch
-              checked={getSetting('ui', 'hideWorkingDirectory', false)}
-              onCheckedChange={(checked) => updateSetting('ui', 'hideWorkingDirectory', checked)}
+              checked={getSetting('ui', 'hideFooter', false)}
+              onCheckedChange={(checked) => updateSetting('ui', 'hideFooter', checked)}
             />
           </div>
 
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-medium text-foreground">Hide Model Info</label>
-              <p className="text-xs text-muted-foreground">Hide model name and context usage in footer</p>
+              <label className="text-sm font-medium text-foreground">Screen Reader Mode</label>
+              <p className="text-xs text-muted-foreground">Render output in plain-text for accessibility</p>
             </div>
             <Switch
-              checked={getSetting('ui', 'hideModelInfo', false)}
-              onCheckedChange={(checked) => updateSetting('ui', 'hideModelInfo', checked)}
+              checked={localSettings?.ui?.accessibility?.screenReader ?? false}
+              onCheckedChange={(checked) => setLocalSettings(prev => ({
+                ...prev,
+                ui: {
+                  ...prev.ui,
+                  accessibility: { ...prev.ui?.accessibility, screenReader: checked }
+                }
+              }))}
             />
           </div>
         </div>
       </div>
 
-      {/* Advanced Settings */}
+      {/* General Settings */}
       <div className="border border-border rounded-lg p-4 bg-card">
         <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
           <Settings className="w-4 h-4 text-blue-500" />
-          Advanced
+          General
         </h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-medium text-foreground">Vim Keybindings</label>
-              <p className="text-xs text-muted-foreground">Use Vim keybindings in the prompt editor</p>
+              <label className="text-sm font-medium text-foreground">Vim Mode</label>
+              <p className="text-xs text-muted-foreground">Enable Vim keybindings in the prompt editor</p>
             </div>
             <Switch
-              checked={getSetting('core', 'enableVimKeybindings', false)}
-              onCheckedChange={(checked) => updateSetting('core', 'enableVimKeybindings', checked)}
+              checked={getSetting('general', 'vimMode', false)}
+              onCheckedChange={(checked) => updateSetting('general', 'vimMode', checked)}
             />
           </div>
 
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-medium text-foreground">Auto-Compress History</label>
-              <p className="text-xs text-muted-foreground">Compress conversation when context exceeds threshold</p>
+              <label className="text-sm font-medium text-foreground">Auto Update</label>
+              <p className="text-xs text-muted-foreground">Allow automatic updates to Gemini CLI</p>
             </div>
             <Switch
-              checked={getSetting('core', 'autoCompressHistory', true)}
-              onCheckedChange={(checked) => updateSetting('core', 'autoCompressHistory', checked)}
+              checked={getSetting('general', 'enableAutoUpdate', true)}
+              onCheckedChange={(checked) => updateSetting('general', 'enableAutoUpdate', checked)}
             />
           </div>
 
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-medium text-foreground">Sandbox Mode</label>
-              <p className="text-xs text-muted-foreground">Run tool executions in isolated container</p>
+              <label className="text-sm font-medium text-foreground">Checkpointing</label>
+              <p className="text-xs text-muted-foreground">Enable session recovery support</p>
             </div>
             <Switch
-              checked={getSetting('sandbox', 'enabled', false)}
-              onCheckedChange={(checked) => updateSetting('sandbox', 'enabled', checked)}
+              checked={localSettings?.general?.checkpointing?.enabled ?? false}
+              onCheckedChange={(checked) => setLocalSettings(prev => ({
+                ...prev,
+                general: {
+                  ...prev.general,
+                  checkpointing: { ...prev.general?.checkpointing, enabled: checked }
+                }
+              }))}
             />
           </div>
 
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-medium text-foreground flex items-center gap-2">
-                YOLO Mode
-                <Badge variant="destructive" className="text-xs">Dangerous</Badge>
-              </label>
-              <p className="text-xs text-muted-foreground">Auto-approve all tool calls without confirmation</p>
+              <label className="text-sm font-medium text-foreground">Respect .gitignore</label>
+              <p className="text-xs text-muted-foreground">Exclude files matching .gitignore patterns</p>
             </div>
             <Switch
-              checked={getSetting('core', 'yoloMode', false)}
-              onCheckedChange={(checked) => updateSetting('core', 'yoloMode', checked)}
+              checked={getSetting('general', 'respectGitignore', true)}
+              onCheckedChange={(checked) => updateSetting('general', 'respectGitignore', checked)}
             />
           </div>
         </div>

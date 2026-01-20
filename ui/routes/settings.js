@@ -160,9 +160,81 @@ function saveGeminiSettings(body) {
   }
 }
 
+/**
+ * Get Antigravity settings from ~/.gemini/antigravity/settings.json
+ */
+function getAntigravitySettings() {
+  const settingsPath = path.join(os.homedir(), '.gemini', 'antigravity', 'settings.json');
+
+  try {
+    if (!fs.existsSync(settingsPath)) {
+      return {
+        path: settingsPath,
+        exists: false,
+        settings: {}
+      };
+    }
+
+    const content = fs.readFileSync(settingsPath, 'utf8');
+    const settings = JSON.parse(content);
+
+    return {
+      path: settingsPath,
+      exists: true,
+      settings
+    };
+  } catch (e) {
+    return {
+      path: settingsPath,
+      error: e.message
+    };
+  }
+}
+
+/**
+ * Save Antigravity settings to ~/.gemini/antigravity/settings.json
+ */
+function saveAntigravitySettings(body) {
+  const settingsPath = path.join(os.homedir(), '.gemini', 'antigravity', 'settings.json');
+
+  try {
+    const antigravityDir = path.dirname(settingsPath);
+    if (!fs.existsSync(antigravityDir)) {
+      fs.mkdirSync(antigravityDir, { recursive: true });
+    }
+
+    let finalSettings = {};
+    if (fs.existsSync(settingsPath)) {
+      try {
+        finalSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      } catch (e) {
+        finalSettings = {};
+      }
+    }
+
+    // Merge with new settings
+    finalSettings = { ...finalSettings, ...body };
+
+    fs.writeFileSync(settingsPath, JSON.stringify(finalSettings, null, 2) + '\n', 'utf8');
+
+    return {
+      success: true,
+      path: settingsPath,
+      settings: finalSettings
+    };
+  } catch (e) {
+    return {
+      success: false,
+      error: e.message
+    };
+  }
+}
+
 module.exports = {
   getClaudeSettings,
   saveClaudeSettings,
   getGeminiSettings,
   saveGeminiSettings,
+  getAntigravitySettings,
+  saveAntigravitySettings,
 };

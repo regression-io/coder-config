@@ -21,6 +21,7 @@ import {
   PreferencesView,
   ClaudeSettingsView,
   GeminiSettingsView,
+  AntigravitySettingsView,
   CreateMcpView,
   RegistryView,
   MemoryView,
@@ -43,6 +44,7 @@ const navItems = [
   // Configuration section (tool-specific settings)
   { id: 'claude-settings', label: 'Claude Code', icon: Shield, section: 'Configuration' },
   { id: 'gemini-settings', label: 'Gemini CLI', icon: Terminal, section: 'Configuration' },
+  { id: 'antigravity-settings', label: 'Antigravity', icon: Rocket, section: 'Configuration' },
   // Developer section
   { id: 'create-mcp', label: 'Create MCP', icon: Wand2, section: 'Developer' },
   // System section
@@ -322,6 +324,8 @@ export default function Dashboard() {
         return <ClaudeSettingsView />;
       case 'gemini-settings':
         return <GeminiSettingsView />;
+      case 'antigravity-settings':
+        return <AntigravitySettingsView />;
       case 'preferences':
         return <PreferencesView />;
       case 'projects':

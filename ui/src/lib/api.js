@@ -397,6 +397,17 @@ export const api = {
     });
   },
 
+  async getAntigravitySettings() {
+    return request('/antigravity-settings');
+  },
+
+  async saveAntigravitySettings(settings) {
+    return request('/antigravity-settings', {
+      method: 'PUT',
+      body: settings,
+    });
+  },
+
   // User preferences/config
   async getConfig() {
     return request('/preferences');

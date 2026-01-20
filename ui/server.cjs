@@ -585,6 +585,11 @@ class ConfigUIServer {
         if (req.method === 'PUT') return this.json(res, routes.settings.saveGeminiSettings(body));
         break;
 
+      case '/api/antigravity-settings':
+        if (req.method === 'GET') return this.json(res, routes.settings.getAntigravitySettings());
+        if (req.method === 'PUT') return this.json(res, routes.settings.saveAntigravitySettings(body));
+        break;
+
       case '/api/preferences':
         if (req.method === 'GET') return this.json(res, { config: this.config, path: this.configPath });
         if (req.method === 'PUT') return this.json(res, this.saveConfig(body));
