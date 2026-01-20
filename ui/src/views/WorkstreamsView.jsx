@@ -379,8 +379,8 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
       <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg p-4 text-sm text-purple-700 dark:text-purple-400">
         <p className="font-medium mb-1">What are Workstreams?</p>
         <p>
-          Workstreams group related projects and inject context rules into Claude.
-          When active, your workstream's rules are automatically prepended to every Claude session.
+          Workstreams are virtual projects that group repos belonging to the same product.
+          When active, workstream rules are automatically injected into every Claude session.
         </p>
       </div>
 

@@ -2,76 +2,75 @@ export const workstreamsContent = {
   'what-are-workstreams': {
     title: 'What Are Workstreams?',
     content: `
-Workstreams are for when you work on **multiple related projects** together. They group projects and share context between them.
+Workstreams are **virtual projects** that group multiple repos belonging to the same product or system.
 
-### When to Use Workstreams
+### The Problem
 
-You have a:
-- **Monorepo** with frontend, backend, and shared packages
-- **Microservices** architecture with related services
-- **Project + libraries** that you maintain together
+Many products are split across multiple repositories:
+- A frontend repo
+- A backend/API repo
+- Shared libraries or types
+- Infrastructure configs
 
-### Example
+When you work on "Product X", you're often jumping between these repos - but they're all part of the same thing.
 
-Imagine you're building an app:
-- \`my-app-frontend\` - React app
-- \`my-app-api\` - Node.js API
-- \`my-app-shared\` - Shared types and utilities
+### The Solution
 
-With a workstream:
-- Claude understands they're related
-- Rules can apply across all three
-- Context is shared between them
+A workstream groups these repos together so Claude understands they're related:
+
+\`\`\`
+"Acme App" workstream:
+  - acme-frontend (React app)
+  - acme-api (Node.js backend)
+  - acme-shared (TypeScript types)
+\`\`\`
 
 ### Benefits
 
-- **Unified context** - Claude knows the full picture
-- **Shared rules** - Write once, apply everywhere
-- **Smart switching** - Auto-switch when you change projects
-- **Activity tracking** - See which projects you're actively working on
+- **Unified context** - Claude knows all three repos are part of "Acme App"
+- **Shared rules** - Write rules once, apply to all repos in the workstream
+- **Auto-switching** - Claude detects which workstream you're in based on the repo
+- **Cross-repo awareness** - Claude can reference patterns from related repos
     `
   },
   'creating-workstream': {
     title: 'Creating a Workstream',
     content: `
-Let's set up a workstream for related projects.
+Let's create a workstream for your product.
 
 ### Step by Step
 
 1. Click **"Workstreams"** in the sidebar
 2. Click **"New Workstream"**
-3. Give it a name (e.g., "My App Stack")
-4. Add projects to the workstream
+3. Name it after your product (e.g., "Acme App", "Customer Portal")
+4. Add the repos that belong to this product
 
-### Adding Projects
+### Adding Repos
 
-Select which projects belong together:
-- Check the boxes next to each project
-- Or drag projects into the workstream
+Click **"Add"** and select from your registered projects. Only add repos that are part of the same product - don't mix repos from different products.
 
 ### Workstream Rules
 
-You can add rules that apply to all projects in the workstream:
-1. Click on your workstream
-2. Go to the **Rules** tab
-3. Add rules that apply across all projects
+Add rules that apply across all repos in this workstream:
 
-### Smart Sync
+\`\`\`markdown
+# Acme App Context
 
-Enable **Smart Sync** to automatically switch workstreams based on which project you're working in:
+This is a full-stack TypeScript app.
+- Frontend: React 18 with Vite
+- Backend: Node.js with Express
+- Shared types in acme-shared package
 
-1. Go to workstream settings
-2. Enable "Smart Sync"
-3. Set the threshold (how confident before auto-switching)
+Always import types from @acme/shared.
+\`\`\`
 
-### Activity Tracking
+### When It Activates
 
-The workstream view shows:
-- Which projects have recent activity
-- File changes in each project
-- Time spent in each project
+The workstream automatically activates when you're working in any of its repos. Claude will inject the workstream rules into every session.
 
-This helps you see your workflow at a glance.
+### One Product = One Workstream
+
+Keep it simple: each workstream represents one product or system. If you have multiple products, create separate workstreams for each.
     `
   },
 };

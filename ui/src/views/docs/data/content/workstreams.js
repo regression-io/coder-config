@@ -4,29 +4,35 @@ export const workstreamsContent = {
     content: `
 ## Workstreams
 
-Workstreams are **context sets** for multi-project workflows. They group related projects and inject context rules into every Claude session.
+Workstreams are **virtual projects** that group multiple repos belonging to the same product or system.
 
-### Why Workstreams?
+### The Problem
 
-When working on complex features that span multiple repos (e.g., REST API + UI + shared library), you need Claude to understand the broader context. Workstreams solve this by:
+Many products are split across multiple repositories:
+- Frontend repo
+- Backend/API repo
+- Shared libraries or types
+- Infrastructure configs
 
-1. **Grouping related projects together**
-2. **Defining rules specific to that workflow**
-3. **Automatically injecting those rules into every Claude session**
+When you work on "Product X", you're jumping between repos that are all part of the same product.
 
-### Example Use Cases
+### The Solution
 
-- **Feature Development**: Group API, frontend, and shared libraries for a feature
-- **Bug Investigation**: Group related services to trace issues across boundaries
-- **Refactoring**: Group all affected repos during large-scale changes
-- **Onboarding**: Create workstreams for different parts of your codebase
+A workstream groups these repos together so Claude understands they're related:
+
+\`\`\`
+"Acme App" workstream:
+  - acme-frontend (React app)
+  - acme-api (Node.js backend)
+  - acme-shared (TypeScript types)
+\`\`\`
 
 ### Workstream Structure
 
 Each workstream has:
-- **Name** - Descriptive name (e.g., "User Auth", "Payment Flow")
-- **Projects** - List of project directories included
-- **Rules** - Context and guidelines specific to this workflow
+- **Name** - Product or system name (e.g., "Acme App", "Customer Portal")
+- **Projects** - List of repos that belong to this product
+- **Rules** - Context and guidelines for the entire product
 - **Active Status** - Only one workstream can be active at a time
     `
   },
@@ -38,25 +44,25 @@ Each workstream has:
 ### Via UI
 
 1. Go to **Workstreams** in the sidebar
-2. Click **Create Workstream** button
-3. Enter a name and optional description
-4. Add projects using the project picker
+2. Click **New Workstream**
+3. Name it after your product (e.g., "Acme App")
+4. Add the repos that belong to this product
 5. Write rules for Claude to follow
 6. Click **Create**
 
 ### Via CLI
 
 \`\`\`bash
-# Create a workstream
-claude-config workstream create "User Auth"
+# Create a workstream for your product
+claude-config workstream create "Acme App"
 
-# Add projects to it
-claude-config workstream add-project "User Auth" ~/projects/api
-claude-config workstream add-project "User Auth" ~/projects/ui
-claude-config workstream add-project "User Auth" ~/projects/shared
+# Add repos to it
+claude-config workstream add-project "Acme App" ~/projects/acme-frontend
+claude-config workstream add-project "Acme App" ~/projects/acme-api
+claude-config workstream add-project "Acme App" ~/projects/acme-shared
 
 # Activate it
-claude-config workstream use "User Auth"
+claude-config workstream use "Acme App"
 \`\`\`
 
 ### Managing Workstreams
@@ -73,7 +79,7 @@ claude-config workstream active
 
 **Delete a workstream:**
 \`\`\`bash
-claude-config workstream delete "User Auth"
+claude-config workstream delete "Acme App"
 \`\`\`
 
 ### Editing Rules
@@ -81,11 +87,14 @@ claude-config workstream delete "User Auth"
 In the UI, click a workstream to expand it and edit rules. Rules are markdown text that gets injected into Claude sessions:
 
 \`\`\`markdown
-Focus on user authentication flow.
-- Use JWT tokens for auth
-- React Query for state management
-- PostgreSQL for persistence
-- Follow REST conventions
+# Acme App
+
+Full-stack TypeScript application.
+- Frontend: React 18 with Vite
+- Backend: Node.js with Express
+- Shared types in @acme/shared package
+
+All repos follow the same code style and conventions.
 \`\`\`
     `
   },
