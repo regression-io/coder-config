@@ -374,7 +374,7 @@ export default function Dashboard() {
                   ) : (
                     <Download className="w-3 h-3" />
                   )}
-                  {updating ? 'Updating...' : `Update to v${updateInfo.sourceVersion}`}
+                  {updating ? 'Updating...' : `Update to v${updateInfo.latestVersion}`}
                 </button>
               )}
             </div>
