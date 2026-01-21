@@ -97,7 +97,9 @@ claude-config workstream remove <ws> <path>  # Remove project from workstream
 claude-config workstream inject [--silent] # Output restriction + context (for hooks)
 claude-config workstream detect [path]     # Detect workstream for directory
 claude-config workstream check-path <path> # Check if path is within workstream (exit 0/1)
-claude-config workstream install-hook      # Install pre-prompt hook for injection
+claude-config workstream install-hook      # Install hook for Claude Code
+claude-config workstream install-hook --gemini  # Install hook for Gemini CLI
+claude-config workstream install-hook --all     # Install hooks for all supported tools
 ```
 
 **Per-terminal isolation**: With [shell integration](#shell-integration), each terminal can have its own active workstream:
@@ -109,7 +111,19 @@ claude-config workstream use project-a
 claude-config workstream use project-b
 ```
 
-When active, Claude receives a restriction telling it to only work within the workstream's directories.
+When active, the AI receives a restriction telling it to only work within the workstream's directories.
+
+**Multi-tool support**: Workstreams work with both Claude Code and Gemini CLI. Install hooks for your preferred tool(s):
+```bash
+# For Claude Code only
+claude-config workstream install-hook
+
+# For Gemini CLI only
+claude-config workstream install-hook --gemini
+
+# For both
+claude-config workstream install-hook --all
+```
 
 ### Registry Commands
 

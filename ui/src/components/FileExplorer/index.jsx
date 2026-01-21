@@ -14,6 +14,7 @@ import {
 import SyncDialog from '@/components/SyncDialog';
 import PathPicker from '@/components/PathPicker';
 import PluginSelectorDialog from '@/components/PluginSelectorDialog';
+import TerminalDialog from '@/components/TerminalDialog';
 import { toast } from 'sonner';
 import {
   File,
@@ -52,6 +53,7 @@ export default function FileExplorer({ project, onRefresh }) {
   const [syncDialog, setSyncDialog] = useState(false);
   const [addSubprojectDialog, setAddSubprojectDialog] = useState({ open: false, projectDir: null });
   const [pluginDialog, setPluginDialog] = useState({ open: false, dir: null, name: null });
+  const [terminalDialog, setTerminalDialog] = useState({ open: false, dir: null });
   const [contextMenu, setContextMenu] = useState({ x: 0, y: 0, item: null });
 
   const [enabledTools, setEnabledTools] = useState(['claude']);
@@ -142,11 +144,13 @@ export default function FileExplorer({ project, onRefresh }) {
   const handleCreateFile = async (dir, type) => {
     if (type === 'command' || type === 'rule' || type === 'workflow' || type === 'memory') {
       setCreateDialog({ open: true, dir, type });
+    } else if (type === 'claudemd') {
+      // Open terminal to run `claude /init` for proper project-aware CLAUDE.md generation
+      setTerminalDialog({ open: true, dir });
     } else {
       const fileName = type === 'mcps' ? 'mcps.json' :
                        type === 'settings' ? 'settings.json' :
-                       type === 'env' ? '.env' :
-                       type === 'claudemd' ? 'CLAUDE.md' : 'CLAUDE.md';
+                       type === 'env' ? '.env' : 'CLAUDE.md';
       doCreateFile(dir, fileName, type);
     }
   };
@@ -494,6 +498,21 @@ export default function FileExplorer({ project, onRefresh }) {
         type="directory"
         title="Add Sub-project"
         initialPath={addSubprojectDialog.projectDir || '~'}
+      />
+      {/* Terminal for claude /init */}
+      <TerminalDialog
+        open={terminalDialog.open}
+        onOpenChange={(open) => {
+          setTerminalDialog({ ...terminalDialog, open });
+          if (!open) {
+            // Refresh data when terminal closes to show new CLAUDE.md
+            loadData();
+          }
+        }}
+        title="Initialize CLAUDE.md"
+        description="Running claude /init to generate project-aware CLAUDE.md"
+        cwd={terminalDialog.dir}
+        initialCommand="claude /init"
       />
 
     </div>
