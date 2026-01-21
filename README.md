@@ -152,11 +152,18 @@ claude-config ui /path/to/project   # Specific project directory
 claude-config ui --foreground       # Run in foreground (blocking)
 claude-config ui status             # Check if daemon is running
 claude-config ui stop               # Stop the daemon
+
+# Auto-start on login (macOS)
+claude-config ui install            # Install LaunchAgent for auto-start
+claude-config ui uninstall          # Remove auto-start
 ```
 
 **Daemon Mode**: By default, `claude-config ui` runs as a background daemon.
 The UI runs from your home directory and persists across terminal sessions.
 Switch between registered projects using the dropdown in the header.
+
+**PWA / Auto-Start**: Install the UI as a PWA in your browser, then run `claude-config ui install`
+to have the server start automatically on login. Your PWA will always connect instantly.
 
 ## Shell Integration
 
