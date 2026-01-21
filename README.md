@@ -89,13 +89,22 @@ claude-config project remove <name|path>   # Remove from registry
 claude-config workstream                   # List all workstreams
 claude-config workstream create "Name"     # Create new workstream
 claude-config workstream delete <name>     # Delete workstream
-claude-config workstream use <name>        # Set active workstream
+claude-config workstream use <name>        # Set active workstream (global)
 claude-config workstream active            # Show current active workstream
-claude-config workstream add <ws> <path>     # Add project to workstream
+claude-config workstream deactivate        # Show how to deactivate
+claude-config workstream add <ws> <path>   # Add project to workstream
 claude-config workstream remove <ws> <path>  # Remove project from workstream
-claude-config workstream inject [--silent] # Output active workstream rules (for hooks)
+claude-config workstream inject [--silent] # Output restriction + context (for hooks)
 claude-config workstream detect [path]     # Detect workstream for directory
+claude-config workstream install-hook      # Install pre-prompt hook for injection
 ```
+
+**Per-session activation** (for parallel work in different terminals):
+```bash
+export CLAUDE_WORKSTREAM=<name-or-id>
+```
+
+When active, Claude receives a restriction telling it to only work within the workstream's directories.
 
 ### Registry Commands
 
