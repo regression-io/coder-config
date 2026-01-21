@@ -197,7 +197,7 @@ class ClaudeConfigManager {
     // Perform npm update
     console.log('\nUpdating via npm...');
     try {
-      execSync('npm update -g @regression-io/claude-config', {
+      execSync('npm install -g @regression-io/claude-config@latest', {
         stdio: 'inherit',
         timeout: 120000
       });

@@ -705,14 +705,7 @@ The UI automatically checks npm for new versions. When an update is available, y
 ### Manual Update
 
 \`\`\`bash
-npm update -g @regression-io/claude-config
-\`\`\`
-
-Or for a clean reinstall:
-
-\`\`\`bash
-npm uninstall -g @regression-io/claude-config
-npm install -g @regression-io/claude-config
+npm install -g @regression-io/claude-config@latest
 \`\`\`
 
 ### After Updating

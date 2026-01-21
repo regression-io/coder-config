@@ -113,7 +113,8 @@ async function checkForUpdates(manager, dirname) {
  */
 async function performNpmUpdate() {
   try {
-    execSync('npm update -g @regression-io/claude-config', {
+    // Use npm install @latest instead of npm update for reliable updates
+    execSync('npm install -g @regression-io/claude-config@latest', {
       stdio: 'pipe',
       timeout: 120000
     });
