@@ -92,6 +92,7 @@ async function checkForUpdates(manager, dirname) {
       updateAvailable: true,
       installedVersion,
       latestVersion: npmVersion,
+      sourceVersion: npmVersion, // legacy alias for v0.37.0 compatibility
       updateMethod: 'npm',
       installDir: manager.installDir
     };
@@ -118,6 +119,7 @@ async function checkForUpdates(manager, dirname) {
           updateAvailable: true,
           installedVersion,
           latestVersion: sourceVersion,
+          sourceVersion: sourceVersion, // legacy alias for v0.37.0 compatibility
           updateMethod: 'local',
           sourcePath,
           installDir: manager.installDir
@@ -130,6 +132,7 @@ async function checkForUpdates(manager, dirname) {
     updateAvailable: false,
     installedVersion,
     latestVersion: npmVersion || installedVersion,
+    sourceVersion: npmVersion || installedVersion, // legacy alias for v0.37.0 compatibility
     installDir: manager.installDir
   };
 }
