@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.37.0] - 2026-01-21
+
+### Added
+
+- **Workstream Scoping** - Focus Claude's attention to only your workstream directories
+  - Enhanced injection outputs restriction text telling Claude which directories to work in
+  - `CLAUDE_WORKSTREAM` env var for per-session activation (enables parallel work in terminals)
+  - `claude-config workstream install-hook` to install pre-prompt hook
+  - `claude-config workstream deactivate` shows how to clear active workstream
+
+### Changed
+
+- **Badge logic improved** - "in use" (blue) when project in 1 workstream, "shared" (amber) when in 2+
+- **Rules renamed to Context** - Better describes the purpose of workstream text field
+
 ## [0.36.18] - 2026-01-21
 
 ### Added

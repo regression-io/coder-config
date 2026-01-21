@@ -126,6 +126,15 @@ function detectWorkstream(manager, dir, projectDir) {
 }
 
 /**
+ * Count how many workstreams include a given project path
+ */
+function countWorkstreamsForProject(manager, projectPath) {
+  if (!manager) return { error: 'Manager not available' };
+  const count = manager.countWorkstreamsForProject(projectPath);
+  return { count };
+}
+
+/**
  * Check if workstream hook is installed
  */
 function getWorkstreamHookStatus() {
@@ -209,6 +218,7 @@ module.exports = {
   removeProjectFromWorkstream,
   injectWorkstream,
   detectWorkstream,
+  countWorkstreamsForProject,
   getWorkstreamHookStatus,
   installWorkstreamHook,
 };

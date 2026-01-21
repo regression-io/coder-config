@@ -28,7 +28,7 @@ const { init, show } = require('./lib/init');
 const { memoryList, memoryInit, memoryAdd, memorySearch } = require('./lib/memory');
 const { envList, envSet, envUnset } = require('./lib/env');
 const { getProjectsRegistryPath, loadProjectsRegistry, saveProjectsRegistry, projectList, projectAdd, projectRemove } = require('./lib/projects');
-const { getWorkstreamsPath, loadWorkstreams, saveWorkstreams, workstreamList, workstreamCreate, workstreamUpdate, workstreamDelete, workstreamUse, workstreamActive, workstreamAddProject, workstreamRemoveProject, workstreamInject, workstreamDetect, workstreamGet } = require('./lib/workstreams');
+const { getWorkstreamsPath, loadWorkstreams, saveWorkstreams, workstreamList, workstreamCreate, workstreamUpdate, workstreamDelete, workstreamUse, workstreamActive, workstreamAddProject, workstreamRemoveProject, workstreamInject, workstreamDetect, workstreamGet, getActiveWorkstream, countWorkstreamsForProject, workstreamInstallHook, workstreamDeactivate } = require('./lib/workstreams');
 const { getActivityPath, getDefaultActivity, loadActivity, saveActivity, detectProjectRoot, activityLog, activitySummary, generateWorkstreamName, activitySuggestWorkstreams, activityClear } = require('./lib/activity');
 const { getSmartSyncPath, loadSmartSyncPrefs, saveSmartSyncPrefs, smartSyncRememberChoice, smartSyncDismissNudge, smartSyncUpdateSettings, smartSyncDetect, smartSyncCheckNudge, smartSyncHandleAction, smartSyncStatus } = require('./lib/smart-sync');
 const { runCli } = require('./lib/cli');
@@ -128,6 +128,10 @@ class ClaudeConfigManager {
   workstreamInject(silent) { return workstreamInject(this.installDir, silent); }
   workstreamDetect(dir) { return workstreamDetect(this.installDir, dir); }
   workstreamGet(id) { return workstreamGet(this.installDir, id); }
+  getActiveWorkstream() { return getActiveWorkstream(this.installDir); }
+  countWorkstreamsForProject(projectPath) { return countWorkstreamsForProject(this.installDir, projectPath); }
+  workstreamInstallHook() { return workstreamInstallHook(); }
+  workstreamDeactivate() { return workstreamDeactivate(); }
 
   // Activity
   getActivityPath() { return getActivityPath(this.installDir); }

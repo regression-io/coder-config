@@ -409,6 +409,24 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
     );
   };
 
+  // Count how many workstreams include a project
+  const countWorkstreamsForProject = (projectPath) => {
+    return workstreams.filter(ws => ws.projects?.includes(projectPath)).length;
+  };
+
+  // Get badge text: "in use" if in 1 workstream, "shared" if in 2+
+  const getProjectBadge = (projectPath, currentWorkstreamId = null) => {
+    const count = countWorkstreamsForProject(projectPath);
+    // If we're in a dialog for a specific workstream, check if project is already added to it
+    const isInCurrent = currentWorkstreamId
+      ? workstreams.find(ws => ws.id === currentWorkstreamId)?.projects?.includes(projectPath)
+      : false;
+
+    if (count === 0) return null;
+    if (count === 1) return isInCurrent ? null : 'in use';
+    return 'shared'; // count >= 2
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -1026,7 +1044,7 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
               {showProjectPicker && projects.length > 0 && (
                 <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-2 max-h-64 overflow-y-auto bg-white dark:bg-slate-900">
                   {projects.map(p => {
-                    const existingWs = getProjectWorkstream(p.path);
+                    const badge = getProjectBadge(p.path);
                     const isExpanded = expandedProjects[p.path];
                     const isLoading = loadingSubprojects[p.path];
                     const subprojects = subprojectsCache[p.path] || [];
@@ -1063,9 +1081,13 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                             <div className="flex items-center justify-between text-sm">
                               <span className="font-medium text-gray-900 dark:text-white">{p.name}</span>
                               <div className="flex items-center gap-1">
-                                {existingWs && (
-                                  <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
-                                    shared
+                                {badge && (
+                                  <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                    badge === 'shared'
+                                      ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400'
+                                      : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'
+                                  }`}>
+                                    {badge}
                                   </span>
                                 )}
                                 {projectAdded && (
@@ -1084,7 +1106,7 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                           <div className="ml-6 mt-1 space-y-1 border-l-2 border-gray-200 dark:border-slate-700 pl-2">
                             {subprojects.map(sub => {
                               const subAdded = newProjects.includes(sub.dir);
-                              const subExistingWs = getProjectWorkstream(sub.dir);
+                              const subBadge = getProjectBadge(sub.dir);
                               return (
                                 <button
                                   key={sub.dir}
@@ -1100,9 +1122,13 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                                   <div className="flex items-center justify-between text-sm">
                                     <span className="text-gray-700 dark:text-slate-300">{sub.name}</span>
                                     <div className="flex items-center gap-1">
-                                      {subExistingWs && (
-                                        <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
-                                          shared
+                                      {subBadge && (
+                                        <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                          subBadge === 'shared'
+                                            ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400'
+                                            : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'
+                                        }`}>
+                                          {subBadge}
                                         </span>
                                       )}
                                       {subAdded && (
@@ -1133,7 +1159,7 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
 
             <div>
               <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-1 block">
-                Rules (optional)
+                Context (optional)
               </label>
               <Textarea
                 value={newRules}
@@ -1243,7 +1269,7 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                   <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-2 max-h-48 overflow-y-auto bg-white dark:bg-slate-900">
                     {projects.map(p => {
                       const isAlreadyAdded = editingWorkstream.projects?.includes(p.path);
-                      const existingWs = getProjectWorkstream(p.path, editingWorkstream.id);
+                      const badge = getProjectBadge(p.path, editingWorkstream.id);
                       const isExpanded = expandedProjects[p.path];
                       const isLoading = loadingSubprojects[p.path];
                       const subprojects = subprojectsCache[p.path] || [];
@@ -1281,9 +1307,13 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                               <div className="flex items-center justify-between text-sm">
                                 <span className="font-medium text-gray-900 dark:text-white">{p.name}</span>
                                 <div className="flex items-center gap-1">
-                                  {existingWs && (
-                                    <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
-                                      shared
+                                  {badge && (
+                                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                      badge === 'shared'
+                                        ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400'
+                                        : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'
+                                    }`}>
+                                      {badge}
                                     </span>
                                   )}
                                   {isAlreadyAdded && (
@@ -1302,7 +1332,7 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                             <div className="ml-6 mt-1 space-y-1 border-l-2 border-gray-200 dark:border-slate-700 pl-2">
                               {subprojects.map(sub => {
                                 const subAlreadyAdded = editingWorkstream.projects?.includes(sub.dir);
-                                const subExistingWs = getProjectWorkstream(sub.dir, editingWorkstream.id);
+                                const subBadge = getProjectBadge(sub.dir, editingWorkstream.id);
                                 return (
                                   <button
                                     key={sub.dir}
@@ -1321,9 +1351,13 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                                     <div className="flex items-center justify-between text-sm">
                                       <span className="text-gray-700 dark:text-slate-300">{sub.name}</span>
                                       <div className="flex items-center gap-1">
-                                        {subExistingWs && (
-                                          <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
-                                            shared
+                                        {subBadge && (
+                                          <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                            subBadge === 'shared'
+                                              ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400'
+                                              : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'
+                                          }`}>
+                                            {subBadge}
                                           </span>
                                         )}
                                         {subAlreadyAdded && (
@@ -1404,7 +1438,7 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                 {projects.map(p => {
                   const isAlreadyAdded = selectedWorkstreamForProject?.projects?.includes(p.path);
                   const isSelected = selectedProjectsToAdd.has(p.path);
-                  const existingWs = getProjectWorkstream(p.path, selectedWorkstreamForProject?.id);
+                  const badge = getProjectBadge(p.path, selectedWorkstreamForProject?.id);
                   const isExpanded = expandedProjects[p.path];
                   const isLoading = loadingSubprojects[p.path];
                   const subprojects = subprojectsCache[p.path] || [];
@@ -1453,9 +1487,13 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                               <span className="font-medium text-gray-900 dark:text-white">{p.name}</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              {existingWs && (
-                                <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
-                                  shared
+                              {badge && (
+                                <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                  badge === 'shared'
+                                    ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400'
+                                    : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'
+                                }`}>
+                                  {badge}
                                 </span>
                               )}
                               {isAlreadyAdded && (
@@ -1475,7 +1513,7 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                           {subprojects.map(sub => {
                             const subAlreadyAdded = selectedWorkstreamForProject?.projects?.includes(sub.dir);
                             const subIsSelected = selectedProjectsToAdd.has(sub.dir);
-                            const subExistingWs = getProjectWorkstream(sub.dir, selectedWorkstreamForProject?.id);
+                            const subBadge = getProjectBadge(sub.dir, selectedWorkstreamForProject?.id);
                             return (
                               <button
                                 key={sub.dir}
@@ -1504,9 +1542,13 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                                     <span className="text-gray-700 dark:text-slate-300">{sub.name}</span>
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    {subExistingWs && (
-                                      <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
-                                        shared
+                                    {subBadge && (
+                                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                        subBadge === 'shared'
+                                          ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400'
+                                          : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'
+                                      }`}>
+                                        {subBadge}
                                       </span>
                                     )}
                                     {subAlreadyAdded && (
