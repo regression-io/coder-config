@@ -96,6 +96,7 @@ claude-config workstream add <ws> <path>   # Add project to workstream
 claude-config workstream remove <ws> <path>  # Remove project from workstream
 claude-config workstream inject [--silent] # Output restriction + context (for hooks)
 claude-config workstream detect [path]     # Detect workstream for directory
+claude-config workstream check-path <path> # Check if path is within workstream (exit 0/1)
 claude-config workstream install-hook      # Install pre-prompt hook for injection
 ```
 

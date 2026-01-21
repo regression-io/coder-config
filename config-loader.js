@@ -28,7 +28,7 @@ const { init, show } = require('./lib/init');
 const { memoryList, memoryInit, memoryAdd, memorySearch } = require('./lib/memory');
 const { envList, envSet, envUnset } = require('./lib/env');
 const { getProjectsRegistryPath, loadProjectsRegistry, saveProjectsRegistry, projectList, projectAdd, projectRemove } = require('./lib/projects');
-const { getWorkstreamsPath, loadWorkstreams, saveWorkstreams, workstreamList, workstreamCreate, workstreamUpdate, workstreamDelete, workstreamUse, workstreamActive, workstreamAddProject, workstreamRemoveProject, workstreamInject, workstreamDetect, workstreamGet, getActiveWorkstream, countWorkstreamsForProject, workstreamInstallHook, workstreamDeactivate } = require('./lib/workstreams');
+const { getWorkstreamsPath, loadWorkstreams, saveWorkstreams, workstreamList, workstreamCreate, workstreamUpdate, workstreamDelete, workstreamUse, workstreamActive, workstreamAddProject, workstreamRemoveProject, workstreamInject, workstreamDetect, workstreamGet, getActiveWorkstream, countWorkstreamsForProject, workstreamInstallHook, workstreamDeactivate, workstreamCheckPath } = require('./lib/workstreams');
 const { getActivityPath, getDefaultActivity, loadActivity, saveActivity, detectProjectRoot, activityLog, activitySummary, generateWorkstreamName, activitySuggestWorkstreams, activityClear } = require('./lib/activity');
 const { getSmartSyncPath, loadSmartSyncPrefs, saveSmartSyncPrefs, smartSyncRememberChoice, smartSyncDismissNudge, smartSyncUpdateSettings, smartSyncDetect, smartSyncCheckNudge, smartSyncHandleAction, smartSyncStatus } = require('./lib/smart-sync');
 const { runCli } = require('./lib/cli');
@@ -132,6 +132,7 @@ class ClaudeConfigManager {
   countWorkstreamsForProject(projectPath) { return countWorkstreamsForProject(this.installDir, projectPath); }
   workstreamInstallHook() { return workstreamInstallHook(); }
   workstreamDeactivate() { return workstreamDeactivate(); }
+  workstreamCheckPath(targetPath, silent) { return workstreamCheckPath(this.installDir, targetPath, silent); }
 
   // Activity
   getActivityPath() { return getActivityPath(this.installDir); }
