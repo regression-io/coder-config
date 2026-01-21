@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.37.15] - 2026-01-21
+
+### Fixed
+
+- **Pre-commit hook staging** - Fixed version sync by staging correct file (`lib/constants.js` not `config-loader.js`)
+  - Root cause of version mismatch between package.json and actual npm package
+  - VERSION constant now correctly matches package.json on publish
+
+## [0.37.14] - 2026-01-21
+
+### Fixed
+
+- **Update API** - Pass `targetVersion` from UI instead of re-fetching after update
+  - Eliminates race condition where version check returned null
+  - UI already knows the target version, so pass it through
+
+## [0.37.13] - 2026-01-21
+
+### Fixed
+
+- **npm update command** - Changed from `npm update` to `npm install @latest`
+  - `npm update -g` doesn't reliably get latest version
+  - `npm install -g @regression-io/claude-config@latest` works correctly
+
 ## [0.37.11] - 2026-01-21
 
 ### Added
