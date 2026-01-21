@@ -111,7 +111,7 @@ async function checkForUpdates(manager, dirname) {
 /**
  * Perform npm update
  */
-async function performNpmUpdate() {
+async function performNpmUpdate(targetVersion) {
   try {
     // Use npm install @latest instead of npm update for reliable updates
     execSync('npm install -g @regression-io/claude-config@latest', {
@@ -119,13 +119,10 @@ async function performNpmUpdate() {
       timeout: 120000
     });
 
-    // Get the new version from npm registry since we just updated
-    const newVersion = await fetchNpmVersion();
-
     return {
       success: true,
       updateMethod: 'npm',
-      newVersion: newVersion || 'latest',
+      newVersion: targetVersion || 'latest',
       message: 'Updated via npm. Please restart the UI to use the new version.'
     };
   } catch (error) {
@@ -249,10 +246,10 @@ function performLocalUpdate(sourcePath, manager) {
  * Perform update
  */
 async function performUpdate(options, manager) {
-  const { updateMethod, sourcePath } = options;
+  const { updateMethod, sourcePath, targetVersion } = options;
 
   if (updateMethod === 'npm') {
-    return await performNpmUpdate();
+    return await performNpmUpdate(targetVersion);
   }
 
   if (sourcePath) {

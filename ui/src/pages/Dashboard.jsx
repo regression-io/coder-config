@@ -204,7 +204,8 @@ export default function Dashboard() {
     try {
       const result = await api.performUpdate({
         updateMethod: updateInfo.updateMethod,
-        sourcePath: updateInfo.sourcePath
+        sourcePath: updateInfo.sourcePath,
+        targetVersion: updateInfo.latestVersion
       });
       if (result.success) {
         toast.success(`Updated to v${result.newVersion}! Reloading...`);
