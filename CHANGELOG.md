@@ -5,11 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.37.3] - 2026-01-21
+## [0.37.11] - 2026-01-21
+
+### Added
+
+- **Per-session workstream activation** - Each terminal can have its own active workstream
+  - `claude-config workstream use <name>` sets env var (with shell integration)
+  - `claude-config workstream deactivate` clears it
+  - No more global-only activation
 
 ### Fixed
 
-- **Update button showing "undefined"** - Fixed version display in update notification
+- **UI update button** - Fixed showing "vnull" after update
+- **Version check** - Only checks npm, removed local dev path detection
+- **Double version bump** - Fixed build script bumping version twice
 
 ## [0.37.0] - 2026-01-21
 
