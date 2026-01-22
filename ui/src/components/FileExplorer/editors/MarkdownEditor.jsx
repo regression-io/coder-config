@@ -9,9 +9,26 @@ export default function MarkdownEditor({ content, onSave, fileType }) {
   const [text, setText] = useState(content || '');
   const [saving, setSaving] = useState(false);
   const debounceRef = useRef(null);
+  const textareaRef = useRef(null);
+  const prevContentRef = useRef(content);
 
   useEffect(() => {
     setText(content || '');
+
+    // Focus textarea when content changes to empty (new file created)
+    // or when switching to a different file
+    if (content !== prevContentRef.current) {
+      prevContentRef.current = content;
+      // Small delay to ensure textarea is rendered
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.focus();
+          // Move cursor to end
+          const len = (content || '').length;
+          textareaRef.current.setSelectionRange(len, len);
+        }
+      }, 100);
+    }
   }, [content]);
 
   // Debounced auto-save
@@ -26,7 +43,7 @@ export default function MarkdownEditor({ content, onSave, fileType }) {
       } finally {
         setSaving(false);
       }
-    }, 800);
+    }, 2500);
   }, [onSave]);
 
   const handleChange = (e) => {
@@ -54,6 +71,7 @@ export default function MarkdownEditor({ content, onSave, fileType }) {
         </div>
       </div>
       <Textarea
+        ref={textareaRef}
         className="flex-1 w-full font-mono text-sm border-0 rounded-none resize-none p-4"
         value={text}
         onChange={handleChange}
