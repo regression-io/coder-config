@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.40.11] - 2026-01-23
+
+### Fixed
+
+- **Complete UI Branding Rename** - All UI text now uses `coder-config` consistently
+  - Updated all CLI examples in views from `claude-config` to `coder-config`
+  - Updated documentation content with correct paths and URLs
+  - Updated GitHub links to point to `coder-config` repo
+
+- **Legacy Config Path Support** - Now reads from `~/.claude-config/` if `~/.coder-config/` is empty
+  - Preserves existing projects, workstreams, and activity data
+  - No manual migration needed - data is found automatically
+  - LocalStorage keys kept for backwards compatibility (preserves theme, tutorial progress)
+
 ## [0.40.9] - 2026-01-23
 
 ### Fixed

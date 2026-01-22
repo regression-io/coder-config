@@ -4,7 +4,7 @@ export const multiToolContent = {
     content: `
 ## Supported AI Coding Tools
 
-claude-config supports multiple AI coding assistants:
+coder-config supports multiple AI coding assistants:
 
 | Tool | Type | Config Location |
 |------|------|-----------------|
@@ -14,7 +14,7 @@ claude-config supports multiple AI coding assistants:
 
 ### Shared MCP Registry
 
-All tools use the **MCP (Model Context Protocol)** for server configurations. claude-config maintains a shared registry and generates tool-specific output files.
+All tools use the **MCP (Model Context Protocol)** for server configurations. coder-config maintains a shared registry and generates tool-specific output files.
 
 ### Enabling Tools
 
@@ -105,7 +105,7 @@ Antigravity MCP config is stored at \`~/.gemini/antigravity/mcp_config.json\`:
 
 **Important**: Antigravity does NOT support \`\${VAR}\` interpolation.
 
-When generating Antigravity configs, claude-config automatically resolves all environment variables to their actual values.
+When generating Antigravity configs, coder-config automatically resolves all environment variables to their actual values.
 
 Example:
 - Claude Code: \`"path": "\${HOME}/projects"\`
@@ -189,7 +189,7 @@ When you click **Apply Config**:
 
 ### Config File
 
-Tool preferences are stored in \`~/.claude-config/config.json\`:
+Tool preferences are stored in \`~/.coder-config/config.json\`:
 
 \`\`\`json
 {

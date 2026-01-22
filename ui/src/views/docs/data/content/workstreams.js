@@ -54,32 +54,32 @@ Each workstream has:
 
 \`\`\`bash
 # Create a workstream for your product
-claude-config workstream create "Acme App"
+coder-config workstream create "Acme App"
 
 # Add repos to it
-claude-config workstream add "Acme App" ~/projects/acme-frontend
-claude-config workstream add "Acme App" ~/projects/acme-api
-claude-config workstream add "Acme App" ~/projects/acme-shared
+coder-config workstream add "Acme App" ~/projects/acme-frontend
+coder-config workstream add "Acme App" ~/projects/acme-api
+coder-config workstream add "Acme App" ~/projects/acme-shared
 
 # Activate it
-claude-config workstream use "Acme App"
+coder-config workstream use "Acme App"
 \`\`\`
 
 ### Managing Workstreams
 
 **List all workstreams:**
 \`\`\`bash
-claude-config workstream
+coder-config workstream
 \`\`\`
 
 **Show active workstream:**
 \`\`\`bash
-claude-config workstream active
+coder-config workstream active
 \`\`\`
 
 **Delete a workstream:**
 \`\`\`bash
-claude-config workstream delete "Acme App"
+coder-config workstream delete "Acme App"
 \`\`\`
 
 ### Editing Rules
@@ -117,7 +117,7 @@ Add to \`~/.claude/hooks/pre-prompt.sh\`:
 
 \`\`\`bash
 #!/bin/bash
-claude-config workstream inject --silent
+coder-config workstream inject --silent
 \`\`\`
 
 Make it executable:
@@ -136,10 +136,10 @@ chmod +x ~/.claude/hooks/pre-prompt.sh
 
 \`\`\`bash
 # See what would be injected
-claude-config workstream inject
+coder-config workstream inject
 
 # Silent mode (no output if no workstream)
-claude-config workstream inject --silent
+coder-config workstream inject --silent
 \`\`\`
 
 ### Auto-Detection
@@ -147,7 +147,7 @@ claude-config workstream inject --silent
 Claude-config can also detect which workstream to use based on your current directory:
 
 \`\`\`bash
-claude-config workstream detect /path/to/project
+coder-config workstream detect /path/to/project
 \`\`\`
     `
   },
@@ -170,7 +170,7 @@ Add to \`~/.claude/hooks/post-response.sh\`:
 
 \`\`\`bash
 #!/bin/bash
-source /path/to/claude-config/hooks/activity-track.sh
+source /path/to/coder-config/hooks/activity-track.sh
 \`\`\`
 
 Or use the one-click install in the Workstreams view.
@@ -185,7 +185,7 @@ In the **Workstreams** view, the Activity Insights panel shows:
 
 ### Workstream Suggestions
 
-Based on co-activity patterns, claude-config suggests workstreams:
+Based on co-activity patterns, coder-config suggests workstreams:
 
 - **Co-activity score** - Percentage showing how often projects are worked on together
 - **Create button** - Opens pre-filled dialog (tweak projects as needed)
@@ -193,7 +193,7 @@ Based on co-activity patterns, claude-config suggests workstreams:
 
 ### Privacy
 
-- Activity data is stored locally in \`~/.claude-config/activity.json\`
+- Activity data is stored locally in \`~/.coder-config/activity.json\`
 - Only file paths are logged (not file contents)
 - You can delete the activity file at any time
 - Activity tracking is read-only and never modifies your code

@@ -223,9 +223,9 @@ export default function ProjectsView({ onProjectSwitch }) {
       <div className="bg-gray-50 dark:bg-slate-900 rounded-lg p-4 border border-transparent dark:border-slate-800">
         <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">CLI Commands</h4>
         <div className="space-y-1 text-sm text-gray-600 dark:text-slate-400 font-mono">
-          <p>claude-config project add [path]        # Add project</p>
-          <p>claude-config project remove &lt;name&gt;    # Remove project</p>
-          <p>claude-config project                   # List projects</p>
+          <p>coder-config project add [path]        # Add project</p>
+          <p>coder-config project remove &lt;name&gt;    # Remove project</p>
+          <p>coder-config project                   # List projects</p>
         </div>
       </div>
 

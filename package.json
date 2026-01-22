@@ -1,6 +1,6 @@
 {
   "name": "coder-config",
-  "version": "0.40.10",
+  "version": "0.40.11",
   "description": "Configuration manager for AI coding tools - Claude Code, Gemini CLI, Codex CLI, Antigravity. Manage MCPs, rules, permissions, memory, and workstreams.",
   "author": "regression.io",
   "main": "config-loader.js",

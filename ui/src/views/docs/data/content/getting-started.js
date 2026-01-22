@@ -8,7 +8,7 @@ Choose your preferred installation method:
 
 ### Option A: Desktop App (Recommended)
 
-Download the native app from [GitHub Releases](https://github.com/regression-io/claude-config/releases):
+Download the native app from [GitHub Releases](https://github.com/regression-io/coder-config/releases):
 
 | Platform | Download |
 |----------|----------|
@@ -32,13 +32,13 @@ npm install -g coder-config
 Verify installation:
 
 \`\`\`bash
-claude-config --version
+coder-config --version
 \`\`\`
 
 Then start the UI:
 
 \`\`\`bash
-claude-config ui
+coder-config ui
 \`\`\`
     `
   },
@@ -53,7 +53,7 @@ Claude Code works great out of the box. This tool helps you manage its configura
 
 **Desktop App:** Double-click the app after installing from GitHub Releases.
 
-**CLI:** Run \`claude-config ui\` in your terminal.
+**CLI:** Run \`coder-config ui\` in your terminal.
 
 ### 2. Add Your Projects
 
@@ -89,7 +89,7 @@ Using the CLI version? The UI is a PWA - install it to your taskbar via Chrome/E
 
 ### Desktop App
 
-Download the latest version from [GitHub Releases](https://github.com/regression-io/claude-config/releases) and install over your existing installation.
+Download the latest version from [GitHub Releases](https://github.com/regression-io/coder-config/releases) and install over your existing installation.
 
 ### npm Package
 
@@ -104,8 +104,8 @@ npm install -g coder-config@latest
 **After updating (if using daemon mode):**
 
 \`\`\`bash
-claude-config ui stop
-claude-config ui
+coder-config ui stop
+coder-config ui
 \`\`\`
     `
   },

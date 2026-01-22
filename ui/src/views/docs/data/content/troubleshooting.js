@@ -6,12 +6,12 @@ export const troubleshootingContent = {
 
 ### UI won't start
 
-**Symptom**: \`claude-config ui\` shows "Started daemon" but the UI doesn't open.
+**Symptom**: \`coder-config ui\` shows "Started daemon" but the UI doesn't open.
 
 **Solution**:
 \`\`\`bash
-claude-config ui stop
-claude-config ui --foreground
+coder-config ui stop
+coder-config ui --foreground
 \`\`\`
 
 Check for errors in the output.
@@ -22,7 +22,7 @@ Check for errors in the output.
 
 **Solution**:
 \`\`\`bash
-claude-config ui --port 3334
+coder-config ui --port 3334
 \`\`\`
 
 Or find and stop the process using port 3333.
@@ -32,7 +32,7 @@ Or find and stop the process using port 3333.
 **Symptom**: MCPs show in config but aren't available in Claude Code.
 
 **Solution**:
-1. Run \`claude-config apply\` to regenerate .mcp.json
+1. Run \`coder-config apply\` to regenerate .mcp.json
 2. Restart Claude Code
 3. Check environment variables are set
 
@@ -43,7 +43,7 @@ Or find and stop the process using port 3333.
 **Solution**:
 \`\`\`bash
 npm cache clean --force
-npm install -g @regression-io/claude-config
+npm install -g coder-config
 \`\`\`
     `
   },
@@ -59,18 +59,18 @@ This documentation is available in the app under **Docs & Help**.
 ### GitHub Issues
 
 Report bugs and request features:
-https://github.com/regression-io/claude-config/issues
+https://github.com/regression-io/coder-config/issues
 
 ### Version Info
 
 \`\`\`bash
-claude-config --version
+coder-config --version
 \`\`\`
 
 ### Debug Info
 
 When reporting issues, include:
-- claude-config version
+- coder-config version
 - Node.js version (\`node --version\`)
 - Operating system
 - Error messages or logs

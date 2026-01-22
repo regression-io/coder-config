@@ -64,9 +64,9 @@ export default function ClaudeSettingsView() {
       <div className="bg-gray-50 dark:bg-slate-900 rounded-lg p-4 border border-transparent dark:border-slate-800">
         <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">CLI Commands</h4>
         <div className="space-y-1 text-sm text-gray-600 dark:text-slate-400 font-mono">
-          <p>claude-config init                  # Initialize project</p>
-          <p>claude-config apply                 # Generate .mcp.json from config</p>
-          <p>claude-config show                  # Show current project config</p>
+          <p>coder-config init                  # Initialize project</p>
+          <p>coder-config apply                 # Generate .mcp.json from config</p>
+          <p>coder-config show                  # Show current project config</p>
         </div>
       </div>
     </div>

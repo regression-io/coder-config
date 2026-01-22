@@ -203,7 +203,7 @@ export default function PreferencesView() {
           <Wrench className="w-5 h-5 text-muted-foreground" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-foreground">claude-config Preferences</h2>
+          <h2 className="text-lg font-semibold text-foreground">coder-config Preferences</h2>
           <p className="text-sm text-muted-foreground">
             Tool settings for this configuration manager
           </p>
@@ -606,14 +606,14 @@ export default function PreferencesView() {
 
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Install Location</span>
-                <code className="text-xs text-muted-foreground">{versionInfo?.installDir || '~/.claude-config'}</code>
+                <code className="text-xs text-muted-foreground">{versionInfo?.installDir || '~/.coder-config'}</code>
               </div>
 
               <div className="border-t border-border pt-3 mt-3 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Documentation</span>
                   <a
-                    href="https://github.com/regression-io/claude-config"
+                    href="https://github.com/regression-io/coder-config"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:underline"
@@ -632,7 +632,7 @@ export default function PreferencesView() {
                   </button>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  After updating, restart the server with <code className="bg-muted-foreground/10 px-1 rounded">claude-config ui</code>
+                  After updating, restart the server with <code className="bg-muted-foreground/10 px-1 rounded">coder-config ui</code>
                 </p>
               </div>
             </div>

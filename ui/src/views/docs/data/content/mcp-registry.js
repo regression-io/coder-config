@@ -85,7 +85,7 @@ Both formats work:
 ### Via CLI
 
 \`\`\`bash
-claude-config add filesystem github postgres
+coder-config add filesystem github postgres
 \`\`\`
 
 ### From Search Results

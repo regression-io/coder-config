@@ -34,7 +34,20 @@ const { runCli } = require('./lib/cli');
 
 class ClaudeConfigManager {
   constructor() {
-    this.installDir = process.env.CLAUDE_CONFIG_HOME || path.join(process.env.HOME || '', '.coder-config');
+    const home = process.env.HOME || '';
+    const newDir = path.join(home, '.coder-config');
+    const legacyDir = path.join(home, '.claude-config');
+
+    // Use new location, but fall back to legacy if it has data and new doesn't
+    if (process.env.CLAUDE_CONFIG_HOME) {
+      this.installDir = process.env.CLAUDE_CONFIG_HOME;
+    } else if (fs.existsSync(path.join(legacyDir, 'projects.json')) &&
+               !fs.existsSync(path.join(newDir, 'projects.json'))) {
+      // Legacy has data, new doesn't - use legacy for backwards compatibility
+      this.installDir = legacyDir;
+    } else {
+      this.installDir = newDir;
+    }
 
     // Look for registry in multiple places
     const possiblePaths = [
