@@ -208,13 +208,14 @@ export default function Dashboard() {
         targetVersion: updateInfo.latestVersion
       });
       if (result.success) {
-        toast.success(`Updated to v${result.newVersion}! Reloading...`);
-        // Reload the page after a short delay to get new UI
-        setTimeout(() => window.location.reload(), 1500);
+        // Show success message - server restart required for npm updates
+        toast.success(`Updated to v${result.newVersion}! Run: coder-config ui stop && coder-config ui`);
+        setUpdateInfo(null); // Clear the update badge
+        setVersion(result.newVersion); // Show new version (even though server still runs old)
       } else {
         toast.error('Update failed: ' + result.error);
-        setUpdating(false);
       }
+      setUpdating(false);
     } catch (error) {
       toast.error('Update failed: ' + error.message);
       setUpdating(false);

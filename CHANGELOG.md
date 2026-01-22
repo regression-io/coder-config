@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.40.12] - 2026-01-23
+
+### Fixed
+
+- **Auto-Update No Longer Pretends to Reload** - After npm update, UI now shows the actual restart command instead of fake "Reloading..."
+  - Shows: `Run: coder-config ui stop && coder-config ui`
+  - The npm update changes files on disk but the server process must be restarted to load them
+
 ## [0.40.11] - 2026-01-23
 
 ### Fixed

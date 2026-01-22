@@ -90,9 +90,9 @@ export default function PreferencesView() {
       });
       if (result.success) {
         if (result.updateMethod === 'npm') {
-          toast.success(result.message || 'Updated via npm! Restart the server to apply.');
+          toast.success('Updated via npm! Run: coder-config ui stop && coder-config ui');
         } else {
-          toast.success(`Updated! Files: ${result.updated?.join(', ') || 'all'}. Restart the server to apply.`);
+          toast.success(`Updated! Run: coder-config ui stop && coder-config ui`);
         }
         loadVersionInfo();
       } else {
