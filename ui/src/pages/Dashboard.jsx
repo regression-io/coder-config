@@ -363,7 +363,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-foreground">
-                  Claude <span className="text-primary">Config</span>
+                  Coder <span className="text-primary">Config</span>
                 </h1>
               </div>
               {updateInfo && (
