@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.40.13] - 2026-01-23
+
+### Fixed
+
+- **`ui stop` and `ui` Now Work with LaunchAgent** - Commands properly handle macOS LaunchAgent daemon
+  - `coder-config ui stop` now uses `launchctl unload` to actually stop the LaunchAgent
+  - `coder-config ui` now uses `launchctl unload/load` to properly restart
+  - Previously these commands only worked with PID file mode, not LaunchAgent mode
+
 ## [0.40.12] - 2026-01-23
 
 ### Fixed

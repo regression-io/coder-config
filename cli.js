@@ -51,6 +51,25 @@ if (command === 'ui' || command === 'web' || command === 'server') {
 }
 
 function stopDaemon() {
+  // Check for LaunchAgent first (macOS)
+  if (process.platform === 'darwin' && fs.existsSync(LAUNCH_AGENT_PATH)) {
+    try {
+      const { spawnSync } = require('child_process');
+      const result = spawnSync('launchctl', ['list', LAUNCH_AGENT_LABEL], { encoding: 'utf8' });
+      if (result.status === 0 && result.stdout) {
+        // LaunchAgent is loaded, unload it to stop
+        console.log('Stopping LaunchAgent daemon...');
+        const unload = spawnSync('launchctl', ['unload', LAUNCH_AGENT_PATH], { encoding: 'utf8' });
+        if (unload.status === 0) {
+          console.log('Stopped daemon (LaunchAgent unloaded)');
+          console.log('Run "coder-config ui" to restart');
+          return;
+        }
+      }
+    } catch {}
+  }
+
+  // Check PID file (manual daemon mode)
   if (!fs.existsSync(PID_FILE)) {
     console.log('No daemon running (PID file not found)');
     return;
@@ -253,7 +272,28 @@ function uninstallLaunchAgent() {
 }
 
 function startDaemon(flags) {
-  // Check if already running
+  const { spawnSync } = require('child_process');
+
+  // Check if LaunchAgent is installed (macOS) - if so, reload it instead of PID mode
+  if (process.platform === 'darwin' && fs.existsSync(LAUNCH_AGENT_PATH)) {
+    // Unload first (ignore errors if not loaded)
+    spawnSync('launchctl', ['unload', LAUNCH_AGENT_PATH], { encoding: 'utf8' });
+
+    // Load the LaunchAgent
+    const result = spawnSync('launchctl', ['load', LAUNCH_AGENT_PATH], { encoding: 'utf8' });
+    if (result.status === 0) {
+      console.log('Started daemon (LaunchAgent reloaded)');
+      console.log(`UI available at: http://localhost:${flags.port}`);
+      console.log('\nCommands:');
+      console.log('  coder-config ui status  - Check daemon status');
+      console.log('  coder-config ui stop    - Stop the daemon');
+      return;
+    }
+    // If LaunchAgent load failed, fall through to PID mode
+    console.log('LaunchAgent failed to load, falling back to PID mode');
+  }
+
+  // Check if already running via PID
   if (fs.existsSync(PID_FILE)) {
     try {
       const existingPid = parseInt(fs.readFileSync(PID_FILE, 'utf8').trim());
