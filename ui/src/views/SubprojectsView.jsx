@@ -36,7 +36,7 @@ import {
 export default function SubprojectsView({ project, rootProject, onRefresh }) {
   const [deleteDialog, setDeleteDialog] = useState({ open: false, proj: null });
   const [removeDialog, setRemoveDialog] = useState({ open: false, proj: null });
-  const [addDialog, setAddDialog] = useState({ open: false, path: '' });
+  const [addDialog, setAddDialog] = useState({ open: false, path: '', runInit: true });
   const [selectedProjects, setSelectedProjects] = useState(new Set());
 
   // Use rootProject subprojects if available (sticky behavior)
@@ -163,8 +163,22 @@ export default function SubprojectsView({ project, rootProject, onRefresh }) {
       const projectRoot = rootProject?.dir || project.dir;
       const result = await api.addManualSubproject(projectRoot, subPath);
       if (result.success) {
-        toast.success(`Added sub-project: ${subPath.split('/').pop()}`);
-        setAddDialog({ open: false, path: '' });
+        const folderName = subPath.split('/').pop();
+
+        // Optionally run init on the new sub-project
+        if (addDialog.runInit && result.resolvedPath) {
+          const initResult = await api.initClaudeFolder(result.resolvedPath);
+          if (initResult.success) {
+            toast.success(`Added and initialized sub-project: ${folderName}`);
+          } else {
+            toast.success(`Added sub-project: ${folderName}`);
+            toast.error('Failed to initialize: ' + (initResult.error || 'Unknown error'));
+          }
+        } else {
+          toast.success(`Added sub-project: ${folderName}`);
+        }
+
+        setAddDialog({ open: false, path: '', runInit: true });
         onRefresh();
       } else {
         toast.error(result.error || 'Failed to add sub-project');
@@ -368,6 +382,17 @@ export default function SubprojectsView({ project, rootProject, onRefresh }) {
                     }>
                       {proj.hasConfig ? `✓ ${proj.mcpCount || 0} MCPs` : 'No config'}
                     </Badge>
+                    {!proj.hasConfig && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs"
+                        onClick={(e) => handleInitClaudeFolder(proj, e)}
+                      >
+                        <FolderPlus className="w-3 h-3 mr-1" />
+                        Init
+                      </Button>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -436,7 +461,7 @@ export default function SubprojectsView({ project, rootProject, onRefresh }) {
               Enter the path to a folder you want to manage as a sub-project. This can be any folder, including external projects.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-4 space-y-4">
             <Input
               placeholder="/path/to/project or ~/projects/my-app"
               value={addDialog.path}
@@ -444,12 +469,22 @@ export default function SubprojectsView({ project, rootProject, onRefresh }) {
               onKeyDown={(e) => e.key === 'Enter' && handleAddSubproject()}
               className="font-mono"
             />
-            <p className="text-xs text-muted-foreground mt-2">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="run-init"
+                checked={addDialog.runInit}
+                onCheckedChange={(checked) => setAddDialog({ ...addDialog, runInit: checked })}
+              />
+              <label htmlFor="run-init" className="text-sm text-foreground cursor-pointer">
+                Initialize .claude folder
+              </label>
+            </div>
+            <p className="text-xs text-muted-foreground">
               Tip: Use ~ for home directory. The folder must exist.
             </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddDialog({ open: false, path: '' })}>
+            <Button variant="outline" onClick={() => setAddDialog({ open: false, path: '', runInit: true })}>
               Cancel
             </Button>
             <Button onClick={handleAddSubproject}>

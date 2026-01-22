@@ -119,7 +119,7 @@ function addManualSubproject(config, saveConfig, projectDir, subprojectDir) {
     saveConfig(config);
   }
 
-  return { success: true };
+  return { success: true, resolvedPath: resolvedSubproject };
 }
 
 /**
