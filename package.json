@@ -1,6 +1,6 @@
 {
   "name": "coder-config",
-  "version": "0.40.1",
+  "version": "0.40.2",
   "description": "Configuration manager for AI coding tools - Claude Code, Gemini CLI, Codex CLI, Antigravity. Manage MCPs, rules, permissions, memory, and workstreams.",
   "author": "regression.io",
   "main": "config-loader.js",
@@ -54,12 +54,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/regression-io/claude-config.git"
+    "url": "git+https://github.com/regression-io/coder-config.git"
   },
   "bugs": {
-    "url": "https://github.com/regression-io/claude-config/issues"
+    "url": "https://github.com/regression-io/coder-config/issues"
   },
-  "homepage": "https://github.com/regression-io/claude-config#readme",
+  "homepage": "https://github.com/regression-io/coder-config#readme",
   "files": [
     "cli.js",
     "config-loader.js",

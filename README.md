@@ -541,8 +541,8 @@ User settings stored in `~/.claude-config/config.json`:
 ## Development
 
 ```bash
-git clone https://github.com/regression-io/claude-config.git
-cd claude-config
+git clone https://github.com/regression-io/coder-config.git
+cd coder-config
 npm install
 npm run build
 npm start
