@@ -11,14 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Package Renamed** - `@regression-io/claude-config` → `coder-config`
   - New npm package name: `coder-config`
+  - New GitHub repo: `regression-io/coder-config`
   - Both `coder-config` and `claude-config` commands work (backwards compatible)
   - All config paths unchanged (`~/.claude-config/`, `~/.claude/`, etc.)
+  - Old npm package deprecated with migration message
+  - Old GitHub repo updated with redirect notice
   - **Migration for existing users:**
     ```bash
     npm uninstall -g @regression-io/claude-config
     npm install -g coder-config
     ```
   - Your settings are preserved automatically
+
+### Planned
+
+- **Folder Migration** - `~/.claude-config/` → `~/.coder-config/` (v0.41.0)
+  - See `docs/plans/2026-01-23-folder-migration-design.md` for details
+  - Will support both paths during transition
+  - `coder-config migrate` command planned
 
 ### Added
 
