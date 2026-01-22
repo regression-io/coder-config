@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.40.14] - 2026-01-23
+
+### Changed
+
+- **Renamed `bin/claude-config` to `bin/coder-config`** - Standalone CLI wrapper now uses new name
+- **Renamed `claude-config-plugins` to `coder-config-plugins`** - Plugin marketplace reference updated
+- **Added CLI Commands section to Plugins view** - Shows `/plugin` slash commands for Claude Code
+
+### Fixed
+
+- **`bin/coder-config` now checks both config paths** - Looks for `~/.coder-config/` first, falls back to `~/.claude-config/`
+
 ## [0.40.13] - 2026-01-23
 
 ### Fixed

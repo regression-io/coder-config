@@ -53,9 +53,9 @@ mkdir -p "$INSTALL_DIR/ui"
 
 # Copy core files
 cp "$SCRIPT_DIR/config-loader.js" "$INSTALL_DIR/"
-cp "$SCRIPT_DIR/shell/claude-config.zsh" "$INSTALL_DIR/shell/"
-cp "$SCRIPT_DIR/bin/claude-config" "$INSTALL_DIR/bin/" 2>/dev/null || mkdir -p "$INSTALL_DIR/bin" && cp "$SCRIPT_DIR/bin/claude-config" "$INSTALL_DIR/bin/"
-chmod +x "$INSTALL_DIR/bin/claude-config"
+cp "$SCRIPT_DIR/shell/coder-config.zsh" "$INSTALL_DIR/shell/"
+cp "$SCRIPT_DIR/bin/coder-config" "$INSTALL_DIR/bin/" 2>/dev/null || mkdir -p "$INSTALL_DIR/bin" && cp "$SCRIPT_DIR/bin/coder-config" "$INSTALL_DIR/bin/"
+chmod +x "$INSTALL_DIR/bin/coder-config"
 
 # Copy shared files (MCP registry)
 cp "$SCRIPT_DIR/shared/mcp-registry.json" "$INSTALL_DIR/shared/"
@@ -132,7 +132,7 @@ esac
 if [[ -n "$SHELL_RC" ]]; then
   echo -e "\n${BLUE}Configuring shell integration...${NC}"
 
-  SOURCE_LINE="source \"$INSTALL_DIR/shell/claude-config.zsh\""
+  SOURCE_LINE="source \"$INSTALL_DIR/shell/coder-config.zsh\""
   EXPORT_LINE="export CLAUDE_CONFIG_LOADER=\"$INSTALL_DIR/config-loader.js\""
 
   if grep -q "claude-config.zsh" "$SHELL_RC" 2>/dev/null; then
@@ -160,10 +160,10 @@ fi
 
 echo -e "\n${BLUE}Next steps:${NC}"
 echo -e "  1. Add to your PATH (choose one):"
-echo -e "     ${YELLOW}ln -sf $INSTALL_DIR/bin/claude-config ~/bin/claude-config${NC}"
+echo -e "     ${YELLOW}ln -sf $INSTALL_DIR/bin/coder-config ~/bin/coder-config${NC}"
 echo -e "     ${YELLOW}# OR add to ~/.zshrc: export PATH=\"$INSTALL_DIR/bin:\$PATH\"${NC}"
 echo -e "  2. (Optional) Source shell hook for auto-apply on cd:"
-echo -e "     ${YELLOW}source $INSTALL_DIR/shell/claude-config.zsh${NC}"
+echo -e "     ${YELLOW}source $INSTALL_DIR/shell/coder-config.zsh${NC}"
 echo -e "  3. In your project, run: ${YELLOW}claude-config init${NC}"
 echo -e "     Or with a template: ${YELLOW}claude-config init --template fastapi${NC}"
 echo ""

@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Coder Config - Standalone CLI wrapper
+# Place this in ~/bin or anywhere in your PATH
+
+# Check new path first, fall back to legacy
+if [[ -f "$HOME/.coder-config/config-loader.js" ]]; then
+  CODER_CONFIG_LOADER="$HOME/.coder-config/config-loader.js"
+elif [[ -f "$HOME/.claude-config/config-loader.js" ]]; then
+  CODER_CONFIG_LOADER="$HOME/.claude-config/config-loader.js"
+else
+  CODER_CONFIG_LOADER="${CODER_CONFIG_LOADER:-$HOME/.coder-config/config-loader.js}"
+fi
+
+if [[ ! -f "$CODER_CONFIG_LOADER" ]]; then
+  echo "Error: config-loader.js not found"
+  echo "Checked: ~/.coder-config/ and ~/.claude-config/"
+  echo "Run install.sh first or set CODER_CONFIG_LOADER environment variable"
+  exit 1
+fi
+
+exec node "$CODER_CONFIG_LOADER" "$@"

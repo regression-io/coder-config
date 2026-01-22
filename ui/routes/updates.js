@@ -315,8 +315,8 @@ function performLocalUpdate(sourcePath, manager) {
     const filesToCopy = [
       { src: 'config-loader.js', dest: 'config-loader.js' },
       { src: 'shared/mcp-registry.json', dest: 'shared/mcp-registry.json' },
-      { src: 'shell/claude-config.zsh', dest: 'shell/claude-config.zsh' },
-      { src: 'bin/claude-config', dest: 'bin/claude-config' }
+      { src: 'shell/coder-config.zsh', dest: 'shell/coder-config.zsh' },
+      { src: 'bin/coder-config', dest: 'bin/coder-config' }
     ];
 
     for (const { src, dest } of filesToCopy) {
