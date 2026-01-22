@@ -41,7 +41,7 @@ function getVersionFromFile(filePath) {
  */
 function fetchNpmVersion() {
   return new Promise((resolve) => {
-    const url = 'https://registry.npmjs.org/@regression-io/claude-config/latest';
+    const url = 'https://registry.npmjs.org/coder-config/latest';
     const req = https.get(url, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
@@ -167,7 +167,7 @@ async function performNpmUpdate(targetVersion) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       // Use npm install @latest instead of npm update for reliable updates
-      execSync('npm install -g @regression-io/claude-config@latest', {
+      execSync('npm install -g coder-config@latest', {
         stdio: 'pipe',
         timeout: 120000
       });

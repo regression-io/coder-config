@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.40.6] - 2026-01-23
+
+### Fixed
+
+- **Complete Branding Rename** - All CLI commands and help text now use `coder-config` consistently
+  - Updated all CLI help messages from `claude-config` to `coder-config`
+  - Updated auto-update to check new `coder-config` npm package
+  - Renamed LaunchAgent from `io.regression.claude-config` to `io.regression.coder-config`
+  - Updated shell integration file to `shell/coder-config.zsh`
+
+- **Environment Variable Rename** - `CLAUDE_WORKSTREAM` → `CODER_WORKSTREAM`
+  - New env var: `CODER_WORKSTREAM` (preferred)
+  - Legacy `CLAUDE_WORKSTREAM` still supported for backward compatibility
+  - All hooks updated to check both variables
+
+- **Auto-Update Fix** - UI now correctly checks for updates from `coder-config` npm package
+
 ## [0.40.0] - 2026-01-23
 
 ### Changed
@@ -13,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New npm package name: `coder-config`
   - New GitHub repo: `regression-io/coder-config`
   - Both `coder-config` and `claude-config` commands work (backwards compatible)
-  - All config paths unchanged (`~/.claude-config/`, `~/.claude/`, etc.)
+  - Config paths updated to `~/.coder-config/` (legacy `~/.claude-config/` still supported)
   - Old npm package deprecated with migration message
   - Old GitHub repo updated with redirect notice
   - **Migration for existing users:**

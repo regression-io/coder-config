@@ -170,9 +170,12 @@ function installWorkstreamHook() {
   const hookPath = path.join(hookDir, 'pre-prompt.sh');
 
   const hookCode = `
-# Workstream rule injection (added by claude-config)
-if command -v claude-config &> /dev/null; then
-  claude-config workstream inject --silent
+# Workstream rule injection (added by coder-config)
+# Supports both CODER_WORKSTREAM (preferred) and CLAUDE_WORKSTREAM (legacy)
+if [ -n "$CODER_WORKSTREAM" ] || [ -n "$CLAUDE_WORKSTREAM" ]; then
+  if command -v coder-config &> /dev/null; then
+    coder-config workstream inject --silent
+  fi
 fi
 `;
 

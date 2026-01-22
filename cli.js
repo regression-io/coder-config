@@ -16,10 +16,10 @@ const args = process.argv.slice(2);
 const command = args[0] || '';
 
 // PID file for daemon mode
-const PID_FILE = path.join(os.homedir(), '.claude-config', 'ui.pid');
+const PID_FILE = path.join(os.homedir(), '.coder-config', 'ui.pid');
 
 // LaunchAgent for macOS auto-start
-const LAUNCH_AGENT_LABEL = 'io.regression.claude-config';
+const LAUNCH_AGENT_LABEL = 'io.regression.coder-config';
 const LAUNCH_AGENT_PATH = path.join(os.homedir(), 'Library', 'LaunchAgents', `${LAUNCH_AGENT_LABEL}.plist`);
 
 // UI command needs special handling (starts web server with better error handling)
@@ -108,10 +108,10 @@ function checkDaemonStatus() {
   // Check if LaunchAgent exists but not running
   if (process.platform === 'darwin' && fs.existsSync(LAUNCH_AGENT_PATH)) {
     console.log('Daemon: not running (LaunchAgent installed but stopped)');
-    console.log('Run: launchctl load ~/Library/LaunchAgents/io.regression.claude-config.plist');
+    console.log('Run: launchctl load ~/Library/LaunchAgents/io.regression.coder-config.plist');
   } else {
     console.log('Daemon: not running');
-    console.log('Run: claude-config ui');
+    console.log('Run: coder-config ui');
   }
 }
 
@@ -122,10 +122,10 @@ function installLaunchAgent() {
     process.exit(1);
   }
 
-  // Find the claude-config executable
+  // Find the coder-config executable
   let execPath;
   try {
-    execPath = execSync('which claude-config', { encoding: 'utf8' }).trim();
+    execPath = execSync('which coder-config', { encoding: 'utf8' }).trim();
   } catch {
     execPath = path.join(__dirname, 'cli.js');
   }
@@ -161,9 +161,9 @@ function installLaunchAgent() {
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>${path.join(os.homedir(), '.claude-config', 'ui.log')}</string>
+    <string>${path.join(os.homedir(), '.coder-config', 'ui.log')}</string>
     <key>StandardErrorPath</key>
-    <string>${path.join(os.homedir(), '.claude-config', 'ui.log')}</string>
+    <string>${path.join(os.homedir(), '.coder-config', 'ui.log')}</string>
     <key>WorkingDirectory</key>
     <string>${os.homedir()}</string>
 </dict>
@@ -176,7 +176,7 @@ function installLaunchAgent() {
   }
 
   // Ensure log directory exists
-  const logDir = path.join(os.homedir(), '.claude-config');
+  const logDir = path.join(os.homedir(), '.coder-config');
   if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir, { recursive: true });
   }
@@ -223,8 +223,8 @@ function installLaunchAgent() {
   console.log('Your PWA can now connect anytime!');
   console.log('');
   console.log('Commands:');
-  console.log('  claude-config ui status     - Check if running');
-  console.log('  claude-config ui uninstall  - Remove auto-start');
+  console.log('  coder-config ui status     - Check if running');
+  console.log('  coder-config ui uninstall  - Remove auto-start');
 }
 
 function uninstallLaunchAgent() {
@@ -249,7 +249,7 @@ function uninstallLaunchAgent() {
 
   console.log('✓ Removed auto-start for Coder Config UI');
   console.log('');
-  console.log('To start manually: claude-config ui');
+  console.log('To start manually: coder-config ui');
 }
 
 function startDaemon(flags) {
@@ -260,7 +260,7 @@ function startDaemon(flags) {
       process.kill(existingPid, 0);
       console.log(`Daemon already running (PID: ${existingPid})`);
       console.log(`UI available at: http://localhost:${flags.port}`);
-      console.log('Use "claude-config ui stop" to stop the daemon');
+      console.log('Use "coder-config ui stop" to stop the daemon');
       return;
     } catch (err) {
       // Process not running, clean up stale PID file
@@ -306,8 +306,8 @@ function startDaemon(flags) {
   console.log(`UI available at: http://localhost:${flags.port}`);
   console.log(`Logs: ${logFile}`);
   console.log('\nCommands:');
-  console.log('  claude-config ui status  - Check daemon status');
-  console.log('  claude-config ui stop    - Stop the daemon');
+  console.log('  coder-config ui status  - Check daemon status');
+  console.log('  coder-config ui stop    - Stop the daemon');
 }
 
 function startUI() {
@@ -407,7 +407,7 @@ function startUI() {
   process.on('uncaughtException', (err) => {
     if (err.code === 'EADDRINUSE') {
       console.error(`\nError: Port ${flags.port} is already in use.`);
-      console.error(`Try a different port: claude-config ui --port ${flags.port + 1}`);
+      console.error(`Try a different port: coder-config ui --port ${flags.port + 1}`);
       process.exit(1);
     } else if (err.code === 'EACCES') {
       console.error(`\nError: Permission denied for port ${flags.port}.`);

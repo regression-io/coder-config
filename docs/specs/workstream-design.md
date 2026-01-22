@@ -296,8 +296,8 @@ This provides hard enforcement beyond the soft guidance in the injected context.
       path: "/Users/ruze/rcp"
     },
     {
-      id: "claude-config",
-      name: "Claude Config",
+      id: "coder-config",
+      name: "Coder Config",
       path: "/Users/ruze/reg/my/claude-config"
     }
   ],
@@ -718,7 +718,7 @@ claude-config workstream install-hook           # Install pre-prompt hook
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ Claude Config                    [RCP ▼] [Admin Console ▼]   │
+│ Coder Config                     [RCP ▼] [Admin Console ▼]   │
 │                                  Project   Workstream        │
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │

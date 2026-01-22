@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 /**
- * Claude Code Configuration Loader
+ * Coder Config - Configuration Loader
  *
  * Uses standard JSON format throughout - no custom YAML.
  * Copy/paste MCP configs from anywhere.
  *
  * Files:
- *   ~/.claude-config/mcp-registry.json   - All available MCPs (copy/paste friendly)
+ *   ~/.coder-config/mcp-registry.json    - All available MCPs (copy/paste friendly)
  *   project/.claude/mcps.json            - Which MCPs this project uses
  *   project/.claude/rules/*.md           - Project rules
  *   project/.claude/commands/*.md        - Project commands
@@ -34,7 +34,7 @@ const { runCli } = require('./lib/cli');
 
 class ClaudeConfigManager {
   constructor() {
-    this.installDir = process.env.CLAUDE_CONFIG_HOME || path.join(process.env.HOME || '', '.claude-config');
+    this.installDir = process.env.CLAUDE_CONFIG_HOME || path.join(process.env.HOME || '', '.coder-config');
 
     // Look for registry in multiple places
     const possiblePaths = [
@@ -180,23 +180,23 @@ class ClaudeConfigManager {
     console.log(`\nUpdate available: v${VERSION} → v${npmVersion}`);
 
     if (checkOnly) {
-      console.log('\nRun "claude-config update" to install the update.');
+      console.log('\nRun "coder-config update" to install the update.');
       return true;
     }
 
     // Perform npm update
     console.log('\nUpdating via npm...');
     try {
-      execSync('npm install -g @regression-io/claude-config@latest', {
+      execSync('npm install -g coder-config@latest', {
         stdio: 'inherit',
         timeout: 120000
       });
       console.log(`\n✅ Updated to v${npmVersion}`);
-      console.log('Run "claude-config ui" to restart the UI with the new version.');
+      console.log('Run "coder-config ui" to restart the UI with the new version.');
       return true;
     } catch (error) {
       console.error('Update failed:', error.message);
-      console.log('\nTry manually: npm install -g @regression-io/claude-config@latest');
+      console.log('\nTry manually: npm install -g coder-config@latest');
       return false;
     }
   }
@@ -204,7 +204,7 @@ class ClaudeConfigManager {
   // Fetch latest version from npm registry
   _fetchNpmVersion(https) {
     return new Promise((resolve) => {
-      const url = 'https://registry.npmjs.org/@regression-io/claude-config/latest';
+      const url = 'https://registry.npmjs.org/coder-config/latest';
       https.get(url, (res) => {
         let data = '';
         res.on('data', chunk => data += chunk);
@@ -245,7 +245,7 @@ class ClaudeConfigManager {
     const files = [
       'config-loader.js',
       'shared/mcp-registry.json',
-      'shell/claude-config.zsh'
+      'shell/coder-config.zsh'
     ];
 
     let updated = 0;
