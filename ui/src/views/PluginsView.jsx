@@ -835,15 +835,15 @@ export default function PluginsView() {
 
       {/* CLI Commands */}
       <div className="bg-gray-50 dark:bg-slate-900 rounded-lg p-4 border border-transparent dark:border-slate-800">
-        <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Claude Code Plugin Commands</h4>
+        <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">CLI Commands (Claude Code)</h4>
         <div className="space-y-1 text-sm text-gray-600 dark:text-slate-400 font-mono">
           <p className="text-gray-400 dark:text-slate-500"># Add marketplace (one-time)</p>
-          <p>/plugin marketplace add regression-io/coder-config-plugins</p>
+          <p>claude plugin marketplace add regression-io/coder-config-plugins</p>
           <p className="text-gray-400 dark:text-slate-500 mt-2"># Install plugins from marketplace</p>
-          <p>/plugin install &lt;name&gt;@coder-config-plugins</p>
+          <p>claude plugin install &lt;name&gt;@coder-config-plugins</p>
           <p className="text-gray-400 dark:text-slate-500 mt-2"># Manage plugins</p>
-          <p>/plugin list                          # List installed</p>
-          <p>/plugin uninstall &lt;name&gt;             # Remove plugin</p>
+          <p>claude plugin list                    # List installed</p>
+          <p>claude plugin uninstall &lt;name&gt;       # Remove plugin</p>
         </div>
       </div>
     </div>
