@@ -1,9 +1,6 @@
 name: Build Tauri App
 
 on:
-  push:
-    tags:
-      - 'v*'  # Trigger on version tags
   workflow_dispatch:
     inputs:
       draft:
