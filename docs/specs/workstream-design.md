@@ -298,7 +298,7 @@ This provides hard enforcement beyond the soft guidance in the injected context.
     {
       id: "coder-config",
       name: "Coder Config",
-      path: "/Users/ruze/reg/my/claude-config"
+      path: "/Users/ruze/reg/my/coder-config"
     }
   ],
   activeProjectId: "rcp"
