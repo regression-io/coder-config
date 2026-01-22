@@ -1,0 +1,151 @@
+name: Build Tauri App
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags
+  workflow_dispatch:
+    inputs:
+      draft:
+        description: 'Create as draft release'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  build-macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            runner: macos-latest
+          - target: x86_64-apple-darwin
+            runner: macos-latest
+
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build UI
+        run: npm run build
+
+      - name: Prepare Tauri bundle
+        run: npm run tauri:prepare
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ github.ref_name }}
+        with:
+          tagName: __VERSION__
+          releaseName: 'Claude Config __VERSION__'
+          releaseBody: |
+            ## Download
+
+            **macOS**: Download the `.dmg` file for your architecture:
+            - Apple Silicon (M1/M2/M3): `Claude.Config_*_aarch64.dmg`
+            - Intel: `Claude.Config_*_x64.dmg`
+
+            ## Installation
+            1. Open the `.dmg` file
+            2. Drag Claude Config to Applications
+            3. Double-click to launch
+
+            The app bundles everything needed - no Node.js or npm required.
+
+            ---
+
+            **CLI users**: Continue using `npm install -g @regression-io/claude-config`
+          releaseDraft: ${{ github.event.inputs.draft || true }}
+          prerelease: false
+          args: --target ${{ matrix.target }}
+
+  build-linux:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build UI
+        run: npm run build
+
+      - name: Prepare Tauri bundle
+        run: npm run tauri:prepare
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: __VERSION__
+          releaseName: 'Claude Config __VERSION__'
+          releaseDraft: ${{ github.event.inputs.draft || true }}
+          prerelease: false
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build UI
+        run: npm run build
+
+      - name: Prepare Tauri bundle
+        run: npm run tauri:prepare
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: __VERSION__
+          releaseName: 'Claude Config __VERSION__'
+          releaseDraft: ${{ github.event.inputs.draft || true }}
+          prerelease: false

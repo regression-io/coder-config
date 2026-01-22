@@ -4,32 +4,42 @@ export const gettingStartedContent = {
     content: `
 ## Installation
 
-Install claude-config globally via npm:
+Choose your preferred installation method:
+
+### Option A: Desktop App (Recommended)
+
+Download the native app from [GitHub Releases](https://github.com/regression-io/claude-config/releases):
+
+| Platform | Download |
+|----------|----------|
+| **macOS (Apple Silicon)** | \`Claude.Config_*_aarch64.dmg\` |
+| **macOS (Intel)** | \`Claude.Config_*_x64.dmg\` |
+| **Windows** | \`Claude.Config_*_x64-setup.exe\` |
+| **Linux** | \`Claude.Config_*_amd64.deb\` or \`.AppImage\` |
+
+The desktop app bundles everything - no Node.js or npm required. Just download, install, and run.
+
+### Option B: npm Package (CLI)
+
+Install globally via npm:
 
 \`\`\`bash
 npm install -g @regression-io/claude-config
 \`\`\`
 
-Or install from GitHub directly:
+**Requirements:** Node.js 18+
 
-\`\`\`bash
-npm install -g github:regression-io/claude-config
-\`\`\`
-
-### Requirements
-
-- **Node.js 18+** is required
-- Works on macOS, Linux, and Windows (with some limitations)
-
-### Verify Installation
-
-After installation, verify it's working:
+Verify installation:
 
 \`\`\`bash
 claude-config --version
 \`\`\`
 
-This should display the version number and installation paths.
+Then start the UI:
+
+\`\`\`bash
+claude-config ui
+\`\`\`
     `
   },
   'quick-start': {
@@ -39,13 +49,11 @@ This should display the version number and installation paths.
 
 Claude Code works great out of the box. This tool helps you manage its configuration visually.
 
-### 1. Start the Config UI
+### 1. Launch Claude Config
 
-\`\`\`bash
-claude-config ui
-\`\`\`
+**Desktop App:** Double-click the app after installing from GitHub Releases.
 
-This opens a web UI for managing Claude Code settings.
+**CLI:** Run \`claude-config ui\` in your terminal.
 
 ### 2. Add Your Projects
 
@@ -69,9 +77,9 @@ claude
 
 Claude Code automatically reads configuration from the \`.claude/\` folder.
 
-### Optional: Install as App
+### Optional: Install as PWA
 
-The UI is a PWA - install it to your taskbar via Chrome/Edge's install button or Safari's Share → Add to Dock.
+Using the CLI version? The UI is a PWA - install it to your taskbar via Chrome/Edge's install button or Safari's Share → Add to Dock.
     `
   },
   'updating': {
@@ -79,19 +87,21 @@ The UI is a PWA - install it to your taskbar via Chrome/Edge's install button or
     content: `
 ## Updating
 
-### Automatic Update Detection
+### Desktop App
+
+Download the latest version from [GitHub Releases](https://github.com/regression-io/claude-config/releases) and install over your existing installation.
+
+### npm Package
 
 The UI automatically checks npm for new versions. When an update is available, you'll see a notification in the Preferences page.
 
-### Manual Update
+**Manual update:**
 
 \`\`\`bash
 npm install -g @regression-io/claude-config@latest
 \`\`\`
 
-### After Updating
-
-If you have the UI running as a daemon, restart it:
+**After updating (if using daemon mode):**
 
 \`\`\`bash
 claude-config ui stop

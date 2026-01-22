@@ -26,13 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Tauri Desktop App** - Native macOS app bundle using Tauri v2
-  - Build with `npm run tauri:build` to create `.app` and `.dmg`
-  - Development mode with `npm run tauri:dev`
+- **Tauri Desktop App** - Native desktop app using Tauri v2
+  - **Download from [GitHub Releases](https://github.com/regression-io/claude-config/releases)** - no Node.js required
+  - Cross-platform: macOS (Apple Silicon & Intel), Windows, Linux
   - Bundles Node.js server as sidecar process
   - WebView opens to localhost:3333 automatically
   - App icon with gear design in purple gradient
   - True desktop experience without CLI commands
+  - GitHub Actions workflow for automated builds on version tags
+  - Build locally with `npm run tauri:build` or develop with `npm run tauri:dev`
   - CLI package (`npm install -g @regression-io/claude-config`) still works independently
 
 ## [0.38.3] - 2026-01-22

@@ -4,6 +4,14 @@ export const welcomeContent = {
     content: `
 Think of Claude Config as your **control center** for Claude Code (and other AI coding tools). Instead of manually editing JSON files or remembering command-line flags, you get a friendly UI to manage everything.
 
+### How are you using Claude Config?
+
+**Desktop App** - Downloaded from [GitHub Releases](https://github.com/regression-io/claude-config/releases). No terminal needed!
+
+**npm Package** - Installed via \`npm install -g @regression-io/claude-config\` and running \`claude-config ui\`.
+
+Both work identically - this tutorial applies to either.
+
 ### What can you do here?
 
 - **Register projects** you're working on

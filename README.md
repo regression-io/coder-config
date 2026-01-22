@@ -17,13 +17,36 @@ Claude Code works great out of the box. This tool helps when you need more contr
 
 ## Installation
 
+### Option A: Desktop App (Recommended)
+
+Download the native app from [GitHub Releases](https://github.com/regression-io/claude-config/releases):
+
+| Platform | Download |
+|----------|----------|
+| **macOS (Apple Silicon)** | `Claude.Config_*_aarch64.dmg` |
+| **macOS (Intel)** | `Claude.Config_*_x64.dmg` |
+| **Windows** | `Claude.Config_*_x64-setup.exe` |
+| **Linux** | `Claude.Config_*_amd64.deb` or `.AppImage` |
+
+No Node.js required. Just download, install, and run.
+
+### Option B: npm Package
+
 ```bash
 npm install -g @regression-io/claude-config
 ```
 
+Requires Node.js 18+.
+
 ## Quick Start
 
-### New Users
+### Desktop App Users
+
+1. Download and install from [GitHub Releases](https://github.com/regression-io/claude-config/releases)
+2. Launch the app
+3. Add your projects and configure
+
+### npm Package Users
 
 ```bash
 # 1. Install
@@ -36,24 +59,17 @@ claude-config ui install
 open http://localhost:3333
 ```
 
-The server now starts automatically on login. Install as a PWA from your browser for app-like access.
+The server starts automatically on login. Install as a PWA from your browser for app-like access.
 
-### Existing Users (Updating)
+### Updating
 
+**Desktop App:** Download latest from [GitHub Releases](https://github.com/regression-io/claude-config/releases).
+
+**npm Package:**
 ```bash
-# Option A: Update via CLI
 claude-config update
-
-# Option B: Update via UI
-# Click the green "Update" button in the header when available
-
-# After updating, restart to pick up changes:
-claude-config ui install   # If using auto-start
-# OR
-claude-config ui stop && claude-config ui   # Manual restart
+# Then restart: claude-config ui stop && claude-config ui
 ```
-
-The UI shows a restart indicator when the running version differs from the installed version.
 
 ### CLI Alternative
 
@@ -528,11 +544,22 @@ User settings stored in `~/.claude-config/config.json`:
 | `ui.port` | Default port for web UI |
 | `ui.openBrowser` | Auto-open browser on `claude-config ui` |
 
-## Native Desktop App (Tauri)
+## Native Desktop App
 
-For a true desktop experience without running CLI commands, you can build a native macOS app.
+The desktop app provides a true native experience - no terminal, no Node.js, no CLI commands.
 
-### Building the Desktop App
+### Download
+
+Get the latest release from [GitHub Releases](https://github.com/regression-io/claude-config/releases):
+
+- **macOS Apple Silicon**: `Claude.Config_*_aarch64.dmg`
+- **macOS Intel**: `Claude.Config_*_x64.dmg`
+- **Windows**: `Claude.Config_*_x64-setup.exe`
+- **Linux**: `Claude.Config_*_amd64.deb` or `.AppImage`
+
+### Building from Source
+
+If you prefer to build locally:
 
 ```bash
 # Prerequisites: Rust toolchain
@@ -550,8 +577,6 @@ The `.app` bundle will be created in `src-tauri/target/release/bundle/macos/`.
 # Run in development with hot reload
 npm run tauri:dev
 ```
-
-This opens the native window connected to the local Node.js server.
 
 ## Requirements
 

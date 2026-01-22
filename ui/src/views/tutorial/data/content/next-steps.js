@@ -35,13 +35,15 @@ Click **"Create MCP"** to build your own MCP server. Great for connecting Claude
 - \`Cmd/Ctrl + ,\` - Open preferences
 - \`Cmd/Ctrl + R\` - Refresh
 
-**Useful CLI Commands**
+**For CLI Users**
 \`\`\`bash
 claude-config ui          # Start the UI
 claude-config ui stop     # Stop the daemon
 claude-config apply       # Apply config to current project
 claude-config --help      # See all commands
 \`\`\`
+
+*Desktop app users: These commands are optional - the app handles everything automatically.*
 
 ### Thank You!
 

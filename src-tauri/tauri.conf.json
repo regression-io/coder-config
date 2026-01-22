@@ -1,0 +1,61 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Claude Config",
+  "version": "0.39.0",
+  "identifier": "io.regression.claude-config",
+  "build": {
+    "beforeBuildCommand": "cd .. && npm run tauri:prepare && npm run build",
+    "beforeDevCommand": "cd .. && npm run build",
+    "devUrl": "http://localhost:3333",
+    "frontendDist": "../ui/dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Claude Config",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "decorations": true,
+        "transparent": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["dmg", "app"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "DeveloperTool",
+    "shortDescription": "Configuration management for Claude Code",
+    "longDescription": "Configuration management UI for Claude Code and Antigravity - manage MCPs, rules, commands, memory, and project folders",
+    "resources": {
+      "server": "server/"
+    },
+    "externalBin": [
+      "binaries/node-server"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "10.15",
+      "entitlements": null,
+      "signingIdentity": null
+    }
+  },
+  "plugins": {
+    "shell": {
+      "open": true
+    }
+  }
+}
