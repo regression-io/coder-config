@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.40.0] - 2026-01-23
+
+### Added
+
+- **Codex CLI Support** - Full configuration management for OpenAI Codex CLI
+  - New "Codex CLI" tab in Configuration section
+  - Settings editor for `~/.codex/config.toml` with rich UI and raw TOML view
+  - Model selection (GPT-5.2 Codex, GPT-5, o3-mini)
+  - Security settings (approval policy, sandbox mode)
+  - MCP server management (add/remove/view servers)
+  - Feature flags (shell snapshot, web search)
+  - TUI options (animations, notifications)
+  - History and analytics settings
+  - TOML parsing via @iarna/toml
+
+- **Codex CLI workstream support** - Workstreams now work with Codex CLI
+  - New `--codex` flag for `workstream install-hook` command
+  - `--all` flag now includes Codex CLI
+  - Hook injects workstream context into Codex sessions
+
 ## [0.39.5] - 2026-01-23
 
 ### Changed

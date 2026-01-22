@@ -130,7 +130,7 @@ claude-config workstream use project-b
 
 When active, the AI receives a restriction telling it to only work within the workstream's directories.
 
-**Multi-tool support**: Workstreams work with both Claude Code and Gemini CLI. Install hooks for your preferred tool(s):
+**Multi-tool support**: Workstreams work with Claude Code, Gemini CLI, and Codex CLI. Install hooks for your preferred tool(s):
 ```bash
 # For Claude Code only
 claude-config workstream install-hook
@@ -138,7 +138,10 @@ claude-config workstream install-hook
 # For Gemini CLI only
 claude-config workstream install-hook --gemini
 
-# For both
+# For Codex CLI only
+claude-config workstream install-hook --codex
+
+# For all supported tools
 claude-config workstream install-hook --all
 ```
 
@@ -344,6 +347,7 @@ source /path/to/claude-config/hooks/activity-track.sh
 | **Project Explorer** | Browse and edit `.claude/` folders across your project hierarchy |
 | **Claude Code Settings** | Visual editor for permissions, model, hooks, and behavior |
 | **Gemini CLI Settings** | Configure model, display options, and sandbox mode |
+| **Codex CLI Settings** | Configure model, security, MCP servers, and features |
 | **Antigravity Settings** | Configure security policies, browser allowlist, and agent mode |
 | **MCP Registry** | Search GitHub/npm, add and configure MCP servers |
 | **Plugins** | Browse marketplaces, install plugins with scope control |
@@ -448,6 +452,29 @@ Configure theme, token count display, diff view, and streaming.
 
 ### Sandbox Mode
 Control command execution safety (enabled/disabled).
+
+## Codex CLI Settings
+
+The Web UI provides a visual editor for `~/.codex/config.toml`:
+
+### Model Settings
+- **Model** - Select GPT-5.2 Codex, GPT-5, o3-mini, etc.
+- **Reasoning Effort** - Control thoroughness (minimal to xhigh)
+
+### Security
+- **Approval Policy** - When to ask for command approval (on-request, untrusted, on-failure, never)
+- **Sandbox Mode** - Filesystem access level (read-only, workspace-write, full-access)
+
+### MCP Servers
+Configure MCP servers for Codex CLI with the same format as other tools.
+
+### Features
+Toggle feature flags like shell snapshots and web search.
+
+### Display & History
+Configure TUI animations, notifications, and session history persistence.
+
+For full configuration options, see [Codex CLI docs](https://developers.openai.com/codex/config-reference/).
 
 ## Antigravity Settings
 

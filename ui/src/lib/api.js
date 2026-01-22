@@ -419,6 +419,18 @@ export const api = {
     });
   },
 
+  // Codex CLI settings (config.toml)
+  async getCodexSettings() {
+    return request('/codex-settings');
+  },
+
+  async saveCodexSettings(settings, raw = undefined) {
+    return request('/codex-settings', {
+      method: 'PUT',
+      body: raw !== undefined ? { raw } : { settings },
+    });
+  },
+
   // User preferences/config
   async getConfig() {
     return request('/preferences');

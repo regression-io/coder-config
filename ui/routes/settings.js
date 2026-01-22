@@ -1,10 +1,19 @@
 /**
- * Settings Routes (Claude Code & Gemini CLI)
+ * Settings Routes (Claude Code, Gemini CLI, Codex CLI)
  */
 
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+
+// TOML parser for Codex CLI config
+let TOML;
+try {
+  TOML = require('@iarna/toml');
+} catch (e) {
+  // Fallback if TOML not installed yet
+  TOML = null;
+}
 
 /**
  * Get Claude Code settings from ~/.claude/settings.json
@@ -230,6 +239,136 @@ function saveAntigravitySettings(body) {
   }
 }
 
+/**
+ * Get Codex CLI settings from ~/.codex/config.toml
+ */
+function getCodexSettings() {
+  const settingsPath = path.join(os.homedir(), '.codex', 'config.toml');
+
+  try {
+    if (!fs.existsSync(settingsPath)) {
+      return {
+        path: settingsPath,
+        exists: false,
+        settings: {}
+      };
+    }
+
+    const content = fs.readFileSync(settingsPath, 'utf8');
+
+    // Parse TOML if available, otherwise return raw content
+    if (TOML) {
+      const settings = TOML.parse(content);
+      return {
+        path: settingsPath,
+        exists: true,
+        settings,
+        raw: content
+      };
+    } else {
+      return {
+        path: settingsPath,
+        exists: true,
+        settings: {},
+        raw: content,
+        error: 'TOML parser not available'
+      };
+    }
+  } catch (e) {
+    return {
+      path: settingsPath,
+      error: e.message
+    };
+  }
+}
+
+/**
+ * Save Codex CLI settings to ~/.codex/config.toml
+ */
+function saveCodexSettings(body) {
+  const settingsPath = path.join(os.homedir(), '.codex', 'config.toml');
+  const { settings, raw } = body;
+
+  try {
+    const codexDir = path.dirname(settingsPath);
+    if (!fs.existsSync(codexDir)) {
+      fs.mkdirSync(codexDir, { recursive: true });
+    }
+
+    // If raw TOML is provided, use it directly
+    if (raw !== undefined) {
+      // Validate TOML if parser available
+      if (TOML) {
+        try {
+          TOML.parse(raw);
+        } catch (parseErr) {
+          return {
+            success: false,
+            error: `Invalid TOML: ${parseErr.message}`
+          };
+        }
+      }
+      fs.writeFileSync(settingsPath, raw, 'utf8');
+      return {
+        success: true,
+        path: settingsPath,
+        settings: TOML ? TOML.parse(raw) : {}
+      };
+    }
+
+    // Convert JSON settings to TOML
+    if (!TOML) {
+      return {
+        success: false,
+        error: 'TOML parser not available for conversion'
+      };
+    }
+
+    // Read existing settings and merge
+    let finalSettings = {};
+    if (fs.existsSync(settingsPath)) {
+      try {
+        finalSettings = TOML.parse(fs.readFileSync(settingsPath, 'utf8'));
+      } catch (e) {
+        finalSettings = {};
+      }
+    }
+
+    // Deep merge settings
+    finalSettings = deepMerge(finalSettings, settings);
+
+    // Convert to TOML and write
+    const tomlContent = TOML.stringify(finalSettings);
+    fs.writeFileSync(settingsPath, tomlContent, 'utf8');
+
+    return {
+      success: true,
+      path: settingsPath,
+      settings: finalSettings
+    };
+  } catch (e) {
+    return {
+      success: false,
+      error: e.message
+    };
+  }
+}
+
+/**
+ * Deep merge helper for nested objects
+ */
+function deepMerge(target, source) {
+  const result = { ...target };
+  for (const key of Object.keys(source)) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      result[key] = deepMerge(result[key] || {}, source[key]);
+    } else {
+      result[key] = source[key];
+    }
+  }
+  return result;
+}
+
 module.exports = {
   getClaudeSettings,
   saveClaudeSettings,
@@ -237,4 +376,6 @@ module.exports = {
   saveGeminiSettings,
   getAntigravitySettings,
   saveAntigravitySettings,
+  getCodexSettings,
+  saveCodexSettings,
 };

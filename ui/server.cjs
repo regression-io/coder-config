@@ -603,6 +603,11 @@ class ConfigUIServer {
         if (req.method === 'PUT') return this.json(res, routes.settings.saveAntigravitySettings(body));
         break;
 
+      case '/api/codex-settings':
+        if (req.method === 'GET') return this.json(res, routes.settings.getCodexSettings());
+        if (req.method === 'PUT') return this.json(res, routes.settings.saveCodexSettings(body));
+        break;
+
       case '/api/preferences':
         if (req.method === 'GET') return this.json(res, { config: this.config, path: this.configPath });
         if (req.method === 'PUT') return this.json(res, this.saveConfig(body));

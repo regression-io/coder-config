@@ -1,6 +1,6 @@
 {
   "name": "@regression-io/claude-config",
-  "version": "0.39.6",
+  "version": "0.39.7",
   "description": "Configuration management UI for Claude Code and Antigravity - manage MCPs, rules, commands, memory, and project folders",
   "author": "regression.io",
   "main": "config-loader.js",
@@ -32,6 +32,8 @@
     "anthropic",
     "antigravity",
     "gemini",
+    "codex",
+    "openai",
     "configuration",
     "mcp",
     "model-context-protocol",
@@ -40,6 +42,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@iarna/toml": "^3.0.0",
     "js-yaml": "^4.1.1",
     "node-pty": "^1.1.0",
     "ws": "^8.19.0"
