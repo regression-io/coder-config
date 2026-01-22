@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.39.5] - 2026-01-23
+
+### Changed
+
+- **Tauri desktop app paused** - Focus shifted to CLI and web UI
+  - Desktop app code remains in repository for future use
+  - Use `claude-config ui install` for auto-start + PWA as recommended approach
+
 ## [0.39.1] - 2026-01-22
 
 ### Added
