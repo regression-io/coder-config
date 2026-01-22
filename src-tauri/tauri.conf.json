@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "CoderConfig",
-  "version": "0.40.6",
+  "version": "0.40.8",
   "identifier": "io.regression.coder-config",
   "build": {
     "beforeBuildCommand": "",

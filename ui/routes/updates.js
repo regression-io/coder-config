@@ -37,10 +37,11 @@ function getVersionFromFile(filePath) {
 
 /**
  * Fetch npm version and verify it's installable
- * Returns version only if the tarball is accessible (CDN propagated)
+ * Uses multiple verification steps to ensure CDN has propagated
  */
 function fetchNpmVersion() {
   return new Promise((resolve) => {
+    // Step 1: Get latest version from registry
     const url = 'https://registry.npmjs.org/coder-config/latest';
     const req = https.get(url, (res) => {
       let data = '';
@@ -49,41 +50,76 @@ function fetchNpmVersion() {
         try {
           const parsed = JSON.parse(data);
           const version = parsed.version;
-          const tarballUrl = parsed.dist?.tarball;
 
-          if (!version || !tarballUrl) {
-            console.log('[update-check] npm registry response missing version or tarball');
+          if (!version) {
+            console.log('[update-check] npm registry response missing version');
             resolve(null);
             return;
           }
 
-          // Verify tarball is accessible (HEAD request)
-          const tarball = new URL(tarballUrl);
-          const options = {
-            hostname: tarball.hostname,
-            path: tarball.pathname,
-            method: 'HEAD'
-          };
+          // Step 2: Verify specific version endpoint is accessible
+          // This is what npm install actually uses
+          const versionUrl = `https://registry.npmjs.org/coder-config/${version}`;
+          const verifyReq = https.get(versionUrl, (verifyRes) => {
+            let verifyData = '';
+            verifyRes.on('data', chunk => verifyData += chunk);
+            verifyRes.on('end', () => {
+              if (verifyRes.statusCode !== 200) {
+                console.log(`[update-check] version ${version} not yet available (status ${verifyRes.statusCode})`);
+                resolve(null);
+                return;
+              }
 
-          const verifyReq = https.request(options, (verifyRes) => {
-            // 200 = accessible, anything else = not yet propagated
-            if (verifyRes.statusCode === 200) {
-              resolve(version);
-            } else {
-              console.log(`[update-check] tarball not accessible (status ${verifyRes.statusCode})`);
-              resolve(null);
-            }
+              try {
+                const versionInfo = JSON.parse(verifyData);
+                // Step 3: Verify the tarball URL is present and accessible
+                const tarballUrl = versionInfo.dist?.tarball;
+                if (!tarballUrl) {
+                  console.log('[update-check] version info missing tarball URL');
+                  resolve(null);
+                  return;
+                }
+
+                // Step 4: HEAD request to tarball to verify CDN propagation
+                const tarball = new URL(tarballUrl);
+                const headReq = https.request({
+                  hostname: tarball.hostname,
+                  path: tarball.pathname,
+                  method: 'HEAD'
+                }, (headRes) => {
+                  if (headRes.statusCode === 200) {
+                    console.log(`[update-check] version ${version} verified available`);
+                    resolve(version);
+                  } else {
+                    console.log(`[update-check] tarball not accessible (status ${headRes.statusCode})`);
+                    resolve(null);
+                  }
+                });
+                headReq.setTimeout(5000, () => {
+                  console.log('[update-check] tarball verification timed out');
+                  headReq.destroy();
+                  resolve(null);
+                });
+                headReq.on('error', (e) => {
+                  console.log('[update-check] tarball verification error:', e.message);
+                  resolve(null);
+                });
+                headReq.end();
+              } catch (e) {
+                console.log('[update-check] failed to parse version info:', e.message);
+                resolve(null);
+              }
+            });
           });
           verifyReq.setTimeout(5000, () => {
-            console.log('[update-check] tarball verification timed out');
+            console.log('[update-check] version verification timed out');
             verifyReq.destroy();
             resolve(null);
           });
           verifyReq.on('error', (e) => {
-            console.log('[update-check] tarball verification error:', e.message);
+            console.log('[update-check] version verification error:', e.message);
             resolve(null);
           });
-          verifyReq.end();
         } catch (e) {
           console.log('[update-check] failed to parse npm response:', e.message);
           resolve(null);
@@ -122,7 +158,29 @@ function isNewerVersion(source, installed) {
 }
 
 /**
+ * Pre-cache the npm package to verify it's actually installable
+ * Returns true if package is cached and ready to install
+ */
+async function preCachePackage(version) {
+  return new Promise((resolve) => {
+    try {
+      console.log(`[update-check] pre-caching coder-config@${version}...`);
+      execSync(`npm cache add coder-config@${version}`, {
+        stdio: 'pipe',
+        timeout: 60000
+      });
+      console.log(`[update-check] pre-cache successful for ${version}`);
+      resolve(true);
+    } catch (error) {
+      console.log(`[update-check] pre-cache failed: ${error.message}`);
+      resolve(false);
+    }
+  });
+}
+
+/**
  * Check for updates
+ * Only reports update available if package is pre-cached and ready to install
  */
 async function checkForUpdates(manager, dirname) {
   // Get current installed version
@@ -136,7 +194,22 @@ async function checkForUpdates(manager, dirname) {
   console.log(`[update-check] installed: ${installedVersion}, npm: ${npmVersion}`);
 
   if (npmVersion && isNewerVersion(npmVersion, installedVersion)) {
-    console.log('[update-check] update available');
+    // Pre-cache the package before showing notification
+    // This ensures the update will actually work when clicked
+    const cached = await preCachePackage(npmVersion);
+
+    if (!cached) {
+      console.log('[update-check] update found but not yet installable, skipping notification');
+      return {
+        updateAvailable: false,
+        installedVersion,
+        latestVersion: installedVersion,
+        sourceVersion: installedVersion,
+        installDir: manager.installDir
+      };
+    }
+
+    console.log('[update-check] update available and pre-cached');
     return {
       updateAvailable: true,
       installedVersion,
