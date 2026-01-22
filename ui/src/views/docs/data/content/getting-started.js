@@ -24,7 +24,7 @@ The desktop app bundles everything - no Node.js or npm required. Just download, 
 Install globally via npm:
 
 \`\`\`bash
-npm install -g @regression-io/claude-config
+npm install -g coder-config
 \`\`\`
 
 **Requirements:** Node.js 18+
@@ -49,7 +49,7 @@ claude-config ui
 
 Claude Code works great out of the box. This tool helps you manage its configuration visually.
 
-### 1. Launch Claude Config
+### 1. Launch Coder Config
 
 **Desktop App:** Double-click the app after installing from GitHub Releases.
 
@@ -98,7 +98,7 @@ The UI automatically checks npm for new versions. When an update is available, y
 **Manual update:**
 
 \`\`\`bash
-npm install -g @regression-io/claude-config@latest
+npm install -g coder-config@latest
 \`\`\`
 
 **After updating (if using daemon mode):**

@@ -9,7 +9,7 @@ const tutorialSections = [
     title: 'Welcome',
     icon: Sparkles,
     subsections: [
-      { id: 'intro', title: 'What is Claude Config?' },
+      { id: 'intro', title: 'What is Coder Config?' },
       { id: 'what-youll-learn', title: "What You'll Learn" },
     ]
   },

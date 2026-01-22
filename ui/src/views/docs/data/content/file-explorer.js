@@ -197,7 +197,7 @@ Sub-projects inherit configuration from parent directories. Each sub-project can
     content: `
 ## Configuration Hierarchy
 
-Claude Config uses a hierarchical configuration system where settings cascade from global to local.
+Coder Config uses a hierarchical configuration system where settings cascade from global to local.
 
 ### Levels
 

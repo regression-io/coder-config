@@ -371,7 +371,7 @@ export default function SubprojectsView({ project, rootProject, onRefresh }) {
                       {proj.markers?.git && <span title="Git">🔀</span>}
                       {proj.markers?.npm && <span title="NPM">📦</span>}
                       {proj.markers?.python && <span title="Python">🐍</span>}
-                      {proj.markers?.claude && <span title="Claude Config">⚙️</span>}
+                      {proj.markers?.claude && <span title="Coder Config">⚙️</span>}
                     </div>
                   </div>
                   <code className="text-xs text-muted-foreground block mb-3">{proj.relativePath || proj.name}</code>

@@ -1,10 +1,10 @@
 export const welcomeContent = {
   'intro': {
-    title: 'What is Claude Config?',
+    title: 'What is Coder Config?',
     content: `
-Think of Claude Config as your **control center** for Claude Code (and other AI coding tools). Instead of manually editing JSON files or remembering command-line flags, you get a friendly UI to manage everything.
+Think of Coder Config as your **control center** for Claude Code (and other AI coding tools). Instead of manually editing JSON files or remembering command-line flags, you get a friendly UI to manage everything.
 
-### How are you using Claude Config?
+### How are you using Coder Config?
 
 **Desktop App** - Downloaded from [GitHub Releases](https://github.com/regression-io/claude-config/releases). No terminal needed!
 
@@ -34,7 +34,7 @@ Let's get started!
   'what-youll-learn': {
     title: "What You'll Learn",
     content: `
-This tutorial walks you through Claude Config step-by-step. By the end, you'll know how to:
+This tutorial walks you through Coder Config step-by-step. By the end, you'll know how to:
 
 ### The Basics
 1. **Add and manage projects** - Register the codebases you work on

@@ -301,7 +301,7 @@ require('./cli.js');
 
 // Main
 async function main() {
-  console.log('=== Claude Config Tauri Build Preparation ===\n');
+  console.log('=== Coder Config Tauri Build Preparation ===\n');
 
   try {
     // Check if we're building for distribution or just development

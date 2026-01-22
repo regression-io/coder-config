@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Claude Config Web UI Server
+ * Coder Config Web UI Server
  * Thin wrapper that delegates to route modules
  */
 
@@ -256,7 +256,7 @@ class ConfigUIServer {
     this.terminalServer.attach(server);
 
     server.listen(this.port, () => {
-      console.log(`\n🚀 Claude Config UI running at http://localhost:${this.port}`);
+      console.log(`\n🚀 Coder Config UI running at http://localhost:${this.port}`);
       console.log(`📁 Project: ${this.projectDir}`);
       console.log(`💻 Terminal WebSocket: ws://localhost:${this.port}/ws/terminal\n`);
     });

@@ -1,4 +1,4 @@
-// Service Worker for Claude Config PWA
+// Service Worker for Coder Config PWA
 // Minimal SW - no caching, just enables PWA install
 
 // Install - skip waiting to activate immediately

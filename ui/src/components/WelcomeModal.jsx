@@ -46,7 +46,7 @@ export default function WelcomeModal({ onStartTutorial }) {
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
               <Settings className="w-6 h-6 text-white" />
             </div>
-            <DialogTitle className="text-2xl">Welcome to Claude Config</DialogTitle>
+            <DialogTitle className="text-2xl">Welcome to Coder Config</DialogTitle>
           </div>
           <DialogDescription className="text-base pt-2">
             Your control center for Claude Code and AI coding tools.
@@ -55,7 +55,7 @@ export default function WelcomeModal({ onStartTutorial }) {
 
         <div className="py-4 space-y-4">
           <p className="text-sm text-muted-foreground">
-            We built Claude Config because managing AI coding assistants shouldn't require editing JSON files
+            We built Coder Config because managing AI coding assistants shouldn't require editing JSON files
             or memorizing command-line flags. You deserve a visual interface that makes configuration easy.
           </p>
 

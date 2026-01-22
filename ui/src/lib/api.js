@@ -1,5 +1,5 @@
 /**
- * API client for Claude Config UI
+ * API client for Coder Config UI
  * Communicates with the local server at /api/*
  */
 

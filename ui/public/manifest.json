@@ -1,6 +1,6 @@
 {
-  "name": "Claude Config",
-  "short_name": "Claude Config",
+  "name": "Coder Config",
+  "short_name": "Coder Config",
   "description": "Configuration management for Claude Code",
   "start_url": "/",
   "display": "standalone",

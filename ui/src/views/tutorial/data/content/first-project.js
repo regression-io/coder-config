@@ -2,7 +2,7 @@ export const firstProjectContent = {
   'adding-project': {
     title: 'Adding a Project',
     content: `
-A "project" in Claude Config is simply a directory on your computer - usually a git repository or a folder containing code.
+A "project" in Coder Config is simply a directory on your computer - usually a git repository or a folder containing code.
 
 ### How to Add a Project
 
@@ -107,7 +107,7 @@ If your project doesn't have a \`.claude\` folder yet:
 
 You can also create a \`CLAUDE.md\` file in your project root. Claude reads this automatically for high-level project context.
 
-Next, let's learn about rules - the most powerful part of Claude Config!
+Next, let's learn about rules - the most powerful part of Coder Config!
     `
   },
 };

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Claude Config - Standalone CLI wrapper
+# Coder Config - Standalone CLI wrapper
 # Place this in ~/bin or anywhere in your PATH
 
 CLAUDE_CONFIG_LOADER="${CLAUDE_CONFIG_LOADER:-$HOME/.claude-config/config-loader.js}"

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Claude Config CLI
+ * Coder Config CLI
  *
  * Configuration management for Claude Code
  * CLI-first with optional Web UI
@@ -213,7 +213,7 @@ function installLaunchAgent() {
     process.exit(1);
   }
 
-  console.log('✓ Installed auto-start for Claude Config UI');
+  console.log('✓ Installed auto-start for Coder Config UI');
   console.log('');
   console.log('The server will now:');
   console.log('  • Start automatically on login');
@@ -247,7 +247,7 @@ function uninstallLaunchAgent() {
   // Remove the plist file
   fs.unlinkSync(LAUNCH_AGENT_PATH);
 
-  console.log('✓ Removed auto-start for Claude Config UI');
+  console.log('✓ Removed auto-start for Coder Config UI');
   console.log('');
   console.log('To start manually: claude-config ui');
 }

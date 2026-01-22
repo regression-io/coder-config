@@ -2,7 +2,7 @@ export const nextStepsContent = {
   'next-steps': {
     title: 'Next Steps',
     content: `
-You've completed the Claude Config tutorial! You now know how to:
+You've completed the Coder Config tutorial! You now know how to:
 
 - Add and manage projects
 - Create rules for Claude
@@ -47,7 +47,7 @@ claude-config --help      # See all commands
 
 ### Thank You!
 
-Thanks for using Claude Config. We built this to make working with AI coding tools easier and more powerful.
+Thanks for using Coder Config. We built this to make working with AI coding tools easier and more powerful.
 
 Happy coding!
     `

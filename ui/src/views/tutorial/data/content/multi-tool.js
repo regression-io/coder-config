@@ -2,7 +2,7 @@ export const multiToolContent = {
   'other-tools': {
     title: 'Beyond Claude Code',
     content: `
-Claude Config isn't just for Claude Code! It also supports other AI coding tools.
+Coder Config isn't just for Claude Code! It also supports other AI coding tools.
 
 ### Supported Tools
 
@@ -28,7 +28,7 @@ You might use different tools for different things:
 - Gemini CLI for quick tasks
 - Different tools for different languages
 
-With Claude Config, you configure once and use everywhere.
+With Coder Config, you configure once and use everywhere.
 
 ### Enabling Other Tools
 
@@ -45,7 +45,7 @@ Keep your rules consistent across all your AI coding tools.
 
 ### The Sync Feature
 
-Claude Config can sync rules between:
+Coder Config can sync rules between:
 - \`.claude/rules/\` (Claude Code)
 - \`.gemini/rules/\` (Gemini CLI)
 - \`.agent/rules/\` (Antigravity)
@@ -69,8 +69,8 @@ What doesn't sync:
 
 ### Best Practice
 
-Use Claude Config as your "source of truth":
-1. Edit rules in Claude Config
+Use Coder Config as your "source of truth":
+1. Edit rules in Coder Config
 2. Sync to other tools
 3. Don't edit directly in other tool folders
 
