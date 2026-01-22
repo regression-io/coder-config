@@ -17,21 +17,6 @@ Claude Code works great out of the box. This tool helps when you need more contr
 
 ## Installation
 
-### Option A: Desktop App (Recommended)
-
-Download the native app from [GitHub Releases](https://github.com/regression-io/claude-config/releases):
-
-| Platform | Download |
-|----------|----------|
-| **macOS (Apple Silicon)** | `Claude.Config_*_aarch64.dmg` |
-| **macOS (Intel)** | `Claude.Config_*_x64.dmg` |
-| **Windows** | `Claude.Config_*_x64-setup.exe` |
-| **Linux** | `Claude.Config_*_amd64.deb` or `.AppImage` |
-
-No Node.js required. Just download, install, and run.
-
-### Option B: npm Package
-
 ```bash
 npm install -g @regression-io/claude-config
 ```
@@ -40,19 +25,11 @@ Requires Node.js 18+.
 
 ## Quick Start
 
-### Desktop App Users
-
-1. Download and install from [GitHub Releases](https://github.com/regression-io/claude-config/releases)
-2. Launch the app
-3. Add your projects and configure
-
-### npm Package Users
-
 ```bash
 # 1. Install
 npm install -g @regression-io/claude-config
 
-# 2. Set up auto-start (recommended for PWA users)
+# 2. Set up auto-start (recommended)
 claude-config ui install
 
 # 3. Open the UI
@@ -63,9 +40,6 @@ The server starts automatically on login. Install as a PWA from your browser for
 
 ### Updating
 
-**Desktop App:** Download latest from [GitHub Releases](https://github.com/regression-io/claude-config/releases).
-
-**npm Package:**
 ```bash
 claude-config update
 # Then restart: claude-config ui stop && claude-config ui
@@ -363,33 +337,6 @@ source /path/to/claude-config/hooks/activity-track.sh
 - Click "Create" to open pre-filled dialog (tweak projects as needed)
 - Click "X" to dismiss suggestions you don't want
 
-### Smart Sync
-
-Smart Sync intelligently suggests workstream switches based on your coding activity:
-
-**Features:**
-- Auto-detect which workstream matches your current work
-- Non-blocking toast notifications: "Working on X, Y. Switch to 'Auth Feature'?"
-- Auto-switch when 80%+ activity matches (configurable threshold)
-- Learn from your choices (Always/Never options)
-- Rate-limited nudges (max once per 5 minutes)
-
-**Actions:**
-- **Yes** - Switch to suggested workstream
-- **No** - Dismiss this nudge
-- **Always** - Remember to always switch for this project-workstream pair
-- **Never** - Never suggest this again
-
-**Settings:**
-In Workstreams view, adjust Smart Sync settings:
-- Enable/disable Smart Sync
-- Adjust auto-switch confidence threshold (0-100%)
-
-**Bulletproof design:**
-- Fails silently, never blocks your workflow
-- All nudges are dismissible
-- Defaults to last-used workstream if detection fails
-
 ## Web UI Features
 
 | Feature | Description |
@@ -544,40 +491,6 @@ User settings stored in `~/.claude-config/config.json`:
 | `ui.port` | Default port for web UI |
 | `ui.openBrowser` | Auto-open browser on `claude-config ui` |
 
-## Native Desktop App
-
-The desktop app provides a true native experience - no terminal, no Node.js, no CLI commands.
-
-### Download
-
-Get the latest release from [GitHub Releases](https://github.com/regression-io/claude-config/releases):
-
-- **macOS Apple Silicon**: `Claude.Config_*_aarch64.dmg`
-- **macOS Intel**: `Claude.Config_*_x64.dmg`
-- **Windows**: `Claude.Config_*_x64-setup.exe`
-- **Linux**: `Claude.Config_*_amd64.deb` or `.AppImage`
-
-### Building from Source
-
-If you prefer to build locally:
-
-```bash
-# Prerequisites: Rust toolchain
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# Build the app
-npm run tauri:build
-```
-
-The `.app` bundle will be created in `src-tauri/target/release/bundle/macos/`.
-
-### Development Mode
-
-```bash
-# Run in development with hot reload
-npm run tauri:dev
-```
-
 ## Requirements
 
 - Node.js 18+
@@ -585,7 +498,6 @@ npm run tauri:dev
   - **macOS**: Xcode Command Line Tools (`xcode-select --install`)
   - **Linux**: `build-essential` package
   - **Windows**: Visual Studio Build Tools
-- **For Tauri builds**: Rust toolchain (install via rustup.rs)
 
 ## Development
 
