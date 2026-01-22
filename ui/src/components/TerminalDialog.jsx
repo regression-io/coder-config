@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useState, useEffect } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
@@ -16,15 +16,32 @@ export default function TerminalDialog({
   description,
   cwd,
   initialCommand,
-  onExit
+  onExit,
+  autoCloseOnExit = false,
+  autoCloseDelay = 1500
 }) {
   const terminalContainerRef = useRef(null);
+  const [exited, setExited] = useState(false);
 
-  const handleExit = (exitCode, signal) => {
+  // Reset state when dialog opens
+  useEffect(() => {
+    if (open) {
+      setExited(false);
+    }
+  }, [open]);
+
+  const handleExit = useCallback((exitCode, signal) => {
+    setExited(true);
     if (onExit) {
       onExit(exitCode, signal);
     }
-  };
+    // Auto-close after delay if enabled
+    if (autoCloseOnExit) {
+      setTimeout(() => {
+        onOpenChange(false);
+      }, autoCloseDelay);
+    }
+  }, [onExit, autoCloseOnExit, autoCloseDelay, onOpenChange]);
 
   // Focus the terminal container when dialog opens
   const handleOpenAutoFocus = useCallback((e) => {

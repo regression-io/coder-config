@@ -72,9 +72,10 @@ export default function Terminal({
     term.open(terminalRef.current);
     xtermRef.current = term;
 
-    // Initial fit
+    // Initial fit and focus
     setTimeout(() => {
       fitAddon.fit();
+      term.focus();
     }, 0);
 
     // Connect to WebSocket

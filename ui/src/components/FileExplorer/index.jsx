@@ -512,7 +512,9 @@ export default function FileExplorer({ project, onRefresh }) {
         title="Initialize CLAUDE.md"
         description="Running claude /init to generate project-aware CLAUDE.md"
         cwd={terminalDialog.dir}
-        initialCommand="claude /init"
+        initialCommand="claude /init; exit"
+        autoCloseOnExit={true}
+        autoCloseDelay={2000}
       />
 
     </div>
