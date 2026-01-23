@@ -438,8 +438,12 @@ export default function Dashboard() {
         <div className="h-full px-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                <Settings className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <svg width="22" height="22" viewBox="0 0 128 128">
+                  <circle cx="64" cy="64" r="52" fill="none" stroke="white" strokeWidth="10" strokeDasharray="24 12"/>
+                  <circle cx="64" cy="64" r="28" fill="white"/>
+                  <circle cx="64" cy="64" r="12" fill="#7c3aed"/>
+                </svg>
               </div>
               <div>
                 <h1 className="text-xl font-bold text-foreground">
