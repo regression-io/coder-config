@@ -92,11 +92,55 @@ function getInheritedMcps(manager, projectDir, configDir) {
   const mcpJsonPath = path.join(configDir, '.mcp.json');
   const mcpJsonExists = fs.existsSync(mcpJsonPath);
 
-  // needsApply is true if there are inherited MCPs (or local MCPs) but no .mcp.json
-  const hasAnyMcps = inherited.length > 0 ||
-    (currentConfig.include && currentConfig.include.length > 0) ||
-    (currentConfig.mcpServers && Object.keys(currentConfig.mcpServers).length > 0);
-  const needsApply = hasAnyMcps && !mcpJsonExists;
+  // Compute what the merged config would produce
+  const expectedMcpNames = new Set();
+
+  // Add inherited MCPs (not excluded)
+  for (const mcp of inherited) {
+    if (!mcp.isExcluded) {
+      expectedMcpNames.add(mcp.name);
+    }
+  }
+
+  // Add local includes
+  for (const name of (currentConfig.include || [])) {
+    expectedMcpNames.add(name);
+  }
+
+  // Add local inline mcpServers
+  for (const name of Object.keys(currentConfig.mcpServers || {})) {
+    if (!name.startsWith('_')) {
+      expectedMcpNames.add(name);
+    }
+  }
+
+  // Check if .mcp.json matches expected
+  let needsApply = false;
+  if (!mcpJsonExists) {
+    // No .mcp.json but we have MCPs configured
+    needsApply = expectedMcpNames.size > 0;
+  } else {
+    // Compare existing .mcp.json with expected
+    try {
+      const existingMcpJson = JSON.parse(fs.readFileSync(mcpJsonPath, 'utf8'));
+      const existingMcpNames = new Set(Object.keys(existingMcpJson.mcpServers || {}));
+
+      // Check if sets are different
+      if (expectedMcpNames.size !== existingMcpNames.size) {
+        needsApply = true;
+      } else {
+        for (const name of expectedMcpNames) {
+          if (!existingMcpNames.has(name)) {
+            needsApply = true;
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      // Can't read .mcp.json, assume needs apply
+      needsApply = expectedMcpNames.size > 0;
+    }
+  }
 
   return { inherited, sources, mcpJsonExists, needsApply };
 }
