@@ -190,77 +190,71 @@ export default function McpEditor({ content, parsed, onSave, registry, configDir
         {viewMode === 'rich' ? (
           <TooltipProvider>
           <div className="p-4 space-y-4">
-            {/* Inherited MCPs from parent configs */}
-            {inheritedMcps.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium mb-2 text-gray-500 dark:text-slate-400">
-                  Inherited from Parent
-                </h3>
-                <div className="space-y-2">
-                  {inheritedMcps.map((mcp) => {
-                    const isExcluded = localConfig.exclude?.includes(mcp.name);
-                    return (
-                      <Tooltip key={mcp.name}>
-                        <TooltipTrigger asChild>
-                          <div className={`flex items-center justify-between p-2 rounded border ${
-                            isExcluded
-                              ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
-                              : 'bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700'
-                          }`}>
-                            <div className="flex items-center gap-2">
-                              <Link2 className={`w-4 h-4 ${isExcluded ? 'text-red-400' : 'text-gray-400'}`} />
-                              <span className={`text-sm ${isExcluded ? 'text-red-500 line-through' : 'text-gray-500 dark:text-slate-400'}`}>
-                                {mcp.name}
-                              </span>
-                              <Badge variant="outline" className="text-xs text-gray-400 border-gray-300 dark:border-slate-600">
-                                {mcp.source}
-                              </Badge>
-                              {isExcluded && (
-                                <Badge variant="outline" className="text-xs text-red-500 border-red-300">
-                                  blocked
-                                </Badge>
-                              )}
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className={`h-7 px-2 ${isExcluded ? 'text-green-600 hover:text-green-700' : 'text-red-500 hover:text-red-600'}`}
-                              onClick={() => handleToggleExclude(mcp.name)}
-                            >
-                              <Ban className="w-4 h-4 mr-1" />
-                              {isExcluded ? 'Unblock' : 'Block'}
-                            </Button>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Inherited from <strong>{mcp.source}</strong></p>
-                          {mcp.isInline && <p className="text-xs text-gray-400">Inline MCP definition</p>}
-                        </TooltipContent>
-                      </Tooltip>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             <div>
               <h3 className="text-sm font-medium mb-2">Registry MCPs</h3>
               <div className="space-y-2">
-                {registryMcps.length === 0 ? (
+                {registryMcps.length === 0 && inheritedMcps.length === 0 ? (
                   <p className="text-sm text-gray-500 dark:text-slate-400">No MCPs in registry</p>
                 ) : (
-                  registryMcps.map((name) => (
-                    <div key={name} className="flex items-center justify-between p-2 rounded border bg-white dark:bg-slate-950">
-                      <div className="flex items-center gap-2">
-                        <Server className="w-4 h-4 text-blue-500" />
-                        <span className="text-sm">{name}</span>
-                      </div>
-                      <Switch
-                        checked={localConfig.include?.includes(name)}
-                        onCheckedChange={() => handleToggleInclude(name)}
-                      />
-                    </div>
-                  ))
+                  <>
+                    {/* Inherited MCPs shown inline with greyed switch */}
+                    {inheritedMcps.map((mcp) => {
+                      const isExcluded = localConfig.exclude?.includes(mcp.name);
+                      return (
+                        <Tooltip key={`inherited-${mcp.name}`}>
+                          <TooltipTrigger asChild>
+                            <div className={`flex items-center justify-between p-2 rounded border ${
+                              isExcluded
+                                ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                                : 'bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700'
+                            }`}>
+                              <div className="flex items-center gap-2">
+                                <Server className={`w-4 h-4 ${isExcluded ? 'text-red-400' : 'text-gray-400'}`} />
+                                <span className={`text-sm ${isExcluded ? 'text-red-500 line-through' : 'text-gray-500 dark:text-slate-400'}`}>
+                                  {mcp.name}
+                                </span>
+                                <Badge variant="outline" className="text-[10px] text-gray-400 border-gray-300 dark:border-slate-600">
+                                  from {mcp.source}
+                                </Badge>
+                              </div>
+                              <Switch
+                                checked={!isExcluded}
+                                onCheckedChange={() => {
+                                  if (!isExcluded) {
+                                    toast.warning(`Blocking "${mcp.name}" inherited from ${mcp.source}`);
+                                  }
+                                  handleToggleExclude(mcp.name);
+                                }}
+                                className="data-[state=checked]:bg-gray-400 dark:data-[state=checked]:bg-slate-600"
+                              />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Inherited from <strong>{mcp.source}</strong></p>
+                            <p className="text-xs text-gray-400">{isExcluded ? 'Blocked at this level' : 'Toggle off to block'}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      );
+                    })}
+                    {/* Regular registry MCPs */}
+                    {registryMcps.map((name) => {
+                      // Skip if this MCP is already shown as inherited
+                      const isInherited = inheritedMcps.some(m => m.name === name);
+                      if (isInherited) return null;
+                      return (
+                        <div key={name} className="flex items-center justify-between p-2 rounded border bg-white dark:bg-slate-950">
+                          <div className="flex items-center gap-2">
+                            <Server className="w-4 h-4 text-blue-500" />
+                            <span className="text-sm">{name}</span>
+                          </div>
+                          <Switch
+                            checked={localConfig.include?.includes(name)}
+                            onCheckedChange={() => handleToggleInclude(name)}
+                          />
+                        </div>
+                      );
+                    })}
+                  </>
                 )}
               </div>
             </div>
