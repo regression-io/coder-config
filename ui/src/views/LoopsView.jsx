@@ -40,7 +40,7 @@ const STATUS_ICONS = {
   cancelled: <XCircle className="w-4 h-4 text-gray-500" />,
 };
 
-export default function LoopsView({ workstreams = [] }) {
+export default function LoopsView({ workstreams = [], activeProject = null }) {
   const [loops, setLoops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
@@ -134,6 +134,7 @@ export default function LoopsView({ workstreams = [] }) {
       setSaving(true);
       const result = await api.createLoop(newTask, {
         workstreamId: newWorkstreamId || null,
+        projectPath: activeProject?.path || activeProject?.dir || null,
       });
 
       if (result.success) {
@@ -642,6 +643,17 @@ export default function LoopsView({ workstreams = [] }) {
               <p className="text-xs text-muted-foreground mt-1">
                 Be specific about the goal. The loop will continue until this task is completed.
               </p>
+            </div>
+            {/* Project context */}
+            <div>
+              <label className="text-sm font-medium mb-1 block">Project</label>
+              <div className="text-sm p-2 bg-muted rounded-md">
+                {activeProject ? (
+                  <span className="font-mono">{activeProject.name || activeProject.path || activeProject.dir}</span>
+                ) : (
+                  <span className="text-muted-foreground">No project selected - loop will run in server directory</span>
+                )}
+              </div>
             </div>
             {workstreams.length > 0 && (
               <div>
