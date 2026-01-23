@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.4] - 2026-01-23
+
+### Added
+
+- **Inherited MCP Display** - MCP editor now shows MCPs inherited from parent configs
+  - Greyscale display with "Inherited from X" tooltip showing source
+  - Block/Unblock buttons to exclude parent-enabled MCPs at local level
+  - New `exclude` array support in mcps.json config files
+  - Blocked MCPs shown with red styling and strikethrough
+
+## [0.41.3] - 2026-01-23
+
+### Added
+
+- **Streaming Progress for Project Init** - `claude -p /init` now streams output in real-time
+  - Uses Server-Sent Events (SSE) instead of blocking `execFileSync`
+  - Shows live Claude output in the Add Project dialog
+  - Progress indicator with status (running/success/error)
+
+## [0.41.2] - 2026-01-23
+
+### Removed
+
+- **Tauri Desktop App Code** - Removed all Tauri-related files (can recover from git history)
+  - Removed `src-tauri/` directory
+  - Removed `scripts/tauri-prepare.js`
+  - Removed `.github/workflows/tauri-release.yml`
+  - Removed tauri scripts from package.json
+
+## [0.41.1] - 2026-01-23
+
+### Added
+
+- **Project Edit Button** - All Projects view now has Edit button to rename projects
+  - Edit dialog with name field and save functionality
+  - Replaced Select button (dropdown selector serves that purpose)
+
 ## [0.41.0] - 2026-01-23
 
 ### Added
