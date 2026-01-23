@@ -647,6 +647,21 @@ export default function PreferencesView() {
                 <code className="text-xs text-muted-foreground">{versionInfo?.installDir || '~/.coder-config'}</code>
               </div>
 
+              <div className="flex items-center justify-between text-sm pt-2">
+                <div>
+                  <span className="text-muted-foreground">Auto-Update</span>
+                  <p className="text-xs text-muted-foreground/70">Automatically install updates when available</p>
+                </div>
+                <Switch
+                  checked={config?.autoUpdate || false}
+                  onCheckedChange={(checked) => {
+                    updateConfig('autoUpdate', checked);
+                    api.saveConfig({ ...config, autoUpdate: checked });
+                    toast.success(checked ? 'Auto-update enabled' : 'Auto-update disabled');
+                  }}
+                />
+              </div>
+
               <div className="border-t border-border pt-3 mt-3 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Documentation</span>

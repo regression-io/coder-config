@@ -190,13 +190,63 @@ export default function Dashboard() {
   useEffect(() => {
     loadData();
     loadProjects(true);  // Pass true for initial load to show project selector if no active project
-    // Load version info and check for updates (only show npm updates in header)
-    api.checkVersion().then(data => {
-      setVersion(data?.installedVersion);
-      if (data?.updateAvailable && data?.updateMethod === 'npm') {
-        setUpdateInfo(data);
-      }
-    }).catch(() => {});
+
+    // Load version info and check for updates
+    const checkForUpdates = async () => {
+      try {
+        const [versionData, configData] = await Promise.all([
+          api.checkVersion(),
+          api.getConfig()
+        ]);
+
+        setVersion(versionData?.installedVersion);
+
+        if (versionData?.updateAvailable && versionData?.updateMethod === 'npm') {
+          // Check if auto-update is enabled
+          if (configData?.config?.autoUpdate) {
+            // Auto-update: trigger update immediately
+            toast.info(`Auto-updating to v${versionData.latestVersion}...`);
+            setUpdating(true);
+
+            const result = await api.performUpdate({
+              updateMethod: versionData.updateMethod,
+              targetVersion: versionData.latestVersion
+            });
+
+            if (result.success) {
+              toast.success(`Updated to v${result.newVersion}! Restarting server...`);
+              try { await api.restartServer(); } catch {}
+
+              let attempts = 0;
+              const checkServer = setInterval(async () => {
+                attempts++;
+                try {
+                  await api.checkVersion();
+                  clearInterval(checkServer);
+                  toast.success('Server restarted! Reloading...');
+                  setTimeout(() => window.location.reload(), 500);
+                } catch {
+                  if (attempts > 30) {
+                    clearInterval(checkServer);
+                    toast.info('Server restarting. Please refresh the page.');
+                    setUpdating(false);
+                  }
+                }
+              }, 500);
+            } else {
+              toast.error('Auto-update failed: ' + result.error);
+              setUpdating(false);
+              setUpdateInfo(versionData); // Show manual update option
+            }
+          } else {
+            // Manual update: just show the badge
+            setUpdateInfo(versionData);
+          }
+        }
+      } catch {}
+    };
+
+    checkForUpdates();
   }, []);
 
   // Handle one-click update
