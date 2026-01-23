@@ -210,14 +210,39 @@ export default function Dashboard() {
         targetVersion: updateInfo.latestVersion
       });
       if (result.success) {
-        // Show success message - server restart required for npm updates
-        toast.success(`Updated to v${result.newVersion}! Run: coder-config ui stop && coder-config ui`);
+        // Show success message and restart the server
+        toast.success(`Updated to v${result.newVersion}! Restarting server...`);
         setUpdateInfo(null); // Clear the update badge
-        setVersion(result.newVersion); // Show new version (even though server still runs old)
+        setVersion(result.newVersion);
+
+        // Trigger server restart - server will exit and LaunchAgent/daemon will restart it
+        try {
+          await api.restartServer();
+        } catch {
+          // Expected - server exits before response completes
+        }
+
+        // Wait for server to come back up, then reload the page
+        let attempts = 0;
+        const checkServer = setInterval(async () => {
+          attempts++;
+          try {
+            await api.checkVersion();
+            clearInterval(checkServer);
+            toast.success('Server restarted! Reloading...');
+            setTimeout(() => window.location.reload(), 500);
+          } catch {
+            if (attempts > 30) { // 15 seconds timeout
+              clearInterval(checkServer);
+              toast.info('Server restarting. Please refresh the page.');
+              setUpdating(false);
+            }
+          }
+        }, 500);
       } else {
         toast.error('Update failed: ' + result.error);
+        setUpdating(false);
       }
-      setUpdating(false);
     } catch (error) {
       toast.error('Update failed: ' + error.message);
       setUpdating(false);

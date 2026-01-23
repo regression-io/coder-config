@@ -499,6 +499,24 @@ export default function PreferencesView() {
                 />
               </div>
 
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-md bg-green-500/10 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-green-500" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-foreground">Codex CLI</label>
+                    <p className="text-xs text-muted-foreground">
+                      OpenAI's terminal coding assistant • Output: <code className="text-xs">.codex/mcp.json</code>
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={(config?.enabledTools || ['claude']).includes('codex')}
+                  onCheckedChange={() => toggleTool('codex')}
+                />
+              </div>
+
               <p className="text-xs text-muted-foreground italic">
                 Note: Antigravity does not support environment variable interpolation (<code>$&#123;VAR&#125;</code>).
                 Variables are resolved to actual values when generating its config.

@@ -245,6 +245,13 @@ export const api = {
     });
   },
 
+  // Restart server (for updates)
+  async restartServer() {
+    return request('/restart', {
+      method: 'POST',
+    });
+  },
+
   // MCP Search
   async searchGithub(query) {
     return request(`/search/github?q=${encodeURIComponent(query)}`);
