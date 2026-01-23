@@ -88,7 +88,17 @@ function getInheritedMcps(manager, projectDir, configDir) {
     }
   }
 
-  return { inherited, sources };
+  // Check if .mcp.json exists in configDir
+  const mcpJsonPath = path.join(configDir, '.mcp.json');
+  const mcpJsonExists = fs.existsSync(mcpJsonPath);
+
+  // needsApply is true if there are inherited MCPs (or local MCPs) but no .mcp.json
+  const hasAnyMcps = inherited.length > 0 ||
+    (currentConfig.include && currentConfig.include.length > 0) ||
+    (currentConfig.mcpServers && Object.keys(currentConfig.mcpServers).length > 0);
+  const needsApply = hasAnyMcps && !mcpJsonExists;
+
+  return { inherited, sources, mcpJsonExists, needsApply };
 }
 
 /**

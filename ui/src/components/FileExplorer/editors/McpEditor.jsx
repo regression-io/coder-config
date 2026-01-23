@@ -20,7 +20,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
-import { Server, Plus, Save, Trash2, Ban, Link2 } from 'lucide-react';
+import { Server, Plus, Save, Trash2, Ban, Link2, AlertCircle, Zap } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function McpEditor({ content, parsed, onSave, registry, configDir }) {
@@ -30,6 +30,8 @@ export default function McpEditor({ content, parsed, onSave, registry, configDir
   const [saving, setSaving] = useState(false);
   const [addDialog, setAddDialog] = useState({ open: false, json: '' });
   const [inheritedMcps, setInheritedMcps] = useState([]);
+  const [needsApply, setNeedsApply] = useState(false);
+  const [applying, setApplying] = useState(false);
 
   useEffect(() => {
     setLocalConfig(parsed || { include: [], exclude: [], mcpServers: {} });
@@ -41,11 +43,14 @@ export default function McpEditor({ content, parsed, onSave, registry, configDir
     if (configDir) {
       api.getInheritedMcps(configDir).then(data => {
         setInheritedMcps(data.inherited || []);
+        setNeedsApply(data.needsApply || false);
       }).catch(() => {
         setInheritedMcps([]);
+        setNeedsApply(false);
       });
     } else {
       setInheritedMcps([]);
+      setNeedsApply(false);
     }
   }, [configDir, parsed]);
 
@@ -158,6 +163,24 @@ export default function McpEditor({ content, parsed, onSave, registry, configDir
 
   const registryMcps = registry?.mcpServers ? Object.keys(registry.mcpServers) : [];
 
+  const handleApply = async () => {
+    if (!configDir) return;
+    setApplying(true);
+    try {
+      const result = await api.applyConfig(configDir);
+      if (result.success) {
+        toast.success('Generated .mcp.json');
+        setNeedsApply(false);
+      } else {
+        toast.error(result.error || 'Failed to apply');
+      }
+    } catch (e) {
+      toast.error('Failed to apply: ' + e.message);
+    } finally {
+      setApplying(false);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between p-3 border-b bg-gray-50 dark:bg-slate-800">
@@ -185,6 +208,33 @@ export default function McpEditor({ content, parsed, onSave, registry, configDir
           )}
         </div>
       </div>
+
+      {needsApply && (
+        <div className="mx-3 mt-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-600" />
+            <span className="text-sm text-amber-800 dark:text-amber-200">
+              No <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">.mcp.json</code> generated yet. Apply to enable MCPs for Claude Code.
+            </span>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleApply}
+            disabled={applying}
+            className="border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900"
+          >
+            {applying ? (
+              <span className="animate-pulse">Applying...</span>
+            ) : (
+              <>
+                <Zap className="w-3 h-3 mr-1" />
+                Apply
+              </>
+            )}
+          </Button>
+        </div>
+      )}
 
       <ScrollArea className="flex-1">
         {viewMode === 'rich' ? (

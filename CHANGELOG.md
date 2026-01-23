@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.24] - 2026-01-24
+
+### Added
+
+- **Apply Indicator in MCP Editor** - Shows a banner when `.mcp.json` needs to be generated
+  - Appears when there are MCPs (inherited or local) but no `.mcp.json` exists
+  - One-click "Apply" button to generate the config
+  - Helps users understand when to run apply for new projects
+
 ## [0.41.22] - 2026-01-24
 
 ### Fixed
