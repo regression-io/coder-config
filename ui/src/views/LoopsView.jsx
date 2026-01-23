@@ -824,6 +824,7 @@ export default function LoopsView({ workstreams = [] }) {
                 <h4 className="text-sm font-medium mb-2">Run Command</h4>
                 <code className="text-xs bg-muted p-3 rounded block">
                   export CODER_LOOP_ID={selectedLoop.id}<br />
+                  {selectedLoop.workstreamId && <>export CODER_WORKSTREAM={selectedLoop.workstreamId}<br /></>}
                   claude --continue "{selectedLoop.task?.original}"
                 </code>
               </div>
@@ -846,7 +847,10 @@ export default function LoopsView({ workstreams = [] }) {
         description={terminalLoop?.task?.original}
         cwd={terminalLoop?.projectPath}
         initialCommand={terminalLoop ? `claude --continue "${terminalLoop.task?.original?.replace(/"/g, '\\"')}"` : ''}
-        env={terminalLoop ? { CODER_LOOP_ID: terminalLoop.id } : {}}
+        env={terminalLoop ? {
+          CODER_LOOP_ID: terminalLoop.id,
+          ...(terminalLoop.workstreamId && { CODER_WORKSTREAM: terminalLoop.workstreamId })
+        } : {}}
         onExit={handleTerminalExit}
       />
     </div>
