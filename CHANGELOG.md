@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.6] - 2026-01-23
+
+### Added
+
+- **Codex CLI Support** - Full support for OpenAI's Codex CLI tool
+  - Added Codex to Preferences > Enabled AI Tools with green toggle
+  - Added `applyForCodex()` to generate `.codex/mcp.json` config
+  - Added Codex detection in installed tools check
+  - TOOL_PATHS now includes codex configuration
+
+### Fixed
+
+- **Auto-Restart After Update** - Updates now automatically restart the server
+  - No longer shows manual restart command after npm update
+  - Server restarts and page reloads automatically
+  - Polls server until it comes back up, then refreshes
+
+## [0.41.5] - 2026-01-23
+
+### Changed
+
+- Documentation updates for v0.41.1-0.41.4 changelog entries
+
 ## [0.41.4] - 2026-01-23
 
 ### Added
