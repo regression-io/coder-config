@@ -22,7 +22,9 @@ function getConfigs(manager, projectDir) {
  * Returns MCPs that are enabled by parent configs but not by this level
  */
 function getInheritedMcps(manager, projectDir, configDir) {
-  const configs = manager.findAllConfigs(projectDir);
+  // Use configDir (the directory being edited) to find the hierarchy,
+  // not projectDir (the UI's active project)
+  const configs = manager.findAllConfigs(configDir);
   const homeDir = process.env.HOME || '';
 
   // Find the index of the current config in the hierarchy
