@@ -626,6 +626,24 @@ class ConfigUIServer {
         if (req.method === 'POST') return this.json(res, routes.projects.addProject(this.manager, body.path, body.name, (p) => { this.projectDir = p; }, body.runClaudeInit));
         break;
 
+      case '/api/projects/init-stream':
+        if (req.method === 'GET') {
+          const url = new URL(req.url, `http://${req.headers.host}`);
+          const projectPath = url.searchParams.get('path');
+          if (!projectPath) {
+            return this.json(res, { error: 'Missing path parameter' });
+          }
+          // Set up SSE headers
+          res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'Access-Control-Allow-Origin': '*',
+          });
+          return routes.projects.streamClaudeInit(res, projectPath);
+        }
+        break;
+
       case '/api/projects/active':
         if (req.method === 'GET') return this.json(res, routes.projects.getActiveProject(this.manager, this.projectDir, () => this.getHierarchy(), () => routes.subprojects.getSubprojectsForDir(this.manager, this.config, this.projectDir)));
         if (req.method === 'PUT') {

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { FolderOpen, Loader2, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { FolderOpen, Loader2, Sparkles, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DialogDescription, DialogFooter
@@ -21,6 +22,9 @@ export default function AddProjectDialog({ open, onOpenChange, onAdded }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [runClaudeInit, setRunClaudeInit] = useState(true);
+  const [initOutput, setInitOutput] = useState([]);
+  const [initStatus, setInitStatus] = useState(null); // 'running' | 'success' | 'error' | null
+  const outputRef = useRef(null);
 
   // Load preference from localStorage
   useEffect(() => {
@@ -38,6 +42,8 @@ export default function AddProjectDialog({ open, onOpenChange, onAdded }) {
     if (open) {
       setProjectPath('');
       setName('');
+      setInitOutput([]);
+      setInitStatus(null);
       // Respect stored preference
       const pref = localStorage.getItem(CLAUDE_INIT_PREF_KEY);
       if (pref === 'never') {
@@ -47,6 +53,13 @@ export default function AddProjectDialog({ open, onOpenChange, onAdded }) {
       }
     }
   }, [open]);
+
+  // Auto-scroll output
+  useEffect(() => {
+    if (outputRef.current) {
+      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    }
+  }, [initOutput]);
 
   // Auto-fill name from path
   useEffect(() => {
@@ -68,20 +81,56 @@ export default function AddProjectDialog({ open, onOpenChange, onAdded }) {
     }
 
     setAdding(true);
+    setInitOutput([]);
+    setInitStatus(null);
+
     try {
-      const result = await api.addProject(projectPath, name || undefined, runClaudeInit);
+      // If running claude init, stream the output first
+      if (runClaudeInit) {
+        setInitStatus('running');
+
+        const initSuccess = await new Promise((resolve) => {
+          const eventSource = new EventSource(`/api/projects/init-stream?path=${encodeURIComponent(projectPath)}`);
+
+          eventSource.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'output') {
+              setInitOutput(prev => [...prev, data.text]);
+            } else if (data.type === 'status') {
+              setInitOutput(prev => [...prev, data.message + '\n']);
+            } else if (data.type === 'skip') {
+              setInitOutput(prev => [...prev, data.message + '\n']);
+            } else if (data.type === 'done') {
+              eventSource.close();
+              setInitStatus(data.success ? 'success' : 'error');
+              resolve(data.success);
+            } else if (data.type === 'error') {
+              setInitOutput(prev => [...prev, `Error: ${data.message}\n`]);
+              eventSource.close();
+              setInitStatus('error');
+              resolve(false);
+            }
+          };
+
+          eventSource.onerror = () => {
+            eventSource.close();
+            setInitOutput(prev => [...prev, 'Connection error - is Claude Code installed?\n']);
+            setInitStatus('error');
+            resolve(false);
+          };
+        });
+
+        // Small delay to show completion status
+        await new Promise(r => setTimeout(r, 500));
+      }
+
+      // Now add the project (without running init again)
+      const result = await api.addProject(projectPath, name || undefined, false);
       if (result.error) {
         toast.error(result.error);
       } else {
-        // Show appropriate success message
-        if (result.claudeInitRan) {
-          toast.success(`Added project: ${result.project.name} (initialized with Claude Code)`);
-        } else if (result.claudeInitError) {
-          toast.success(`Added project: ${result.project.name}`);
-          toast.warning('Could not run claude /init - is Claude Code installed?');
-        } else {
-          toast.success(`Added project: ${result.project.name}`);
-        }
+        toast.success(`Added project: ${result.project.name}`);
         onAdded?.(result.project);
         onOpenChange(false);
       }
@@ -201,15 +250,50 @@ export default function AddProjectDialog({ open, onOpenChange, onAdded }) {
             </div>
           </div>
 
+          {/* Init output panel */}
+          {initStatus && (
+            <div className="border rounded-lg overflow-hidden bg-slate-950">
+              <div className="flex items-center gap-2 px-3 py-2 bg-slate-900 border-b border-slate-800">
+                {initStatus === 'running' ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                    <span className="text-sm text-slate-300">Running claude -p /init...</span>
+                  </>
+                ) : initStatus === 'success' ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-green-400" />
+                    <span className="text-sm text-green-400">Initialized successfully</span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="w-4 h-4 text-red-400" />
+                    <span className="text-sm text-red-400">Initialization failed</span>
+                  </>
+                )}
+              </div>
+              <div
+                ref={outputRef}
+                className="p-3 font-mono text-xs text-slate-300 max-h-48 overflow-y-auto whitespace-pre-wrap"
+              >
+                {initOutput.map((line, i) => (
+                  <span key={i}>{line}</span>
+                ))}
+                {initStatus === 'running' && (
+                  <span className="animate-pulse">_</span>
+                )}
+              </div>
+            </div>
+          )}
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={initStatus === 'running'}>
               Cancel
             </Button>
             <Button onClick={handleAdd} disabled={adding || !projectPath}>
               {adding ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Adding...
+                  {initStatus === 'running' ? 'Initializing...' : 'Adding...'}
                 </>
               ) : (
                 'Add Project'

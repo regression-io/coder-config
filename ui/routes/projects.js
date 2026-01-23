@@ -5,7 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { execFileSync } = require('child_process');
+const { execFileSync, spawn } = require('child_process');
 
 /**
  * Get all registered projects with status info
@@ -215,6 +215,66 @@ function setActiveProject(manager, projectId, setProjectDir, getHierarchy, getSu
   };
 }
 
+/**
+ * Stream claude -p /init output via SSE
+ * @param {object} res - HTTP response object for SSE
+ * @param {string} projectPath - Path to project directory
+ */
+function streamClaudeInit(res, projectPath) {
+  const absPath = path.resolve(projectPath.replace(/^~/, os.homedir()));
+
+  if (!fs.existsSync(absPath)) {
+    res.write(`data: ${JSON.stringify({ type: 'error', message: 'Path not found' })}\n\n`);
+    res.end();
+    return;
+  }
+
+  const claudeMd = path.join(absPath, 'CLAUDE.md');
+  if (fs.existsSync(claudeMd)) {
+    res.write(`data: ${JSON.stringify({ type: 'skip', message: 'CLAUDE.md already exists' })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'done', success: true })}\n\n`);
+    res.end();
+    return;
+  }
+
+  res.write(`data: ${JSON.stringify({ type: 'status', message: 'Starting claude -p /init...' })}\n\n`);
+
+  const child = spawn('claude', ['-p', '/init'], {
+    cwd: absPath,
+    env: { ...process.env, TERM: 'dumb' },
+    stdio: ['ignore', 'pipe', 'pipe']
+  });
+
+  child.stdout.on('data', (data) => {
+    const text = data.toString();
+    res.write(`data: ${JSON.stringify({ type: 'output', text })}\n\n`);
+  });
+
+  child.stderr.on('data', (data) => {
+    const text = data.toString();
+    res.write(`data: ${JSON.stringify({ type: 'output', text })}\n\n`);
+  });
+
+  child.on('close', (code) => {
+    if (code === 0) {
+      res.write(`data: ${JSON.stringify({ type: 'done', success: true })}\n\n`);
+    } else {
+      res.write(`data: ${JSON.stringify({ type: 'done', success: false, code })}\n\n`);
+    }
+    res.end();
+  });
+
+  child.on('error', (err) => {
+    res.write(`data: ${JSON.stringify({ type: 'error', message: err.message })}\n\n`);
+    res.end();
+  });
+
+  // Handle client disconnect
+  res.on('close', () => {
+    child.kill();
+  });
+}
+
 module.exports = {
   getProjects,
   getActiveProject,
@@ -222,4 +282,5 @@ module.exports = {
   updateProject,
   removeProject,
   setActiveProject,
+  streamClaudeInit,
 };
