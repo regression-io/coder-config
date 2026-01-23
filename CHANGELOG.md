@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.28] - 2026-01-24
+
+### Added
+
+- **Generate Workstream Rules from Repos** - Auto-create context rules from project repositories
+  - Reads README.md, package.json, CLAUDE.md, pyproject.toml, Cargo.toml, go.mod
+  - Extracts project descriptions, tech stack, and summaries
+  - "Generate" button in both Create and Edit workstream dialogs
+  - One-click generation saves time when setting up workstreams
+
 ## [0.41.26] - 2026-01-24
 
 ### Enhanced

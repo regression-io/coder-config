@@ -210,6 +210,18 @@ fi
   }
 }
 
+/**
+ * Generate rules from repos
+ */
+function generateRules(manager, projects) {
+  if (!manager) return { error: 'Manager not available' };
+  if (!projects || projects.length === 0) {
+    return { error: 'No projects provided' };
+  }
+  const rules = manager.generateRulesFromRepos(projects);
+  return { success: true, rules };
+}
+
 module.exports = {
   getWorkstreams,
   getActiveWorkstream,
@@ -224,4 +236,5 @@ module.exports = {
   countWorkstreamsForProject,
   getWorkstreamHookStatus,
   installWorkstreamHook,
+  generateRules,
 };

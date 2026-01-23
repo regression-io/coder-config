@@ -3,7 +3,7 @@ import {
   Layers, Plus, Trash2, RefreshCw, Check, Edit2, Save, X,
   FolderPlus, FolderMinus, ChevronDown, ChevronRight,
   Loader2, FileText, AlertCircle, CheckCircle2, Download,
-  Activity, Sparkles, BarChart3, Zap, HelpCircle
+  Activity, Sparkles, BarChart3, Zap, HelpCircle, Wand2
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,6 +69,9 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
       return [];
     }
   });
+
+  // Generate rules state
+  const [generatingRules, setGeneratingRules] = useState(false);
 
   useEffect(() => {
     loadWorkstreams();
@@ -168,6 +171,27 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
       }
     } catch (error) {
       toast.error('Failed to clear activity: ' + error.message);
+    }
+  };
+
+  const handleGenerateRules = async (projects, setRules) => {
+    if (!projects || projects.length === 0) {
+      toast.error('Add projects first to generate rules');
+      return;
+    }
+    setGeneratingRules(true);
+    try {
+      const result = await api.generateWorkstreamRules(projects);
+      if (result.success && result.rules) {
+        setRules(result.rules);
+        toast.success('Generated rules from repos');
+      } else {
+        toast.error(result.error || 'Failed to generate rules');
+      }
+    } catch (error) {
+      toast.error('Failed to generate rules: ' + error.message);
+    } finally {
+      setGeneratingRules(false);
     }
   };
 
@@ -974,9 +998,27 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-1 block">
-                Context (optional)
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                  Context (optional)
+                </label>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleGenerateRules(newProjects, setNewRules)}
+                  disabled={generatingRules || newProjects.length === 0}
+                  className="text-xs h-7 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                  title="Auto-generate rules from repo README, package.json, etc."
+                >
+                  {generatingRules ? (
+                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                  ) : (
+                    <Wand2 className="w-3 h-3 mr-1" />
+                  )}
+                  Generate
+                </Button>
+              </div>
               <Textarea
                 value={newRules}
                 onChange={e => setNewRules(e.target.value)}
@@ -1202,9 +1244,30 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-1 block">
-                  Rules
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                    Rules
+                  </label>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleGenerateRules(
+                      editingWorkstream.projects,
+                      (rules) => setEditingWorkstream(prev => ({ ...prev, rules }))
+                    )}
+                    disabled={generatingRules || !editingWorkstream.projects?.length}
+                    className="text-xs h-7 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                    title="Auto-generate rules from repo README, package.json, etc."
+                  >
+                    {generatingRules ? (
+                      <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                    ) : (
+                      <Wand2 className="w-3 h-3 mr-1" />
+                    )}
+                    Generate
+                  </Button>
+                </div>
                 <Textarea
                   value={editingWorkstream.rules || ''}
                   onChange={e => setEditingWorkstream(prev => ({ ...prev, rules: e.target.value }))}

@@ -695,6 +695,10 @@ class ConfigUIServer {
         if (req.method === 'POST') return this.json(res, routes.workstreams.installWorkstreamHook());
         break;
 
+      case '/api/workstreams/generate-rules':
+        if (req.method === 'POST') return this.json(res, routes.workstreams.generateRules(this.manager, body.projects));
+        break;
+
       // Loops (Ralph Loop)
       case '/api/loops':
         if (req.method === 'GET') return this.json(res, routes.loops.getLoops(this.manager));

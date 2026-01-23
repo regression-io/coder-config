@@ -605,6 +605,13 @@ export const api = {
     });
   },
 
+  async generateWorkstreamRules(projects) {
+    return request('/workstreams/generate-rules', {
+      method: 'POST',
+      body: { projects },
+    });
+  },
+
   // Loops (Ralph Loop)
   async getLoops() {
     return request('/loops');
