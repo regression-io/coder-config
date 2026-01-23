@@ -1,6 +1,6 @@
 {
   "name": "coder-config",
-  "version": "0.41.1",
+  "version": "0.41.2",
   "description": "Configuration manager for AI coding tools - Claude Code, Gemini CLI, Codex CLI, Antigravity. Manage MCPs, rules, permissions, memory, and workstreams.",
   "author": "regression.io",
   "main": "config-loader.js",
@@ -22,10 +22,7 @@
     "prepublishOnly": "npm run build",
     "postinstall": "node scripts/postinstall.js",
     "test": "node --test test/*.test.js",
-    "release": "./scripts/release.sh",
-    "tauri:prepare": "node scripts/tauri-prepare.js",
-    "tauri:dev": "npm run build && cargo tauri dev",
-    "tauri:build": "npm run tauri:prepare && cargo tauri build"
+    "release": "./scripts/release.sh"
   },
   "keywords": [
     "claude",

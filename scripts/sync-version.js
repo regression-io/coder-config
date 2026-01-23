@@ -16,7 +16,6 @@ const rootDir = path.join(__dirname, '..');
 const packageJsonPath = path.join(rootDir, 'package.json');
 const constantsPath = path.join(rootDir, 'lib', 'constants.js');
 const uiPackageJsonPath = path.join(rootDir, 'ui', 'package.json');
-const tauriConfigPath = path.join(rootDir, 'src-tauri', 'tauri.conf.json');
 
 // Read version from package.json (source of truth)
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
@@ -60,17 +59,6 @@ if (fs.existsSync(uiPackageJsonPath)) {
     uiPackageJson.version = version;
     fs.writeFileSync(uiPackageJsonPath, JSON.stringify(uiPackageJson, null, 2) + '\n', 'utf8');
     console.log(`  ui/package.json: ${oldVersion} -> ${version}`);
-  }
-}
-
-// Update src-tauri/tauri.conf.json
-if (fs.existsSync(tauriConfigPath)) {
-  const tauriConfig = JSON.parse(fs.readFileSync(tauriConfigPath, 'utf8'));
-  if (tauriConfig.version !== version) {
-    const oldVersion = tauriConfig.version;
-    tauriConfig.version = version;
-    fs.writeFileSync(tauriConfigPath, JSON.stringify(tauriConfig, null, 2) + '\n', 'utf8');
-    console.log(`  src-tauri/tauri.conf.json: ${oldVersion} -> ${version}`);
   }
 }
 
