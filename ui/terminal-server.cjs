@@ -38,10 +38,18 @@ class TerminalServer {
       const sessionId = this.generateSessionId();
       console.log(`Terminal session ${sessionId} connected`);
 
-      // Parse query params for initial command and cwd
+      // Parse query params for initial command, cwd, and env
       const url = new URL(req.url, 'http://localhost');
       const cwd = url.searchParams.get('cwd') || process.cwd();
       const cmd = url.searchParams.get('cmd') || null;
+
+      // Parse additional env vars from query (env_KEY=VALUE format)
+      const extraEnv = {};
+      for (const [key, value] of url.searchParams.entries()) {
+        if (key.startsWith('env_')) {
+          extraEnv[key.substring(4)] = value;
+        }
+      }
 
       // Create PTY with error handling
       let ptyProcess;
@@ -54,6 +62,7 @@ class TerminalServer {
           cwd: cwd,
           env: {
             ...process.env,
+            ...extraEnv,
             TERM: 'xterm-256color',
             COLORTERM: 'truecolor',
           }

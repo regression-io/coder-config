@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   RefreshCcw, Plus, Trash2, Play, Pause, XCircle, Check,
   ChevronDown, ChevronRight, Loader2, Clock, DollarSign,
   AlertCircle, CheckCircle2, FileText, Settings, History,
-  RotateCcw, Eye, Copy, Terminal
+  RotateCcw, Eye, Copy, Terminal as TerminalIcon
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import api from "@/lib/api";
+import TerminalDialog from "@/components/TerminalDialog";
 
 const PHASE_COLORS = {
   clarify: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
@@ -68,6 +69,10 @@ export default function LoopsView({ workstreams = [] }) {
   // Hook status
   const [hookStatus, setHookStatus] = useState({ stopHook: {}, prepromptHook: {} });
   const [installingHooks, setInstallingHooks] = useState(false);
+
+  // Terminal state
+  const [terminalOpen, setTerminalOpen] = useState(false);
+  const [terminalLoop, setTerminalLoop] = useState(null);
 
   useEffect(() => {
     loadLoops();
@@ -150,8 +155,10 @@ export default function LoopsView({ workstreams = [] }) {
   const handleStart = async (loopId) => {
     try {
       const result = await api.startLoop(loopId);
-      if (result.success) {
-        toast.success('Loop started');
+      if (result.success && result.loop) {
+        toast.success('Loop started - launching Claude Code');
+        setTerminalLoop(result.loop);
+        setTerminalOpen(true);
         loadLoops();
       } else {
         toast.error(result.error || 'Failed to start loop');
@@ -160,6 +167,37 @@ export default function LoopsView({ workstreams = [] }) {
       toast.error(error.message);
     }
   };
+
+  const handleTerminalExit = useCallback(async (exitCode, signal) => {
+    if (!terminalLoop) return;
+
+    // Reload loop state to check status
+    try {
+      const data = await api.getLoop(terminalLoop.id);
+      const loop = data.loop;
+
+      if (loop.taskComplete || loop.status === 'completed') {
+        toast.success('Loop completed successfully!');
+        setTerminalOpen(false);
+        setTerminalLoop(null);
+      } else if (loop.status === 'paused') {
+        toast.info(`Loop paused: ${loop.pauseReason || 'user requested'}`);
+      } else if (loop.iterations?.current >= loop.iterations?.max) {
+        toast.warning('Loop reached max iterations');
+        await api.pauseLoop(loop.id);
+      } else if (loop.budget?.currentCost >= loop.budget?.maxCost) {
+        toast.warning('Loop reached budget limit');
+        await api.pauseLoop(loop.id);
+      } else {
+        // Claude exited but loop not complete - offer to restart
+        toast.info('Claude exited. Click Start to continue the loop.');
+      }
+
+      loadLoops();
+    } catch (error) {
+      console.error('Failed to check loop status:', error);
+    }
+  }, [terminalLoop]);
 
   const handlePause = async (loopId) => {
     try {
@@ -793,6 +831,24 @@ export default function LoopsView({ workstreams = [] }) {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Loop Terminal Dialog */}
+      <TerminalDialog
+        open={terminalOpen}
+        onOpenChange={(open) => {
+          setTerminalOpen(open);
+          if (!open) {
+            setTerminalLoop(null);
+            loadLoops();
+          }
+        }}
+        title={terminalLoop ? `Loop: ${terminalLoop.name}` : 'Running Loop'}
+        description={terminalLoop?.task?.original}
+        cwd={terminalLoop?.projectPath}
+        initialCommand={terminalLoop ? `claude --continue "${terminalLoop.task?.original?.replace(/"/g, '\\"')}"` : ''}
+        env={terminalLoop ? { CODER_LOOP_ID: terminalLoop.id } : {}}
+        onExit={handleTerminalExit}
+      />
     </div>
   );
 }

@@ -16,6 +16,7 @@ export default function TerminalDialog({
   description,
   cwd,
   initialCommand,
+  env = {},
   onExit,
   autoCloseOnExit = false,
   autoCloseDelay = 1500
@@ -112,6 +113,7 @@ export default function TerminalDialog({
               <Terminal
                 cwd={cwd}
                 initialCommand={initialCommand}
+                env={env}
                 onExit={handleExit}
                 height="100%"
                 className="h-full"

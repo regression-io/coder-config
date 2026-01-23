@@ -11,6 +11,7 @@ import '@xterm/xterm/css/xterm.css';
 export default function Terminal({
   cwd,
   initialCommand,
+  env = {},
   onExit,
   onReady,
   className = '',
@@ -102,6 +103,13 @@ export default function Terminal({
     if (cwd) params.set('cwd', cwd);
     if (initialCommand) params.set('cmd', initialCommand);
 
+    // Add extra env vars with env_ prefix
+    if (env && typeof env === 'object') {
+      for (const [key, value] of Object.entries(env)) {
+        params.set(`env_${key}`, value);
+      }
+    }
+
     const wsUrl = `${protocol}//${wsHost}:${wsPort}/ws/terminal?${params.toString()}`;
 
     console.log('Connecting to terminal WebSocket:', wsUrl);
@@ -167,7 +175,7 @@ export default function Terminal({
         ws.send(JSON.stringify({ type: 'resize', cols, rows }));
       }
     });
-  }, [cwd, initialCommand, onReady, onExit]);
+  }, [cwd, initialCommand, env, onReady, onExit]);
 
   // Handle container resize
   useEffect(() => {
