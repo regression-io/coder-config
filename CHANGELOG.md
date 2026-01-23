@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.30] - 2026-01-24
+
+### Enhanced
+
+- **Claude-Powered Rule Generation** - Option to use Claude Code for smarter workstream rules
+  - "Use Claude" checkbox next to Generate button
+  - When enabled, runs `claude -p` to analyze repos and generate intelligent context
+  - Falls back to simple file parsing if Claude is unavailable
+  - Works with subscription quota (not API quota)
+
 ## [0.41.28] - 2026-01-24
 
 ### Added

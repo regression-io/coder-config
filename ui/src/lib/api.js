@@ -605,10 +605,10 @@ export const api = {
     });
   },
 
-  async generateWorkstreamRules(projects) {
+  async generateWorkstreamRules(projects, useClaude = false) {
     return request('/workstreams/generate-rules', {
       method: 'POST',
-      body: { projects },
+      body: { projects, useClaude },
     });
   },
 

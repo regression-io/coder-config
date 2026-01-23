@@ -213,13 +213,23 @@ fi
 /**
  * Generate rules from repos
  */
-function generateRules(manager, projects) {
+async function generateRules(manager, projects, useClaude = false) {
   if (!manager) return { error: 'Manager not available' };
   if (!projects || projects.length === 0) {
     return { error: 'No projects provided' };
   }
-  const rules = manager.generateRulesFromRepos(projects);
-  return { success: true, rules };
+
+  try {
+    let rules;
+    if (useClaude) {
+      rules = await manager.generateRulesWithClaude(projects);
+    } else {
+      rules = manager.generateRulesFromRepos(projects);
+    }
+    return { success: true, rules };
+  } catch (error) {
+    return { error: error.message };
+  }
 }
 
 module.exports = {

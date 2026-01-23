@@ -6,6 +6,7 @@ import {
   Activity, Sparkles, BarChart3, Zap, HelpCircle, Wand2
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -72,6 +73,7 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
 
   // Generate rules state
   const [generatingRules, setGeneratingRules] = useState(false);
+  const [useClaudeForRules, setUseClaudeForRules] = useState(false);
 
   useEffect(() => {
     loadWorkstreams();
@@ -181,10 +183,10 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
     }
     setGeneratingRules(true);
     try {
-      const result = await api.generateWorkstreamRules(projects);
+      const result = await api.generateWorkstreamRules(projects, useClaudeForRules);
       if (result.success && result.rules) {
         setRules(result.rules);
-        toast.success('Generated rules from repos');
+        toast.success(useClaudeForRules ? 'Generated rules with Claude' : 'Generated rules from repos');
       } else {
         toast.error(result.error || 'Failed to generate rules');
       }
@@ -1002,22 +1004,32 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                 <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
                   Context (optional)
                 </label>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleGenerateRules(newProjects, setNewRules)}
-                  disabled={generatingRules || newProjects.length === 0}
-                  className="text-xs h-7 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/30"
-                  title="Auto-generate rules from repo README, package.json, etc."
-                >
-                  {generatingRules ? (
-                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                  ) : (
-                    <Wand2 className="w-3 h-3 mr-1" />
-                  )}
-                  Generate
-                </Button>
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 cursor-pointer">
+                    <Checkbox
+                      checked={useClaudeForRules}
+                      onCheckedChange={setUseClaudeForRules}
+                      className="h-3.5 w-3.5"
+                    />
+                    Use Claude
+                  </label>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleGenerateRules(newProjects, setNewRules)}
+                    disabled={generatingRules || newProjects.length === 0}
+                    className="text-xs h-7 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                    title={useClaudeForRules ? "Use Claude Code to analyze repos" : "Extract from README, package.json, etc."}
+                  >
+                    {generatingRules ? (
+                      <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                    ) : (
+                      <Wand2 className="w-3 h-3 mr-1" />
+                    )}
+                    Generate
+                  </Button>
+                </div>
               </div>
               <Textarea
                 value={newRules}
@@ -1248,25 +1260,35 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                   <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
                     Rules
                   </label>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleGenerateRules(
-                      editingWorkstream.projects,
-                      (rules) => setEditingWorkstream(prev => ({ ...prev, rules }))
-                    )}
-                    disabled={generatingRules || !editingWorkstream.projects?.length}
-                    className="text-xs h-7 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/30"
-                    title="Auto-generate rules from repo README, package.json, etc."
-                  >
-                    {generatingRules ? (
-                      <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                    ) : (
-                      <Wand2 className="w-3 h-3 mr-1" />
-                    )}
-                    Generate
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 cursor-pointer">
+                      <Checkbox
+                        checked={useClaudeForRules}
+                        onCheckedChange={setUseClaudeForRules}
+                        className="h-3.5 w-3.5"
+                      />
+                      Use Claude
+                    </label>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleGenerateRules(
+                        editingWorkstream.projects,
+                        (rules) => setEditingWorkstream(prev => ({ ...prev, rules }))
+                      )}
+                      disabled={generatingRules || !editingWorkstream.projects?.length}
+                      className="text-xs h-7 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                      title={useClaudeForRules ? "Use Claude Code to analyze repos" : "Extract from README, package.json, etc."}
+                    >
+                      {generatingRules ? (
+                        <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                      ) : (
+                        <Wand2 className="w-3 h-3 mr-1" />
+                      )}
+                      Generate
+                    </Button>
+                  </div>
                 </div>
                 <Textarea
                   value={editingWorkstream.rules || ''}

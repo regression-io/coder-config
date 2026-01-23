@@ -696,7 +696,10 @@ class ConfigUIServer {
         break;
 
       case '/api/workstreams/generate-rules':
-        if (req.method === 'POST') return this.json(res, routes.workstreams.generateRules(this.manager, body.projects));
+        if (req.method === 'POST') {
+          const result = await routes.workstreams.generateRules(this.manager, body.projects, body.useClaude);
+          return this.json(res, result);
+        }
         break;
 
       // Loops (Ralph Loop)
