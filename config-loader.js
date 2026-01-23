@@ -30,6 +30,7 @@ const { envList, envSet, envUnset } = require('./lib/env');
 const { getProjectsRegistryPath, loadProjectsRegistry, saveProjectsRegistry, projectList, projectAdd, projectRemove } = require('./lib/projects');
 const { getWorkstreamsPath, loadWorkstreams, saveWorkstreams, workstreamList, workstreamCreate, workstreamUpdate, workstreamDelete, workstreamUse, workstreamActive, workstreamAddProject, workstreamRemoveProject, workstreamInject, workstreamDetect, workstreamGet, getActiveWorkstream, countWorkstreamsForProject, workstreamInstallHook, workstreamInstallHookGemini, workstreamInstallHookCodex, workstreamDeactivate, workstreamCheckPath } = require('./lib/workstreams');
 const { getActivityPath, getDefaultActivity, loadActivity, saveActivity, detectProjectRoot, activityLog, activitySummary, generateWorkstreamName, activitySuggestWorkstreams, activityClear } = require('./lib/activity');
+const { getLoopsPath, loadLoops, saveLoops, loadLoopState, saveLoopState, loadHistory, saveHistory, loopList, loopCreate, loopGet, loopUpdate, loopDelete, loopStart, loopPause, loopResume, loopCancel, loopApprove, loopComplete, loopStatus, loopHistory, loopConfig, getActiveLoop, recordIteration, saveClarifications, savePlan, loadClarifications, loadPlan, loopInject, archiveLoop } = require('./lib/loops');
 const { runCli } = require('./lib/cli');
 
 class ClaudeConfigManager {
@@ -147,6 +148,37 @@ class ClaudeConfigManager {
   workstreamInstallHookCodex() { return workstreamInstallHookCodex(); }
   workstreamDeactivate() { return workstreamDeactivate(); }
   workstreamCheckPath(targetPath, silent) { return workstreamCheckPath(this.installDir, targetPath, silent); }
+
+  // Loops (Ralph Loop)
+  getLoopsPath() { return getLoopsPath(this.installDir); }
+  loadLoops() { return loadLoops(this.installDir); }
+  saveLoops(data) { return saveLoops(this.installDir, data); }
+  loadLoopState(loopId) { return loadLoopState(this.installDir, loopId); }
+  saveLoopState(loopId, state) { return saveLoopState(this.installDir, loopId, state); }
+  loadHistory() { return loadHistory(this.installDir); }
+  saveHistory(data) { return saveHistory(this.installDir, data); }
+  loopList() { return loopList(this.installDir); }
+  loopCreate(task, options) { return loopCreate(this.installDir, task, options); }
+  loopGet(idOrName) { return loopGet(this.installDir, idOrName); }
+  loopUpdate(idOrName, updates) { return loopUpdate(this.installDir, idOrName, updates); }
+  loopDelete(idOrName) { return loopDelete(this.installDir, idOrName); }
+  loopStart(idOrName) { return loopStart(this.installDir, idOrName); }
+  loopPause(idOrName) { return loopPause(this.installDir, idOrName); }
+  loopResume(idOrName) { return loopResume(this.installDir, idOrName); }
+  loopCancel(idOrName) { return loopCancel(this.installDir, idOrName); }
+  loopApprove(idOrName) { return loopApprove(this.installDir, idOrName); }
+  loopComplete(idOrName) { return loopComplete(this.installDir, idOrName); }
+  loopStatus(idOrName) { return loopStatus(this.installDir, idOrName); }
+  loopHistory() { return loopHistory(this.installDir); }
+  loopConfig(updates) { return loopConfig(this.installDir, updates); }
+  getActiveLoop() { return getActiveLoop(this.installDir); }
+  recordIteration(loopId, iteration) { return recordIteration(this.installDir, loopId, iteration); }
+  saveClarifications(loopId, content) { return saveClarifications(this.installDir, loopId, content); }
+  savePlan(loopId, content) { return savePlan(this.installDir, loopId, content); }
+  loadClarifications(loopId) { return loadClarifications(this.installDir, loopId); }
+  loadPlan(loopId) { return loadPlan(this.installDir, loopId); }
+  loopInject(silent) { return loopInject(this.installDir, silent); }
+  archiveLoop(loopId) { return archiveLoop(this.installDir, loopId); }
 
   // Activity
   getActivityPath() { return getActivityPath(this.installDir); }

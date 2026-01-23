@@ -3,11 +3,13 @@ import { gettingStartedContent } from './getting-started';
 import { projectsContent } from './projects';
 import { fileExplorerContent } from './file-explorer';
 import { workstreamsContent } from './workstreams';
+import { loopsContent } from './loops';
 import { pluginsContent } from './plugins';
 import { mcpRegistryContent } from './mcp-registry';
 import { memoryContent } from './memory';
 import { claudeSettingsContent } from './claude-settings';
 import { geminiSettingsContent } from './gemini-settings';
+import { codexSettingsContent } from './codex-settings';
 import { antigravitySettingsContent } from './antigravity-settings';
 import { cliContent } from './cli';
 import { multiToolContent } from './multi-tool';
@@ -19,11 +21,13 @@ const docContent = {
   ...projectsContent,
   ...fileExplorerContent,
   ...workstreamsContent,
+  ...loopsContent,
   ...pluginsContent,
   ...mcpRegistryContent,
   ...memoryContent,
   ...claudeSettingsContent,
   ...geminiSettingsContent,
+  ...codexSettingsContent,
   ...antigravitySettingsContent,
   ...cliContent,
   ...multiToolContent,

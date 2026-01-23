@@ -12,4 +12,5 @@ export { default as ProjectsView } from './ProjectsView';
 export { default as DocsView } from './DocsView';
 export { default as PluginsView } from './PluginsView';
 export { default as WorkstreamsView } from './WorkstreamsView';
+export { default as LoopsView } from './LoopsView';
 export { default as TutorialView } from './TutorialView';

@@ -7,6 +7,7 @@ import { permissionsContent } from './permissions';
 import { memoryContent } from './memory';
 import { pluginsContent } from './plugins';
 import { workstreamsContent } from './workstreams';
+import { loopsContent } from './loops';
 import { multiToolContent } from './multi-tool';
 import { nextStepsContent } from './next-steps';
 
@@ -19,6 +20,7 @@ const tutorialContent = {
   ...memoryContent,
   ...pluginsContent,
   ...workstreamsContent,
+  ...loopsContent,
   ...multiToolContent,
   ...nextStepsContent,
 };

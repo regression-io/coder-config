@@ -4,6 +4,7 @@
 
 const projects = require('./projects');
 const workstreams = require('./workstreams');
+const loops = require('./loops');
 const activity = require('./activity');
 const subprojects = require('./subprojects');
 const registry = require('./registry');
@@ -23,6 +24,7 @@ const mcpDiscovery = require('./mcp-discovery');
 module.exports = {
   projects,
   workstreams,
+  loops,
   activity,
   subprojects,
   registry,

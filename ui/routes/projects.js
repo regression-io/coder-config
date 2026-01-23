@@ -158,6 +158,32 @@ function removeProject(manager, projectId, setProjectDir) {
 }
 
 /**
+ * Update a project's name
+ */
+function updateProject(manager, projectId, updates) {
+  if (!manager) return { error: 'Manager not available' };
+
+  const registry = manager.loadProjectsRegistry();
+  const project = registry.projects.find(p => p.id === projectId);
+
+  if (!project) {
+    return { error: 'Project not found' };
+  }
+
+  // Only allow updating the name for now
+  if (updates.name && typeof updates.name === 'string' && updates.name.trim()) {
+    project.name = updates.name.trim();
+  }
+
+  manager.saveProjectsRegistry(registry);
+
+  return {
+    success: true,
+    project
+  };
+}
+
+/**
  * Set active project and switch server context
  */
 function setActiveProject(manager, projectId, setProjectDir, getHierarchy, getSubprojects) {
@@ -193,6 +219,7 @@ module.exports = {
   getProjects,
   getActiveProject,
   addProject,
+  updateProject,
   removeProject,
   setActiveProject,
 };

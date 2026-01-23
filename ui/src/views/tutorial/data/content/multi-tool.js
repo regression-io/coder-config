@@ -16,6 +16,12 @@ Coder Config isn't just for Claude Code! It also supports other AI coding tools.
 - Rule syncing
 - Per-project settings
 
+**Codex CLI** (Good support)
+- OpenAI's AI coding assistant
+- MCP configuration
+- Security policies and sandbox modes
+- Per-project settings
+
 **Antigravity** (Basic support)
 - Alternative AI coding tool
 - MCP configuration
@@ -80,7 +86,9 @@ This keeps everything consistent.
 
 Each tool has its own settings page in the sidebar:
 - **Claude Code** - Permissions, model, behavior
-- **Gemini CLI** - MCP configuration
+- **Gemini CLI** - Model, display, sandbox settings
+- **Codex CLI** - Model, security policies, MCP servers
+- **Antigravity** - Security, MCP, browser allowlist
 - Configure each tool separately for tool-specific needs
     `
   },

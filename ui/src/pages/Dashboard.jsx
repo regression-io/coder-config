@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Settings, Package, RefreshCw, Rocket, Terminal,
-  Folder, FolderOpen, Loader2, Brain, Wand2, Wrench, Shield, Download, Layers, BookOpen, Puzzle, Workflow, GraduationCap
+  Folder, FolderOpen, Loader2, Brain, Wand2, Wrench, Shield, Download, Layers, BookOpen, Puzzle, Workflow, GraduationCap, RefreshCcw
 } from 'lucide-react';
 import FileExplorer from "@/components/FileExplorer";
 import ProjectSwitcher from "@/components/ProjectSwitcher";
@@ -28,6 +28,7 @@ import {
   DocsView,
   PluginsView,
   WorkstreamsView,
+  LoopsView,
   TutorialView
 } from "@/views";
 
@@ -40,6 +41,7 @@ const navItems = [
   { id: 'plugins', label: 'Plugins', icon: Puzzle, section: 'Tools' },
   { id: 'memory', label: 'Memory', icon: Brain, section: 'Tools' },
   { id: 'workstreams', label: 'Workstreams', icon: Workflow, section: 'Tools' },
+  { id: 'loops', label: 'Ralph Loops', icon: RefreshCcw, section: 'Tools', isNew: true },
   // Configuration section (tool-specific settings)
   { id: 'claude-settings', label: 'Claude Code', icon: Shield, section: 'Configuration' },
   { id: 'gemini-settings', label: 'Gemini CLI', icon: Terminal, section: 'Configuration' },
@@ -50,7 +52,7 @@ const navItems = [
   // System section
   { id: 'preferences', label: 'Preferences', icon: Wrench, section: 'System' },
   // Help section
-  { id: 'tutorial', label: 'Tutorial', icon: GraduationCap, section: 'Help', isNew: true },
+  { id: 'tutorial', label: 'Tutorial', icon: GraduationCap, section: 'Help' },
   { id: 'docs', label: 'Docs & Help', icon: BookOpen, section: 'Help' },
 ];
 
@@ -343,6 +345,8 @@ export default function Dashboard() {
         return <WorkstreamsView projects={projects} onWorkstreamChange={(ws) => {
           toast.success(`Switched to workstream: ${ws.name}`);
         }} />;
+      case 'loops':
+        return <LoopsView workstreams={[]} />;
       case 'docs':
         return <DocsView />;
       case 'tutorial':

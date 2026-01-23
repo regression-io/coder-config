@@ -1,6 +1,6 @@
 import {
   Sparkles, FolderPlus, FileText, Package, Shield,
-  Brain, Puzzle, Workflow, Wand2, Rocket
+  Brain, Puzzle, Workflow, Wand2, Rocket, RefreshCcw
 } from 'lucide-react';
 
 const tutorialSections = [
@@ -78,6 +78,16 @@ const tutorialSections = [
     subsections: [
       { id: 'what-are-workstreams', title: 'What Are Workstreams?' },
       { id: 'creating-workstream', title: 'Creating a Workstream' },
+    ]
+  },
+  {
+    id: 'loops-guide',
+    title: 'Ralph Loops',
+    icon: RefreshCcw,
+    isNew: true,
+    subsections: [
+      { id: 'what-are-loops', title: 'What Are Ralph Loops?' },
+      { id: 'creating-first-loop', title: 'Your First Loop' },
     ]
   },
   {

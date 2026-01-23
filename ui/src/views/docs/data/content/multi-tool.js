@@ -10,6 +10,7 @@ coder-config supports multiple AI coding assistants:
 |------|------|-----------------|
 | **Claude Code** | Terminal CLI | \`.mcp.json\`, \`~/.claude/\` |
 | **Gemini CLI** | Terminal CLI | \`.gemini/settings.json\`, \`~/.gemini/settings.json\` |
+| **Codex CLI** | Terminal CLI | \`~/.codex/config.toml\` |
 | **Antigravity** | Full IDE | \`~/.gemini/antigravity/mcp_config.json\` |
 
 ### Shared MCP Registry
@@ -22,6 +23,7 @@ In **Preferences**, toggle which tools receive configuration updates:
 
 - **Claude Code** - Anthropic's terminal AI assistant
 - **Gemini CLI** - Google's terminal AI assistant
+- **Codex CLI** - OpenAI's terminal AI assistant
 - **Antigravity** - Google's AI-powered IDE
 
 When you click **Apply Config**, enabled tools get updated configurations.
@@ -147,14 +149,15 @@ All tools use identical JSON format for MCP server definitions:
 
 ### Feature Comparison
 
-| Feature | Claude Code | Gemini CLI | Antigravity |
-|---------|-------------|------------|-------------|
-| Type | Terminal CLI | Terminal CLI | Full IDE |
-| MCP Config | \`.mcp.json\` | \`.gemini/settings.json\` + global | \`~/.gemini/antigravity/\` |
-| Env Interpolation | Yes (\`\${VAR}\`) | Yes | No |
-| Commands | \`.claude/commands/\` | \`.gemini/commands/\` | Unknown |
-| Rules | \`.claude/rules/\` | \`.gemini/rules/\` | \`.agent/rules/\` |
-| Instructions | \`CLAUDE.md\` | \`GEMINI.md\` | \`GEMINI.md\` |
+| Feature | Claude Code | Gemini CLI | Codex CLI | Antigravity |
+|---------|-------------|------------|-----------|-------------|
+| Type | Terminal CLI | Terminal CLI | Terminal CLI | Full IDE |
+| MCP Config | \`.mcp.json\` | \`.gemini/settings.json\` | \`~/.codex/config.toml\` | \`~/.gemini/antigravity/\` |
+| Config Format | JSON | JSON | TOML | JSON |
+| Env Interpolation | Yes (\`\${VAR}\`) | Yes | Yes | No |
+| Commands | \`.claude/commands/\` | \`.gemini/commands/\` | N/A | Unknown |
+| Rules | \`.claude/rules/\` | \`.gemini/rules/\` | N/A | \`.agent/rules/\` |
+| Instructions | \`CLAUDE.md\` | \`GEMINI.md\` | N/A | \`GEMINI.md\` |
 
 ### What This Means
 
@@ -178,6 +181,7 @@ Control which tools receive configuration updates.
 3. Toggle tools on/off:
    - **Claude Code** - Writes to \`.mcp.json\`
    - **Gemini CLI** - Writes to \`~/.gemini/settings.json\`
+   - **Codex CLI** - Writes to \`~/.codex/config.toml\`
    - **Antigravity** - Writes to \`~/.gemini/antigravity/mcp_config.json\`
 
 ### Apply Behavior
@@ -193,7 +197,7 @@ Tool preferences are stored in \`~/.coder-config/config.json\`:
 
 \`\`\`json
 {
-  "enabledTools": ["claude", "gemini", "antigravity"]
+  "enabledTools": ["claude", "gemini", "codex", "antigravity"]
 }
 \`\`\`
     `

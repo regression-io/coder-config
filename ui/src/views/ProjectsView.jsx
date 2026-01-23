@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import {
   FolderOpen, Folder, Plus, Trash2, RefreshCw, Check,
-  AlertTriangle, Loader2, ExternalLink
+  AlertTriangle, Loader2, Pencil
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import AddProjectDialog from "@/components/AddProjectDialog";
@@ -12,8 +21,9 @@ export default function ProjectsView({ onProjectSwitch }) {
   const [projects, setProjects] = useState([]);
   const [activeProjectId, setActiveProjectId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [switching, setSwitching] = useState(null);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialog, setEditDialog] = useState({ open: false, project: null, name: '' });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadProjects();
@@ -32,25 +42,29 @@ export default function ProjectsView({ onProjectSwitch }) {
     }
   };
 
-  const handleSwitch = async (projectId) => {
-    setSwitching(projectId);
+  const handleEdit = (project) => {
+    setEditDialog({ open: true, project, name: project.name });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editDialog.project || !editDialog.name.trim()) return;
+
+    setSaving(true);
     try {
-      const result = await api.setActiveProject(projectId);
+      const result = await api.updateProject(editDialog.project.id, { name: editDialog.name.trim() });
       if (result.success) {
-        setActiveProjectId(projectId);
-        setProjects(prev => prev.map(p => ({
-          ...p,
-          isActive: p.id === projectId
-        })));
-        toast.success(`Switched to ${result.project.name}`);
-        onProjectSwitch?.(result);
+        setProjects(prev => prev.map(p =>
+          p.id === editDialog.project.id ? { ...p, name: result.project.name } : p
+        ));
+        toast.success('Project updated');
+        setEditDialog({ open: false, project: null, name: '' });
       } else {
-        toast.error(result.error || 'Failed to switch project');
+        toast.error(result.error || 'Failed to update project');
       }
     } catch (error) {
-      toast.error('Failed to switch project: ' + error.message);
+      toast.error('Failed to update project: ' + error.message);
     } finally {
-      setSwitching(null);
+      setSaving(false);
     }
   };
 
@@ -190,19 +204,15 @@ export default function ProjectsView({ onProjectSwitch }) {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2">
-                  {!project.isActive && project.exists && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleSwitch(project.id)}
-                      disabled={switching === project.id}
-                    >
-                      {switching === project.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        'Select'
-                      )}
-                    </Button>
-                  )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleEdit(project)}
+                    className="text-gray-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                    title="Edit project name"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -235,6 +245,42 @@ export default function ProjectsView({ onProjectSwitch }) {
         onOpenChange={setAddDialogOpen}
         onAdded={handleProjectAdded}
       />
+
+      {/* Edit Project Dialog */}
+      <Dialog open={editDialog.open} onOpenChange={(open) => !open && setEditDialog({ open: false, project: null, name: '' })}>
+        <DialogContent className="bg-card">
+          <DialogHeader>
+            <DialogTitle>Edit Project</DialogTitle>
+            <DialogDescription>
+              Update the project name displayed in the registry.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <label className="text-sm font-medium text-foreground">Project Name</label>
+            <Input
+              value={editDialog.name}
+              onChange={(e) => setEditDialog(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="My Project"
+              className="mt-1"
+              onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit()}
+            />
+            {editDialog.project && (
+              <p className="text-xs text-muted-foreground mt-2 font-mono">
+                {editDialog.project.path.replace(/^\/Users\/[^/]+/, '~')}
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditDialog({ open: false, project: null, name: '' })}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={saving || !editDialog.name.trim()}>
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

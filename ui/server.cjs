@@ -666,6 +666,33 @@ class ConfigUIServer {
         if (req.method === 'POST') return this.json(res, routes.workstreams.installWorkstreamHook());
         break;
 
+      // Loops (Ralph Loop)
+      case '/api/loops':
+        if (req.method === 'GET') return this.json(res, routes.loops.getLoops(this.manager));
+        if (req.method === 'POST') return this.json(res, routes.loops.createLoop(this.manager, body));
+        break;
+
+      case '/api/loops/active':
+        if (req.method === 'GET') return this.json(res, routes.loops.getActiveLoop(this.manager));
+        break;
+
+      case '/api/loops/history':
+        if (req.method === 'GET') return this.json(res, routes.loops.getLoopHistory(this.manager));
+        break;
+
+      case '/api/loops/config':
+        if (req.method === 'GET') return this.json(res, routes.loops.getLoopConfig(this.manager));
+        if (req.method === 'PUT') return this.json(res, routes.loops.updateLoopConfig(this.manager, body));
+        break;
+
+      case '/api/loops/hook-status':
+        if (req.method === 'GET') return this.json(res, routes.loops.getLoopHookStatus());
+        break;
+
+      case '/api/loops/install-hooks':
+        if (req.method === 'POST') return this.json(res, routes.loops.installLoopHooks(this.manager));
+        break;
+
       case '/api/activity':
         if (req.method === 'GET') return this.json(res, routes.activity.getActivitySummary(this.manager));
         if (req.method === 'DELETE') return this.json(res, routes.activity.clearActivity(this.manager, body.olderThanDays || 30));
@@ -722,6 +749,35 @@ class ConfigUIServer {
       const projectId = pathname.split('/').pop();
       if (projectId && projectId !== 'active') {
         return this.json(res, routes.projects.removeProject(this.manager, projectId));
+      }
+    }
+
+    if (pathname.startsWith('/api/projects/') && req.method === 'PUT') {
+      const projectId = pathname.split('/').pop();
+      if (projectId && projectId !== 'active') {
+        return this.json(res, routes.projects.updateProject(this.manager, projectId, body));
+      }
+    }
+
+    // Dynamic loops routes
+    if (pathname.startsWith('/api/loops/') && !pathname.includes('/active') && !pathname.includes('/history') && !pathname.includes('/config') && !pathname.includes('/hook')) {
+      const parts = pathname.split('/');
+      const loopId = parts[3];
+      const action = parts[4];
+
+      if (loopId) {
+        if (req.method === 'GET' && !action) return this.json(res, routes.loops.getLoop(this.manager, loopId));
+        if (req.method === 'PUT' && !action) return this.json(res, routes.loops.updateLoop(this.manager, loopId, body));
+        if (req.method === 'DELETE' && !action) return this.json(res, routes.loops.deleteLoop(this.manager, loopId));
+        if (req.method === 'POST' && action === 'start') return this.json(res, routes.loops.startLoop(this.manager, loopId));
+        if (req.method === 'POST' && action === 'pause') return this.json(res, routes.loops.pauseLoop(this.manager, loopId));
+        if (req.method === 'POST' && action === 'resume') return this.json(res, routes.loops.resumeLoop(this.manager, loopId));
+        if (req.method === 'POST' && action === 'cancel') return this.json(res, routes.loops.cancelLoop(this.manager, loopId));
+        if (req.method === 'POST' && action === 'approve') return this.json(res, routes.loops.approveLoop(this.manager, loopId));
+        if (req.method === 'POST' && action === 'complete') return this.json(res, routes.loops.completeLoop(this.manager, loopId));
+        if (req.method === 'POST' && action === 'clarifications') return this.json(res, routes.loops.saveClarifications(this.manager, loopId, body.content));
+        if (req.method === 'POST' && action === 'plan') return this.json(res, routes.loops.savePlan(this.manager, loopId, body.content));
+        if (req.method === 'POST' && action === 'iteration') return this.json(res, routes.loops.recordIteration(this.manager, loopId, body));
       }
     }
 

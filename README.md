@@ -16,6 +16,7 @@ One tool to configure all your AI coding assistants:
 | **Rules & Commands** | Manage project-specific guidelines |
 | **Memory** | Persistent context across sessions |
 | **Workstreams** | Group projects with shared context |
+| **Ralph Loops** | Autonomous development until task completion |
 
 ## Installation
 
@@ -156,6 +157,47 @@ coder-config workstream install-hook --codex
 # For all supported tools
 coder-config workstream install-hook --all
 ```
+
+### Loop Commands (Ralph Loop)
+
+Ralph Loops enable autonomous development - Claude Code runs continuously until a task is completed.
+
+```bash
+coder-config loop                           # List all loops
+coder-config loop create "Task description" # Create new loop
+coder-config loop create "Task" --workstream <name>  # Create loop in workstream context
+coder-config loop start <id>                # Start/resume a loop
+coder-config loop pause <id>                # Pause loop at next safe point
+coder-config loop resume <id>               # Resume paused loop
+coder-config loop cancel <id>               # Cancel loop
+coder-config loop delete <id>               # Delete loop and its data
+coder-config loop approve <id>              # Approve plan (when in plan phase)
+coder-config loop complete <id>             # Mark loop as complete
+coder-config loop status [id]               # Show status (active loop if no id)
+coder-config loop active                    # Show current active loop
+coder-config loop history                   # Show completed loops
+coder-config loop config                    # Show loop configuration
+coder-config loop config --max-iterations 50    # Set max iterations
+coder-config loop config --max-cost 10.00       # Set max cost budget
+coder-config loop config --auto-approve-plan    # Skip manual plan approval
+```
+
+**Three-Phase Workflow**:
+1. **Clarify** - Claude asks questions to understand requirements
+2. **Plan** - Claude creates an implementation plan (requires approval)
+3. **Execute** - Claude implements the plan until complete
+
+**Running a loop**:
+```bash
+export CODER_LOOP_ID=<id>
+claude --continue "Your task description"
+```
+
+**Safety mechanisms**:
+- Iteration limits (default: 50)
+- Cost budget caps (default: $10)
+- Phase gates (manual plan approval)
+- Graceful pause on budget exceeded
 
 ### Registry Commands
 

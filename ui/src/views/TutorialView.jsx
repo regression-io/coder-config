@@ -20,6 +20,7 @@ const SECTION_COLORS = {
   'memory-guide': { bg: 'bg-pink-500', light: 'bg-pink-100 dark:bg-pink-950', text: 'text-pink-600 dark:text-pink-400' },
   'plugins-guide': { bg: 'bg-purple-500', light: 'bg-purple-100 dark:bg-purple-950', text: 'text-purple-600 dark:text-purple-400' },
   'workstreams-guide': { bg: 'bg-cyan-500', light: 'bg-cyan-100 dark:bg-cyan-950', text: 'text-cyan-600 dark:text-cyan-400' },
+  'loops-guide': { bg: 'bg-teal-500', light: 'bg-teal-100 dark:bg-teal-950', text: 'text-teal-600 dark:text-teal-400' },
   'multi-tool-guide': { bg: 'bg-amber-500', light: 'bg-amber-100 dark:bg-amber-950', text: 'text-amber-600 dark:text-amber-400' },
   'next-steps': { bg: 'bg-rose-500', light: 'bg-rose-100 dark:bg-rose-950', text: 'text-rose-600 dark:text-rose-400' },
 };

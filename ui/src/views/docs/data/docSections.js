@@ -1,6 +1,6 @@
 import {
   BookOpen, Folder, Package, Brain, Terminal,
-  Layers, Keyboard, Shield, HelpCircle, Sparkles, Rocket
+  Layers, Keyboard, Shield, HelpCircle, Sparkles, Rocket, RefreshCcw
 } from 'lucide-react';
 
 const docSections = [
@@ -41,12 +41,24 @@ const docSections = [
     id: 'workstreams',
     title: 'Workstreams',
     icon: Layers,
-    isNew: true,
     subsections: [
       { id: 'workstreams-overview', title: 'Overview' },
       { id: 'creating-workstreams', title: 'Creating Workstreams' },
       { id: 'workstream-hooks', title: 'Hook Integration' },
       { id: 'activity-tracking', title: 'Activity Tracking' },
+    ]
+  },
+  {
+    id: 'loops',
+    title: 'Ralph Loops',
+    icon: RefreshCcw,
+    isNew: true,
+    subsections: [
+      { id: 'loops-overview', title: 'Overview' },
+      { id: 'creating-loops', title: 'Creating Loops' },
+      { id: 'loop-phases', title: 'Loop Phases' },
+      { id: 'loop-controls', title: 'Controls' },
+      { id: 'loop-configuration', title: 'Configuration' },
     ]
   },
   {
@@ -103,6 +115,19 @@ const docSections = [
       { id: 'gemini-display', title: 'Display Options' },
       { id: 'gemini-general', title: 'General Settings' },
       { id: 'gemini-sandbox', title: 'Sandbox Mode' },
+    ]
+  },
+  {
+    id: 'codex-settings',
+    title: 'Codex CLI Settings',
+    icon: Terminal,
+    isNew: true,
+    subsections: [
+      { id: 'codex-overview', title: 'Overview' },
+      { id: 'codex-model', title: 'Model Selection' },
+      { id: 'codex-security', title: 'Security Settings' },
+      { id: 'codex-mcp', title: 'MCP Servers' },
+      { id: 'codex-features', title: 'Features & Display' },
     ]
   },
   {

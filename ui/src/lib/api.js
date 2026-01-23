@@ -101,6 +101,13 @@ export const api = {
     });
   },
 
+  async updateProject(id, updates) {
+    return request(`/projects/${id}`, {
+      method: 'PUT',
+      body: updates,
+    });
+  },
+
   async setActiveProject(id) {
     return request('/projects/active', {
       method: 'PUT',
@@ -583,6 +590,121 @@ export const api = {
 
   async installWorkstreamHook() {
     return request('/workstreams/install-hook', {
+      method: 'POST',
+    });
+  },
+
+  // Loops (Ralph Loop)
+  async getLoops() {
+    return request('/loops');
+  },
+
+  async getActiveLoop() {
+    return request('/loops/active');
+  },
+
+  async getLoop(id) {
+    return request(`/loops/${id}`);
+  },
+
+  async createLoop(task, options = {}) {
+    return request('/loops', {
+      method: 'POST',
+      body: { task, ...options },
+    });
+  },
+
+  async updateLoop(id, updates) {
+    return request(`/loops/${id}`, {
+      method: 'PUT',
+      body: updates,
+    });
+  },
+
+  async deleteLoop(id) {
+    return request(`/loops/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async startLoop(id) {
+    return request(`/loops/${id}/start`, {
+      method: 'POST',
+    });
+  },
+
+  async pauseLoop(id) {
+    return request(`/loops/${id}/pause`, {
+      method: 'POST',
+    });
+  },
+
+  async resumeLoop(id) {
+    return request(`/loops/${id}/resume`, {
+      method: 'POST',
+    });
+  },
+
+  async cancelLoop(id) {
+    return request(`/loops/${id}/cancel`, {
+      method: 'POST',
+    });
+  },
+
+  async approveLoop(id) {
+    return request(`/loops/${id}/approve`, {
+      method: 'POST',
+    });
+  },
+
+  async completeLoop(id) {
+    return request(`/loops/${id}/complete`, {
+      method: 'POST',
+    });
+  },
+
+  async getLoopHistory() {
+    return request('/loops/history');
+  },
+
+  async getLoopConfig() {
+    return request('/loops/config');
+  },
+
+  async updateLoopConfig(config) {
+    return request('/loops/config', {
+      method: 'PUT',
+      body: config,
+    });
+  },
+
+  async saveClarifications(loopId, content) {
+    return request(`/loops/${loopId}/clarifications`, {
+      method: 'POST',
+      body: { content },
+    });
+  },
+
+  async savePlan(loopId, content) {
+    return request(`/loops/${loopId}/plan`, {
+      method: 'POST',
+      body: { content },
+    });
+  },
+
+  async recordIteration(loopId, iteration) {
+    return request(`/loops/${loopId}/iteration`, {
+      method: 'POST',
+      body: iteration,
+    });
+  },
+
+  async getLoopHookStatus() {
+    return request('/loops/hook-status');
+  },
+
+  async installLoopHooks() {
+    return request('/loops/install-hooks', {
       method: 'POST',
     });
   },
