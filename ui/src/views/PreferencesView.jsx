@@ -89,18 +89,38 @@ export default function PreferencesView() {
         sourcePath: versionInfo.sourcePath
       });
       if (result.success) {
-        if (result.updateMethod === 'npm') {
-          toast.success('Updated via npm! Run: coder-config ui stop && coder-config ui');
-        } else {
-          toast.success(`Updated! Run: coder-config ui stop && coder-config ui`);
+        toast.success(`Updated to v${result.newVersion}! Restarting server...`);
+
+        // Trigger server restart
+        try {
+          await api.restartServer();
+        } catch {
+          // Expected - server exits before response completes
         }
-        loadVersionInfo();
+
+        // Wait for server to come back up, then reload
+        let attempts = 0;
+        const checkServer = setInterval(async () => {
+          attempts++;
+          try {
+            await api.checkVersion();
+            clearInterval(checkServer);
+            toast.success('Server restarted! Reloading...');
+            setTimeout(() => window.location.reload(), 500);
+          } catch {
+            if (attempts > 30) {
+              clearInterval(checkServer);
+              toast.info('Server restarting. Please refresh the page.');
+              setUpdating(false);
+            }
+          }
+        }, 500);
       } else {
         toast.error('Update failed: ' + result.error);
+        setUpdating(false);
       }
     } catch (error) {
       toast.error('Update failed: ' + error.message);
-    } finally {
       setUpdating(false);
     }
   };

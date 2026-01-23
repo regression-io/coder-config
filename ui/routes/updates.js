@@ -249,7 +249,7 @@ async function performNpmUpdate(targetVersion) {
         success: true,
         updateMethod: 'npm',
         newVersion: targetVersion || 'latest',
-        message: 'Updated via npm. Please restart the UI to use the new version.'
+        message: 'Updated via npm. Server will restart automatically.'
       };
     } catch (error) {
       const isEtarget = error.message.includes('ETARGET') || error.message.includes('No matching version');
