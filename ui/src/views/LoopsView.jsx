@@ -60,12 +60,15 @@ export default function LoopsView({ activeProject = null }) {
   // Form states
   const [newTask, setNewTask] = useState('');
   const [newWorkstreamId, setNewWorkstreamId] = useState('');
+  const [newMaxIterations, setNewMaxIterations] = useState(50);
+  const [newCompletionPromise, setNewCompletionPromise] = useState('DONE');
   const [saving, setSaving] = useState(false);
 
   // Config form states
   const [maxIterations, setMaxIterations] = useState(50);
   const [maxCost, setMaxCost] = useState(10);
   const [autoApprovePlan, setAutoApprovePlan] = useState(false);
+  const [defaultCompletionPromise, setDefaultCompletionPromise] = useState('DONE');
 
   // History state
   const [history, setHistory] = useState([]);
@@ -123,6 +126,10 @@ export default function LoopsView({ activeProject = null }) {
       setMaxIterations(cfg.maxIterations || 50);
       setMaxCost(cfg.maxCost || 10);
       setAutoApprovePlan(cfg.autoApprovePlan || false);
+      setDefaultCompletionPromise(cfg.completionPromise || 'DONE');
+      // Set form defaults from config
+      setNewMaxIterations(cfg.maxIterations || 50);
+      setNewCompletionPromise(cfg.completionPromise || 'DONE');
     } catch (error) {
       console.error('Failed to load config:', error);
     }
@@ -157,6 +164,8 @@ export default function LoopsView({ activeProject = null }) {
       const result = await api.createLoop(newTask, {
         workstreamId: newWorkstreamId || null,
         projectPath: activeProject?.path || activeProject?.dir || null,
+        maxIterations: parseInt(newMaxIterations, 10) || 50,
+        completionPromise: newCompletionPromise || 'DONE',
       });
 
       if (result.success) {
@@ -164,6 +173,8 @@ export default function LoopsView({ activeProject = null }) {
         setCreateDialogOpen(false);
         setNewTask('');
         setNewWorkstreamId('');
+        setNewMaxIterations(maxIterations);
+        setNewCompletionPromise(defaultCompletionPromise);
         loadLoops();
       } else {
         toast.error(result.error || 'Failed to create loop');
@@ -301,6 +312,7 @@ export default function LoopsView({ activeProject = null }) {
         maxIterations: parseInt(maxIterations, 10),
         maxCost: parseFloat(maxCost),
         autoApprovePlan,
+        completionPromise: defaultCompletionPromise,
       });
       if (result.success) {
         toast.success('Configuration saved');
@@ -369,6 +381,17 @@ export default function LoopsView({ activeProject = null }) {
 
   const hooksInstalled = hookStatus.stopHook?.exists && hookStatus.prepromptHook?.exists;
 
+  // Build the /ralph-loop command for the official plugin
+  const buildRalphCommand = (loop) => {
+    const task = (loop.task?.original || '').replace(/"/g, '\\"'); // Escape double quotes
+    const maxIter = loop.iterations?.max || 50;
+    const completionPromise = loop.completionPromise || 'DONE';
+
+    // Start Claude and immediately send /ralph-loop command
+    // Using --dangerously-skip-permissions for unattended loop execution
+    return `claude --dangerously-skip-permissions "/ralph-loop ${task} --max-iterations ${maxIter} --completion-promise '${completionPromise}'"`;
+  };
+
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
       {/* Header */}
@@ -379,7 +402,7 @@ export default function LoopsView({ activeProject = null }) {
             Ralph Loops
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Autonomous development loops that run Claude Code until a task is completed
+            Autonomous development loops using the official ralph-loop plugin
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -632,12 +655,11 @@ export default function LoopsView({ activeProject = null }) {
                   {/* Run instructions */}
                   <div className="bg-muted p-3 rounded-md">
                     <div className="flex items-center gap-2 mb-2">
-                      <Terminal className="w-4 h-4" />
-                      <span className="text-sm font-medium">Run this loop:</span>
+                      <TerminalIcon className="w-4 h-4" />
+                      <span className="text-sm font-medium">Run this loop (uses official ralph-loop plugin):</span>
                     </div>
-                    <code className="text-xs bg-background p-2 rounded block">
-                      export CODER_LOOP_ID={loop.id}<br />
-                      claude --continue "{loop.task?.original}"
+                    <code className="text-xs bg-background p-2 rounded block whitespace-pre-wrap">
+                      {buildRalphCommand(loop)}
                     </code>
                   </div>
                 </div>
@@ -675,6 +697,33 @@ export default function LoopsView({ activeProject = null }) {
                 ) : (
                   <span className="text-muted-foreground">No project selected - loop will run in server directory</span>
                 )}
+              </div>
+            </div>
+            {/* Max iterations and completion promise */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Max Iterations</label>
+                <Input
+                  type="number"
+                  value={newMaxIterations}
+                  onChange={(e) => setNewMaxIterations(e.target.value)}
+                  min={1}
+                  max={1000}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Safety limit for the loop
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Completion Promise</label>
+                <Input
+                  value={newCompletionPromise}
+                  onChange={(e) => setNewCompletionPromise(e.target.value)}
+                  placeholder="DONE"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Text that signals completion
+                </p>
               </div>
             </div>
             {workstreams.length > 0 && (
@@ -736,6 +785,17 @@ export default function LoopsView({ activeProject = null }) {
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Loop will pause when estimated cost exceeds this amount
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Default Completion Promise</label>
+              <Input
+                value={defaultCompletionPromise}
+                onChange={(e) => setDefaultCompletionPromise(e.target.value)}
+                placeholder="DONE"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Default text that signals loop completion (used with official ralph-loop plugin)
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -853,13 +913,27 @@ export default function LoopsView({ activeProject = null }) {
                 </div>
               )}
 
+              {/* Completion info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Max Iterations</h4>
+                  <div className="bg-muted p-2 rounded text-sm">
+                    {selectedLoop.iterations?.max || 50}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Completion Promise</h4>
+                  <div className="bg-muted p-2 rounded text-sm font-mono">
+                    &lt;promise&gt;{selectedLoop.completionPromise || 'DONE'}&lt;/promise&gt;
+                  </div>
+                </div>
+              </div>
+
               {/* Run command */}
               <div>
-                <h4 className="text-sm font-medium mb-2">Run Command</h4>
-                <code className="text-xs bg-muted p-3 rounded block">
-                  export CODER_LOOP_ID={selectedLoop.id}<br />
-                  {selectedLoop.workstreamId && <>export CODER_WORKSTREAM={selectedLoop.workstreamId}<br /></>}
-                  claude --continue "{selectedLoop.task?.original}"
+                <h4 className="text-sm font-medium mb-2">Run Command (uses official ralph-loop plugin)</h4>
+                <code className="text-xs bg-muted p-3 rounded block whitespace-pre-wrap">
+                  {buildRalphCommand(selectedLoop)}
                 </code>
               </div>
             </div>
@@ -880,7 +954,7 @@ export default function LoopsView({ activeProject = null }) {
         title={terminalLoop ? `Loop: ${terminalLoop.name}` : 'Running Loop'}
         description={terminalLoop?.task?.original}
         cwd={terminalLoop?.projectPath}
-        initialCommand={terminalLoop ? `claude --continue "${terminalLoop.task?.original?.replace(/"/g, '\\"')}"` : ''}
+        initialCommand={terminalLoop ? buildRalphCommand(terminalLoop) : ''}
         env={terminalLoop ? {
           CODER_LOOP_ID: terminalLoop.id,
           ...(terminalLoop.workstreamId && { CODER_WORKSTREAM: terminalLoop.workstreamId })

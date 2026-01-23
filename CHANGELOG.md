@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.18] - 2026-01-23
+
+### Changed
+
+- **Ralph Loop Plugin Integration** - Integrated with official `ralph-loop` plugin from `claude-plugins-official`
+  - Loop terminal now launches Claude with `/ralph-loop` command instead of `--continue`
+  - Added `completionPromise` field to loop creation (used by plugin for `<promise>TEXT</promise>` completion detection)
+  - Added `maxIterations` and `completionPromise` fields to create loop dialog
+  - Added default completion promise setting in loop configuration
+  - Hook status now checks for official plugin installation
+  - Updated run command display to show `/ralph-loop` syntax
+  - Uses `--dangerously-skip-permissions` for unattended loop execution
+
 ## [0.41.10] - 2026-01-23
 
 ### Fixed

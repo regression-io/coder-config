@@ -61,7 +61,7 @@ function getLoop(manager, id) {
  */
 function createLoop(manager, body) {
   if (!manager) return { error: 'Manager not available' };
-  const { task, name, workstreamId, projectPath } = body;
+  const { task, name, workstreamId, projectPath, maxIterations, completionPromise } = body;
 
   if (!task) {
     return { error: 'Task description is required' };
@@ -70,7 +70,9 @@ function createLoop(manager, body) {
   const loop = manager.loopCreate(task, {
     name,
     workstreamId,
-    projectPath
+    projectPath,
+    maxIterations: maxIterations || undefined,
+    completionPromise: completionPromise || undefined
   });
 
   if (!loop) {
@@ -239,23 +241,37 @@ function recordIteration(manager, id, iteration) {
 }
 
 /**
- * Check if loop hooks are installed
+ * Check if loop hooks are installed (official ralph-loop plugin)
  */
 function getLoopHookStatus() {
-  const hooksDir = path.join(os.homedir(), '.claude', 'hooks');
-  const stopHookPath = path.join(hooksDir, 'ralph-loop-stop.sh');
-  const prepromptHookPath = path.join(hooksDir, 'ralph-loop-preprompt.sh');
+  // Check for official ralph-loop plugin
+  const pluginsDir = path.join(os.homedir(), '.claude', 'plugins', 'marketplaces');
+  const officialPluginPath = path.join(pluginsDir, 'claude-plugins-official', 'plugins', 'ralph-loop');
+  const stopHookPath = path.join(officialPluginPath, 'hooks', 'stop-hook.sh');
+
+  // Also check custom hooks dir for backwards compatibility
+  const customHooksDir = path.join(os.homedir(), '.claude', 'hooks');
+  const customStopHookPath = path.join(customHooksDir, 'ralph-loop-stop.sh');
+  const customPrepromptHookPath = path.join(customHooksDir, 'ralph-loop-preprompt.sh');
+
+  const officialPluginExists = fs.existsSync(officialPluginPath);
+  const officialHookExists = fs.existsSync(stopHookPath);
 
   const status = {
-    hooksDir,
-    dirExists: fs.existsSync(hooksDir),
+    // Official plugin is preferred
+    usingOfficialPlugin: officialPluginExists,
+    officialPlugin: {
+      path: officialPluginPath,
+      exists: officialPluginExists
+    },
     stopHook: {
-      path: stopHookPath,
-      exists: fs.existsSync(stopHookPath)
+      path: officialHookExists ? stopHookPath : customStopHookPath,
+      exists: officialHookExists || fs.existsSync(customStopHookPath)
     },
     prepromptHook: {
-      path: prepromptHookPath,
-      exists: fs.existsSync(prepromptHookPath)
+      // Official plugin doesn't need preprompt hook
+      path: customPrepromptHookPath,
+      exists: officialPluginExists || fs.existsSync(customPrepromptHookPath)
     }
   };
 
@@ -263,144 +279,32 @@ function getLoopHookStatus() {
 }
 
 /**
- * Install loop hooks
+ * Install loop hooks (or verify official plugin is installed)
  */
 function installLoopHooks(manager) {
-  const hooksDir = path.join(os.homedir(), '.claude', 'hooks');
-  const coderConfigDir = manager ? path.dirname(manager.getLoopsPath()) : path.join(os.homedir(), '.coder-config');
+  const pluginsDir = path.join(os.homedir(), '.claude', 'plugins', 'marketplaces');
+  const officialPluginPath = path.join(pluginsDir, 'claude-plugins-official', 'plugins', 'ralph-loop');
 
-  try {
-    if (!fs.existsSync(hooksDir)) {
-      fs.mkdirSync(hooksDir, { recursive: true });
-    }
-
-    // Stop hook
-    const stopHookContent = `#!/bin/bash
-# Ralph Loop continuation hook
-# Called after each Claude response
-
-LOOP_ID="\$CODER_LOOP_ID"
-if [[ -z "\$LOOP_ID" ]]; then
-  exit 0
-fi
-
-STATE_FILE="\$HOME/.coder-config/loops/\$LOOP_ID/state.json"
-if [[ ! -f "\$STATE_FILE" ]]; then
-  exit 0
-fi
-
-# Check if loop is still active
-STATUS=$(jq -r '.status' "\$STATE_FILE")
-if [[ "\$STATUS" != "running" ]]; then
-  exit 0
-fi
-
-# Check budget limits
-CURRENT_ITER=$(jq -r '.iterations.current' "\$STATE_FILE")
-MAX_ITER=$(jq -r '.iterations.max' "\$STATE_FILE")
-CURRENT_COST=$(jq -r '.budget.currentCost' "\$STATE_FILE")
-MAX_COST=$(jq -r '.budget.maxCost' "\$STATE_FILE")
-
-if (( CURRENT_ITER >= MAX_ITER )); then
-  echo "Loop paused: max iterations reached (\$MAX_ITER)"
-  jq '.status = "paused" | .pauseReason = "max_iterations"' "\$STATE_FILE" > tmp && mv tmp "\$STATE_FILE"
-  exit 0
-fi
-
-if (( $(echo "\$CURRENT_COST >= \$MAX_COST" | bc -l) )); then
-  echo "Loop paused: budget exceeded (\$\$MAX_COST)"
-  jq '.status = "paused" | .pauseReason = "budget"' "\$STATE_FILE" > tmp && mv tmp "\$STATE_FILE"
-  exit 0
-fi
-
-# Update iteration count
-jq ".iterations.current = $((CURRENT_ITER + 1))" "\$STATE_FILE" > tmp && mv tmp "\$STATE_FILE"
-
-# Check if task is complete (Claude sets this flag)
-PHASE=$(jq -r '.phase' "\$STATE_FILE")
-TASK_COMPLETE=$(jq -r '.taskComplete // false' "\$STATE_FILE")
-
-if [[ "\$TASK_COMPLETE" == "true" ]]; then
-  jq '.status = "completed" | .completedAt = now' "\$STATE_FILE" > tmp && mv tmp "\$STATE_FILE"
-  echo "Loop completed successfully!"
-  exit 0
-fi
-
-# Continue loop - output continuation prompt
-PHASE_PROMPT=""
-case "\$PHASE" in
-  "clarify")
-    PHASE_PROMPT="Continue clarifying requirements. If requirements are clear, advance to planning phase by setting phase='plan'."
-    ;;
-  "plan")
-    PHASE_PROMPT="Continue developing the implementation plan. When plan is complete and approved, advance to execution phase."
-    ;;
-  "execute")
-    PHASE_PROMPT="Continue executing the plan. When task is complete, set taskComplete=true."
-    ;;
-esac
-
-echo ""
-echo "---"
-echo "[Ralph Loop iteration $((CURRENT_ITER + 1))/\$MAX_ITER]"
-echo "\$PHASE_PROMPT"
-echo "---"
-`;
-
-    const stopHookPath = path.join(hooksDir, 'ralph-loop-stop.sh');
-    fs.writeFileSync(stopHookPath, stopHookContent);
-    fs.chmodSync(stopHookPath, '755');
-
-    // Pre-prompt hook
-    const prepromptHookContent = `#!/bin/bash
-# Ralph Loop context injection
-
-LOOP_ID="\$CODER_LOOP_ID"
-if [[ -z "\$LOOP_ID" ]]; then
-  exit 0
-fi
-
-STATE_FILE="\$HOME/.coder-config/loops/\$LOOP_ID/state.json"
-PLAN_FILE="\$HOME/.coder-config/loops/\$LOOP_ID/plan.md"
-CLARIFY_FILE="\$HOME/.coder-config/loops/\$LOOP_ID/clarifications.md"
-
-if [[ ! -f "\$STATE_FILE" ]]; then
-  exit 0
-fi
-
-echo "<ralph-loop-context>"
-echo "Loop: $(jq -r '.name' "\$STATE_FILE")"
-echo "Phase: $(jq -r '.phase' "\$STATE_FILE")"
-echo "Iteration: $(jq -r '.iterations.current' "\$STATE_FILE")/$(jq -r '.iterations.max' "\$STATE_FILE")"
-
-if [[ -f "\$CLARIFY_FILE" ]]; then
-  echo ""
-  echo "## Clarifications"
-  cat "\$CLARIFY_FILE"
-fi
-
-if [[ -f "\$PLAN_FILE" ]]; then
-  echo ""
-  echo "## Plan"
-  cat "\$PLAN_FILE"
-fi
-
-echo "</ralph-loop-context>"
-`;
-
-    const prepromptHookPath = path.join(hooksDir, 'ralph-loop-preprompt.sh');
-    fs.writeFileSync(prepromptHookPath, prepromptHookContent);
-    fs.chmodSync(prepromptHookPath, '755');
-
+  // Check if official plugin is already installed
+  if (fs.existsSync(officialPluginPath)) {
     return {
       success: true,
-      message: 'Loop hooks installed successfully',
-      stopHook: stopHookPath,
-      prepromptHook: prepromptHookPath
+      message: 'Official ralph-loop plugin is already installed',
+      usingOfficialPlugin: true,
+      pluginPath: officialPluginPath,
+      note: 'Loops use the /ralph-loop command from the official claude-plugins-official marketplace'
     };
-  } catch (e) {
-    return { error: e.message };
   }
+
+  // Suggest installing the official plugin
+  return {
+    success: false,
+    error: 'Official ralph-loop plugin not found',
+    suggestion: 'Install the claude-plugins-official marketplace to get the ralph-loop plugin:\n' +
+      '  1. Add marketplace: coder-config marketplace add https://github.com/anthropics/claude-plugins-official\n' +
+      '  2. Or manually clone: git clone https://github.com/anthropics/claude-plugins-official ~/.claude/plugins/marketplaces/claude-plugins-official',
+    note: 'The official plugin provides /ralph-loop command with stop-hook for autonomous loops'
+  };
 }
 
 module.exports = {
