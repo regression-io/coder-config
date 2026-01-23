@@ -129,6 +129,17 @@ function scanClaudeFolder(folder, claudeDir, manager) {
   // memory folder
   addSubfolder(folder.files, claudeDir, 'memory', '.md', 'memory');
 
+  // .env file
+  const envPath = path.join(claudeDir, '.env');
+  if (fs.existsSync(envPath)) {
+    folder.files.push({
+      name: '.env',
+      path: envPath,
+      type: 'env',
+      size: fs.statSync(envPath).size
+    });
+  }
+
   // CLAUDE.md inside .claude
   const claudeMdPath = path.join(claudeDir, 'CLAUDE.md');
   if (fs.existsSync(claudeMdPath)) {

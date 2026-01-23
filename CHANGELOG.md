@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.10] - 2026-01-23
+
+### Fixed
+
+- **Environment File Support in File Explorer** - Fixed two bugs with .env files:
+  - `.env` files are now scanned and displayed in the file tree
+  - Creating a new `.env` file now properly selects it and shows it in the editor
+  - File type is now correctly preserved when creating env, mcps, settings, and other config files
+
 ## [0.41.9] - 2026-01-23
 
 ### Added

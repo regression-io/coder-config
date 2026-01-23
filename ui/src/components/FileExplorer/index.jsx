@@ -165,10 +165,10 @@ export default function FileExplorer({ project, onRefresh }) {
         const newItem = {
           path: result.path,
           name: name,
-          type: type === 'command' ? 'command' : type === 'rule' ? 'rule' : type === 'workflow' ? 'workflow' : 'file'
+          type: ['command', 'rule', 'workflow', 'env', 'mcps', 'settings', 'claudemd', 'memory'].includes(type) ? type : 'file'
         };
         setSelectedItem(newItem);
-        setFileContent(result.content || '');
+        setFileContent({ content: result.content || '', parsed: null });
       }
     } catch (error) {
       toast.error('Failed to create: ' + error.message);
