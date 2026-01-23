@@ -18,6 +18,78 @@ function getConfigs(manager, projectDir) {
 }
 
 /**
+ * Get inherited MCPs for a specific config level
+ * Returns MCPs that are enabled by parent configs but not by this level
+ */
+function getInheritedMcps(manager, projectDir, configDir) {
+  const configs = manager.findAllConfigs(projectDir);
+  const homeDir = process.env.HOME || '';
+
+  // Find the index of the current config in the hierarchy
+  const currentIndex = configs.findIndex(c => c.dir === configDir);
+  if (currentIndex === -1) {
+    return { inherited: [], sources: {} };
+  }
+
+  // Get only parent configs (everything before current index)
+  const parentConfigs = configs.slice(0, currentIndex);
+  if (parentConfigs.length === 0) {
+    return { inherited: [], sources: {} };
+  }
+
+  // Load all parent configs
+  const loadedParents = parentConfigs.map(c => ({
+    ...c,
+    config: manager.loadJson(c.configPath) || { include: [], mcpServers: {} },
+    label: c.dir === homeDir ? '~' : path.basename(c.dir)
+  }));
+
+  // Load current config to see what's already local
+  const currentConfig = manager.loadJson(configs[currentIndex].configPath) || { include: [], exclude: [], mcpServers: {} };
+  const localIncludes = new Set(currentConfig.include || []);
+  const localExcludes = new Set(currentConfig.exclude || []);
+  const localMcpServers = new Set(Object.keys(currentConfig.mcpServers || {}));
+
+  // Collect inherited MCPs with their sources
+  const inherited = [];
+  const sources = {};
+
+  for (const parent of loadedParents) {
+    const parentIncludes = parent.config.include || [];
+    for (const mcp of parentIncludes) {
+      // Only show as inherited if not locally included/excluded
+      if (!localIncludes.has(mcp) && !sources[mcp]) {
+        sources[mcp] = parent.label;
+        inherited.push({
+          name: mcp,
+          source: parent.label,
+          sourceDir: parent.dir,
+          isExcluded: localExcludes.has(mcp)
+        });
+      }
+    }
+
+    // Also check inline mcpServers from parents
+    const parentMcpServers = parent.config.mcpServers || {};
+    for (const [name, config] of Object.entries(parentMcpServers)) {
+      if (!name.startsWith('_') && !localMcpServers.has(name) && !sources[name]) {
+        sources[name] = parent.label;
+        inherited.push({
+          name,
+          source: parent.label,
+          sourceDir: parent.dir,
+          isInline: true,
+          config,
+          isExcluded: localExcludes.has(name)
+        });
+      }
+    }
+  }
+
+  return { inherited, sources };
+}
+
+/**
  * Update a config
  */
 function updateConfig(body, manager, applyConfig) {
@@ -321,6 +393,7 @@ function applyTemplateToDir(template, absDir) {
 
 module.exports = {
   getConfigs,
+  getInheritedMcps,
   updateConfig,
   applyConfig,
   detectTemplate,

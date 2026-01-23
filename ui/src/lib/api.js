@@ -120,6 +120,10 @@ export const api = {
     return request('/configs');
   },
 
+  async getInheritedMcps(configDir) {
+    return request(`/configs/inherited?dir=${encodeURIComponent(configDir)}`);
+  },
+
   async updateConfig(dir, config) {
     return request('/config', {
       method: 'PUT',

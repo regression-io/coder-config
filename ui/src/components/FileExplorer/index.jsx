@@ -282,6 +282,9 @@ export default function FileExplorer({ project, onRefresh }) {
       );
     }
 
+    // Extract the config directory from the path (e.g., /path/to/project/.claude/mcps.json -> /path/to/project)
+    const configDir = selectedItem.path ? selectedItem.path.replace(/\/.claude\/mcps\.json$/, '') : null;
+
     switch (selectedItem.type) {
       case 'mcps':
         return (
@@ -290,6 +293,7 @@ export default function FileExplorer({ project, onRefresh }) {
             parsed={fileContent.parsed}
             onSave={handleSaveFile}
             registry={registry}
+            configDir={configDir}
           />
         );
       case 'settings':

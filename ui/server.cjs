@@ -382,6 +382,17 @@ class ConfigUIServer {
       case '/api/configs':
         return this.json(res, routes.configs.getConfigs(this.manager, this.projectDir));
 
+      case '/api/configs/inherited':
+        if (req.method === 'GET') {
+          const url = new URL(req.url, `http://${req.headers.host}`);
+          const configDir = url.searchParams.get('dir');
+          if (!configDir) {
+            return this.json(res, { error: 'Missing dir parameter' });
+          }
+          return this.json(res, routes.configs.getInheritedMcps(this.manager, this.projectDir, configDir));
+        }
+        break;
+
       case '/api/config':
         if (req.method === 'PUT') {
           return this.json(res, routes.configs.updateConfig(body, this.manager, dir => this.applyConfig(dir)));

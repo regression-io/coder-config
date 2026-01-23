@@ -13,20 +13,41 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { toast } from 'sonner';
-import { Server, Plus, Save, Trash2 } from 'lucide-react';
+import { Server, Plus, Save, Trash2, Ban, Link2 } from 'lucide-react';
+import api from '@/lib/api';
 
-export default function McpEditor({ content, parsed, onSave, registry }) {
-  const [localConfig, setLocalConfig] = useState(parsed || { include: [], mcpServers: {} });
+export default function McpEditor({ content, parsed, onSave, registry, configDir }) {
+  const [localConfig, setLocalConfig] = useState(parsed || { include: [], exclude: [], mcpServers: {} });
   const [viewMode, setViewMode] = useState('rich');
   const [jsonText, setJsonText] = useState(JSON.stringify(parsed || {}, null, 2));
   const [saving, setSaving] = useState(false);
   const [addDialog, setAddDialog] = useState({ open: false, json: '' });
+  const [inheritedMcps, setInheritedMcps] = useState([]);
 
   useEffect(() => {
-    setLocalConfig(parsed || { include: [], mcpServers: {} });
+    setLocalConfig(parsed || { include: [], exclude: [], mcpServers: {} });
     setJsonText(JSON.stringify(parsed || {}, null, 2));
   }, [parsed]);
+
+  // Fetch inherited MCPs when configDir changes
+  useEffect(() => {
+    if (configDir) {
+      api.getInheritedMcps(configDir).then(data => {
+        setInheritedMcps(data.inherited || []);
+      }).catch(() => {
+        setInheritedMcps([]);
+      });
+    } else {
+      setInheritedMcps([]);
+    }
+  }, [configDir, parsed]);
 
   // Auto-save helper
   const autoSave = async (config) => {
@@ -48,6 +69,27 @@ export default function McpEditor({ content, parsed, onSave, registry }) {
     setLocalConfig(newConfig);
     setJsonText(JSON.stringify(newConfig, null, 2));
     autoSave(newConfig);
+  };
+
+  const handleToggleExclude = (name) => {
+    const currentExclude = localConfig.exclude || [];
+    const isExcluded = currentExclude.includes(name);
+    const newExclude = isExcluded
+      ? currentExclude.filter(n => n !== name)
+      : [...currentExclude, name];
+
+    // Clean up empty exclude array
+    const newConfig = newExclude.length > 0
+      ? { ...localConfig, exclude: newExclude }
+      : { ...localConfig };
+    if (newExclude.length === 0) {
+      delete newConfig.exclude;
+    }
+
+    setLocalConfig(newConfig);
+    setJsonText(JSON.stringify(newConfig, null, 2));
+    autoSave(newConfig);
+    toast.success(isExcluded ? `Unblocked ${name}` : `Blocked ${name}`);
   };
 
   // Manual save only needed for JSON editor mode
@@ -146,7 +188,61 @@ export default function McpEditor({ content, parsed, onSave, registry }) {
 
       <ScrollArea className="flex-1">
         {viewMode === 'rich' ? (
+          <TooltipProvider>
           <div className="p-4 space-y-4">
+            {/* Inherited MCPs from parent configs */}
+            {inheritedMcps.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium mb-2 text-gray-500 dark:text-slate-400">
+                  Inherited from Parent
+                </h3>
+                <div className="space-y-2">
+                  {inheritedMcps.map((mcp) => {
+                    const isExcluded = localConfig.exclude?.includes(mcp.name);
+                    return (
+                      <Tooltip key={mcp.name}>
+                        <TooltipTrigger asChild>
+                          <div className={`flex items-center justify-between p-2 rounded border ${
+                            isExcluded
+                              ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                              : 'bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700'
+                          }`}>
+                            <div className="flex items-center gap-2">
+                              <Link2 className={`w-4 h-4 ${isExcluded ? 'text-red-400' : 'text-gray-400'}`} />
+                              <span className={`text-sm ${isExcluded ? 'text-red-500 line-through' : 'text-gray-500 dark:text-slate-400'}`}>
+                                {mcp.name}
+                              </span>
+                              <Badge variant="outline" className="text-xs text-gray-400 border-gray-300 dark:border-slate-600">
+                                {mcp.source}
+                              </Badge>
+                              {isExcluded && (
+                                <Badge variant="outline" className="text-xs text-red-500 border-red-300">
+                                  blocked
+                                </Badge>
+                              )}
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={`h-7 px-2 ${isExcluded ? 'text-green-600 hover:text-green-700' : 'text-red-500 hover:text-red-600'}`}
+                              onClick={() => handleToggleExclude(mcp.name)}
+                            >
+                              <Ban className="w-4 h-4 mr-1" />
+                              {isExcluded ? 'Unblock' : 'Block'}
+                            </Button>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Inherited from <strong>{mcp.source}</strong></p>
+                          {mcp.isInline && <p className="text-xs text-gray-400">Inline MCP definition</p>}
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div>
               <h3 className="text-sm font-medium mb-2">Registry MCPs</h3>
               <div className="space-y-2">
@@ -205,6 +301,7 @@ export default function McpEditor({ content, parsed, onSave, registry }) {
               </div>
             )}
           </div>
+          </TooltipProvider>
         ) : (
           <Textarea
             className="w-full h-full min-h-[400px] font-mono text-sm border-0 rounded-none resize-none"
