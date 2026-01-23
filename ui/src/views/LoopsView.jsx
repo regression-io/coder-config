@@ -40,11 +40,15 @@ const STATUS_ICONS = {
   cancelled: <XCircle className="w-4 h-4 text-gray-500" />,
 };
 
-export default function LoopsView({ workstreams = [], activeProject = null }) {
+export default function LoopsView({ activeProject = null }) {
   const [loops, setLoops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
   const [config, setConfig] = useState({});
+
+  // Workstreams state (fetched locally)
+  const [workstreams, setWorkstreams] = useState([]);
+  const [activeWorkstreamId, setActiveWorkstreamId] = useState(null);
 
   // Dialog states
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -78,7 +82,25 @@ export default function LoopsView({ workstreams = [], activeProject = null }) {
     loadLoops();
     loadConfig();
     loadHookStatus();
+    loadWorkstreams();
   }, []);
+
+  const loadWorkstreams = async () => {
+    try {
+      const data = await api.getWorkstreams();
+      setWorkstreams(data.workstreams || []);
+      setActiveWorkstreamId(data.activeId || null);
+    } catch (error) {
+      console.error('Failed to load workstreams:', error);
+    }
+  };
+
+  // Auto-select active workstream when create dialog opens
+  useEffect(() => {
+    if (createDialogOpen && activeWorkstreamId) {
+      setNewWorkstreamId(activeWorkstreamId);
+    }
+  }, [createDialogOpen, activeWorkstreamId]);
 
   const loadLoops = async () => {
     try {

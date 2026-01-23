@@ -421,7 +421,7 @@ export default function Dashboard() {
           toast.success(`Switched to workstream: ${ws.name}`);
         }} />;
       case 'loops':
-        return <LoopsView workstreams={[]} activeProject={activeProject} />;
+        return <LoopsView activeProject={activeProject} />;
       case 'docs':
         return <DocsView />;
       case 'tutorial':
