@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.9] - 2026-01-23
+
+### Added
+
+- **Auto-Update Preference** - New toggle in Preferences > About section
+  - When enabled, updates install automatically when the page loads
+  - No user interaction required - completely hands-free updates
+  - Shows "Auto-updating to vX.X.X..." toast when triggered
+  - Falls back to manual update badge if auto-update fails
+
+## [0.41.8] - 2026-01-23
+
+### Fixed
+
+- **Update Toast Messages** - Removed manual restart commands from toast messages
+  - PreferencesView now also auto-restarts like Dashboard
+  - Messages now correctly reflect automatic restart behavior
+
 ## [0.41.6] - 2026-01-23
 
 ### Added
