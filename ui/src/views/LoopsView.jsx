@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   RefreshCcw, Plus, Trash2, Play, Pause, XCircle, Check,
-  ChevronDown, ChevronRight, Loader2, Clock, DollarSign,
+  ChevronDown, ChevronRight, Loader2, Clock,
   AlertCircle, CheckCircle2, FileText, Settings, History,
   RotateCcw, Eye, Copy, Terminal as TerminalIcon
 } from 'lucide-react';
@@ -66,7 +66,6 @@ export default function LoopsView({ activeProject = null }) {
 
   // Config form states
   const [maxIterations, setMaxIterations] = useState(50);
-  const [maxCost, setMaxCost] = useState(10);
   const [autoApprovePlan, setAutoApprovePlan] = useState(false);
   const [defaultCompletionPromise, setDefaultCompletionPromise] = useState('DONE');
 
@@ -124,7 +123,6 @@ export default function LoopsView({ activeProject = null }) {
       const cfg = data.config || {};
       setConfig(cfg);
       setMaxIterations(cfg.maxIterations || 50);
-      setMaxCost(cfg.maxCost || 10);
       setAutoApprovePlan(cfg.autoApprovePlan || false);
       setDefaultCompletionPromise(cfg.completionPromise || 'DONE');
       // Set form defaults from config
@@ -219,9 +217,6 @@ export default function LoopsView({ activeProject = null }) {
       } else if (loop.iterations?.current >= loop.iterations?.max) {
         toast.warning('Loop reached max iterations');
         await api.pauseLoop(loop.id);
-      } else if (loop.budget?.currentCost >= loop.budget?.maxCost) {
-        toast.warning('Loop reached budget limit');
-        await api.pauseLoop(loop.id);
       } else {
         // Claude exited but loop not complete - offer to restart
         toast.info('Claude exited. Click Start to continue the loop.');
@@ -310,7 +305,6 @@ export default function LoopsView({ activeProject = null }) {
       setSaving(true);
       const result = await api.updateLoopConfig({
         maxIterations: parseInt(maxIterations, 10),
-        maxCost: parseFloat(maxCost),
         autoApprovePlan,
         completionPromise: defaultCompletionPromise,
       });
@@ -372,11 +366,6 @@ export default function LoopsView({ activeProject = null }) {
   const getProgressPercent = (loop) => {
     if (!loop.iterations) return 0;
     return Math.min(100, (loop.iterations.current / loop.iterations.max) * 100);
-  };
-
-  const getCostPercent = (loop) => {
-    if (!loop.budget) return 0;
-    return Math.min(100, (loop.budget.currentCost / loop.budget.maxCost) * 100);
   };
 
   const hooksInstalled = hookStatus.stopHook?.exists && hookStatus.prepromptHook?.exists;
@@ -592,31 +581,17 @@ export default function LoopsView({ activeProject = null }) {
                   </div>
                 </div>
 
-                {/* Progress bars */}
-                <div className="mt-3 grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                      <span>Iterations</span>
-                      <span>{loop.iterations?.current || 0} / {loop.iterations?.max || 50}</span>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-blue-500 transition-all"
-                        style={{ width: `${getProgressPercent(loop)}%` }}
-                      />
-                    </div>
+                {/* Progress bar */}
+                <div className="mt-3">
+                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                    <span>Iterations</span>
+                    <span>{loop.iterations?.current || 0} / {loop.iterations?.max || 50}</span>
                   </div>
-                  <div>
-                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                      <span>Budget</span>
-                      <span>${(loop.budget?.currentCost || 0).toFixed(2)} / ${(loop.budget?.maxCost || 10).toFixed(2)}</span>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-green-500 transition-all"
-                        style={{ width: `${getCostPercent(loop)}%` }}
-                      />
-                    </div>
+                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-500 transition-all"
+                      style={{ width: `${getProgressPercent(loop)}%` }}
+                    />
                   </div>
                 </div>
               </div>
@@ -775,19 +750,6 @@ export default function LoopsView({ activeProject = null }) {
               </p>
             </div>
             <div>
-              <label className="text-sm font-medium mb-1 block">Max Cost ($)</label>
-              <Input
-                type="number"
-                value={maxCost}
-                onChange={(e) => setMaxCost(e.target.value)}
-                min={0.01}
-                step={0.01}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Loop will pause when estimated cost exceeds this amount
-              </p>
-            </div>
-            <div>
               <label className="text-sm font-medium mb-1 block">Default Completion Promise</label>
               <Input
                 value={defaultCompletionPromise}
@@ -845,9 +807,8 @@ export default function LoopsView({ activeProject = null }) {
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground mt-1 truncate">{entry.task}</p>
-                  <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+                  <div className="mt-2 text-xs text-muted-foreground">
                     <span>Iterations: {entry.totalIterations}</span>
-                    <span>Cost: ${(entry.totalCost || 0).toFixed(2)}</span>
                   </div>
                 </div>
               ))

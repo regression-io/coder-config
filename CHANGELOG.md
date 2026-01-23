@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.20] - 2026-01-23
+
+### Removed
+
+- **Cost Tracking from Loops** - Removed all cost/budget tracking from Ralph Loops
+  - Claude Code uses subscription limits, not variable API costs
+  - Removed cost fields from loop state, config, UI, and history
+  - Simplified loop cards and config dialog
+
 ## [0.41.18] - 2026-01-23
 
 ### Changed
