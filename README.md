@@ -1,22 +1,35 @@
 # Coder Config
 
-Configuration manager for AI coding tools — **Claude Code**, **Gemini CLI**, **Codex CLI**, and **Antigravity**. Manage MCPs, rules, permissions, memory, and workstreams through a visual UI or CLI.
+A configuration manager for AI coding tools. Works with Claude Code, Gemini CLI, Codex CLI, and Antigravity.
 
 > **Migration note:** This package was renamed from `@regression-io/claude-config` to `coder-config`. The `claude-config` command still works as an alias.
 
-## Why?
+## The Problem
 
-One tool to configure all your AI coding assistants:
+AI coding assistants are powerful, but managing their configuration across projects is tedious. Each tool has its own config format. MCP servers need to be set up per-project. Context gets lost between sessions. Working across multiple repos means re-explaining relationships every time.
 
-| | |
-|---|---|
-| **MCP Servers** | Configure without editing JSON/TOML files |
-| **Permissions** | Visual editor for allow/deny rules |
-| **Multi-Tool** | Claude Code, Gemini CLI, Codex CLI, Antigravity |
-| **Rules & Commands** | Manage project-specific guidelines |
-| **Memory** | Persistent context across sessions |
-| **Workstreams** | Group projects with shared context |
-| **Ralph Loops** | Autonomous development until task completion |
+## What Coder Config Does
+
+**Unified MCP Registry**
+Define your MCP servers once in a global registry. Enable them per-project with a toggle. Configuration inherits from global → workspace → project, so common tools are always available while project-specific ones stay scoped.
+
+**Multi-Tool Output**
+Write one config, generate outputs for Claude Code (`.mcp.json`), Gemini CLI (`settings.json`), Codex CLI (`config.toml`), and Antigravity. Switch tools without reconfiguring.
+
+**Workstreams**
+Group related repos together. When a workstream is active, Claude automatically knows which directories it can access and receives your custom context. Useful for microservices, monorepos, or any multi-repo workflow where projects relate to each other.
+
+**Persistent Memory**
+Store preferences, corrections, and patterns that persist across sessions. When you tell Claude "always use our logger instead of console.log," it remembers — not just for this session, but permanently.
+
+**Hierarchical Rules**
+Rules cascade from `~/.claude/rules/` down to project-specific rules. Global conventions apply everywhere; project-specific instructions stay local.
+
+**Plugin System**
+Install LSP servers, MCP tools, and custom commands from plugin marketplaces. Plugins can be scoped globally or per-project.
+
+**Web UI**
+Visual interface for managing everything above. File explorer for `.claude` folders, MCP toggles, memory editor, workstream management. Runs locally on port 3333.
 
 ## Installation
 
