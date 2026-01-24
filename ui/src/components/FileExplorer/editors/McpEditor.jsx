@@ -239,110 +239,103 @@ export default function McpEditor({ content, parsed, onSave, registry, configDir
       <ScrollArea className="flex-1">
         {viewMode === 'rich' ? (
           <TooltipProvider>
-          <div className="p-4 space-y-4">
-            <div>
-              <h3 className="text-sm font-medium mb-2">Registry MCPs</h3>
-              <div className="space-y-2">
-                {registryMcps.length === 0 && inheritedMcps.length === 0 ? (
-                  <p className="text-sm text-gray-500 dark:text-slate-400">No MCPs in registry</p>
-                ) : (
-                  <>
-                    {/* Inherited MCPs shown inline with greyed switch */}
-                    {inheritedMcps.map((mcp) => {
-                      const isExcluded = localConfig.exclude?.includes(mcp.name);
-                      return (
-                        <Tooltip key={`inherited-${mcp.name}`}>
-                          <TooltipTrigger asChild>
-                            <div className={`flex items-center justify-between p-2 rounded border ${
-                              isExcluded
-                                ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
-                                : 'bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700'
-                            }`}>
-                              <div className="flex items-center gap-2">
-                                <Server className={`w-4 h-4 ${isExcluded ? 'text-red-400' : 'text-gray-400'}`} />
-                                <span className={`text-sm ${isExcluded ? 'text-red-500 line-through' : 'text-gray-500 dark:text-slate-400'}`}>
-                                  {mcp.name}
-                                </span>
-                                <Badge variant="outline" className="text-[10px] text-gray-400 border-gray-300 dark:border-slate-600">
-                                  from {mcp.source}
-                                </Badge>
-                              </div>
-                              <Switch
-                                checked={!isExcluded}
-                                onCheckedChange={() => {
-                                  if (!isExcluded) {
-                                    toast.warning(`Blocking "${mcp.name}" inherited from ${mcp.source}`);
-                                  }
-                                  handleToggleExclude(mcp.name);
-                                }}
-                                className="data-[state=checked]:bg-gray-400 dark:data-[state=checked]:bg-slate-600"
-                              />
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Inherited from <strong>{mcp.source}</strong></p>
-                            <p className="text-xs text-gray-400">{isExcluded ? 'Blocked at this level' : 'Toggle off to block'}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      );
-                    })}
-                    {/* Regular registry MCPs */}
-                    {registryMcps.map((name) => {
-                      // Skip if this MCP is already shown as inherited
-                      const isInherited = inheritedMcps.some(m => m.name === name);
-                      if (isInherited) return null;
-                      return (
-                        <div key={name} className="flex items-center justify-between p-2 rounded border bg-white dark:bg-slate-950">
-                          <div className="flex items-center gap-2">
-                            <Server className="w-4 h-4 text-blue-500" />
-                            <span className="text-sm">{name}</span>
-                          </div>
-                          <Switch
-                            checked={localConfig.include?.includes(name)}
-                            onCheckedChange={() => handleToggleInclude(name)}
-                          />
-                        </div>
-                      );
-                    })}
-                  </>
-                )}
-              </div>
-            </div>
-
-            {Object.keys(localConfig.mcpServers || {}).length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium mb-2">Inline MCPs</h3>
-                <div className="space-y-2">
-                  {Object.entries(localConfig.mcpServers).map(([name, config]) => (
-                    <div key={name} className="p-2 rounded border bg-white dark:bg-slate-950 group">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{name}</span>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">inline</Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => {
-                              const { [name]: _, ...rest } = localConfig.mcpServers;
-                              const newConfig = { ...localConfig, mcpServers: rest };
-                              setLocalConfig(newConfig);
-                              setJsonText(JSON.stringify(newConfig, null, 2));
-                              autoSave(newConfig);
-                              toast.success(`Removed ${name}`);
-                            }}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 font-mono">
-                        {config.command} {config.args?.join(' ')}
-                      </p>
-                    </div>
-                  ))}
+          <div className="p-4 space-y-2">
+            {/* Inline MCPs - shown first as they're project-specific */}
+            {Object.entries(localConfig.mcpServers || {}).map(([name, config]) => (
+              <div key={`inline-${name}`} className="p-2 rounded border bg-white dark:bg-slate-950 group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Server className="w-4 h-4 text-green-500" />
+                    <span className="text-sm font-medium">{name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs">inline</Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => {
+                        const { [name]: _, ...rest } = localConfig.mcpServers;
+                        const newConfig = { ...localConfig, mcpServers: rest };
+                        setLocalConfig(newConfig);
+                        setJsonText(JSON.stringify(newConfig, null, 2));
+                        autoSave(newConfig);
+                        toast.success(`Removed ${name}`);
+                      }}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
                 </div>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 font-mono">
+                  {config.command} {config.args?.join(' ')}
+                </p>
               </div>
+            ))}
+
+            {/* Inherited MCPs */}
+            {inheritedMcps.map((mcp) => {
+              const isExcluded = localConfig.exclude?.includes(mcp.name);
+              return (
+                <Tooltip key={`inherited-${mcp.name}`}>
+                  <TooltipTrigger asChild>
+                    <div className={`flex items-center justify-between p-2 rounded border ${
+                      isExcluded
+                        ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                        : 'bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700'
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        <Server className={`w-4 h-4 ${isExcluded ? 'text-red-400' : 'text-gray-400'}`} />
+                        <span className={`text-sm ${isExcluded ? 'text-red-500 line-through' : 'text-gray-500 dark:text-slate-400'}`}>
+                          {mcp.name}
+                        </span>
+                        <Badge variant="outline" className="text-[10px] text-gray-400 border-gray-300 dark:border-slate-600">
+                          from {mcp.source}
+                        </Badge>
+                      </div>
+                      <Switch
+                        checked={!isExcluded}
+                        onCheckedChange={() => {
+                          if (!isExcluded) {
+                            toast.warning(`Blocking "${mcp.name}" inherited from ${mcp.source}`);
+                          }
+                          handleToggleExclude(mcp.name);
+                        }}
+                        className="data-[state=checked]:bg-gray-400 dark:data-[state=checked]:bg-slate-600"
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Inherited from <strong>{mcp.source}</strong></p>
+                    <p className="text-xs text-gray-400">{isExcluded ? 'Blocked at this level' : 'Toggle off to block'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+
+            {/* Registry MCPs (not inherited) */}
+            {registryMcps.map((name) => {
+              // Skip if this MCP is already shown as inherited or inline
+              const isInherited = inheritedMcps.some(m => m.name === name);
+              const isInline = localConfig.mcpServers?.[name];
+              if (isInherited || isInline) return null;
+              return (
+                <div key={name} className="flex items-center justify-between p-2 rounded border bg-white dark:bg-slate-950">
+                  <div className="flex items-center gap-2">
+                    <Server className="w-4 h-4 text-blue-500" />
+                    <span className="text-sm">{name}</span>
+                  </div>
+                  <Switch
+                    checked={localConfig.include?.includes(name)}
+                    onCheckedChange={() => handleToggleInclude(name)}
+                  />
+                </div>
+              );
+            })}
+
+            {/* Empty state */}
+            {registryMcps.length === 0 && inheritedMcps.length === 0 && Object.keys(localConfig.mcpServers || {}).length === 0 && (
+              <p className="text-sm text-gray-500 dark:text-slate-400">No MCPs configured. Click "Add MCP" to add one.</p>
             )}
           </div>
           </TooltipProvider>
