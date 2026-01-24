@@ -10,23 +10,23 @@ AI coding assistants are powerful, but managing their configuration across proje
 
 ## What Coder Config Does
 
-**Unified MCP Registry**
-Define your MCP servers once in a global registry. Enable them per-project with a toggle. Configuration inherits from global → workspace → project, so common tools are always available while project-specific ones stay scoped.
-
-**Multi-Tool Output**
-Write one config, generate outputs for Claude Code (`.mcp.json`), Gemini CLI (`settings.json`), Codex CLI (`config.toml`), and Antigravity. Switch tools without reconfiguring.
-
 **Workstreams**
 Group related repos together. When a workstream is active, Claude automatically knows which directories it can access and receives your custom context. Useful for microservices, monorepos, or any multi-repo workflow where projects relate to each other.
 
-**Persistent Memory**
-Store preferences, corrections, and patterns that persist across sessions. When you tell Claude "always use our logger instead of console.log," it remembers — not just for this session, but permanently.
+**Unified MCP Registry**
+Define your MCP servers once in a global registry. Enable them per-project with a toggle. Configuration inherits from global → workspace → project, so common tools are always available while project-specific ones stay scoped.
 
 **Hierarchical Rules**
 Rules cascade from `~/.claude/rules/` down to project-specific rules. Global conventions apply everywhere; project-specific instructions stay local.
 
+**Persistent Memory**
+Store preferences, corrections, and patterns that persist across sessions. When you tell Claude "always use our logger instead of console.log," it remembers — not just for this session, but permanently.
+
 **Plugin System**
 Install LSP servers, MCP tools, and custom commands from plugin marketplaces. Plugins can be scoped globally or per-project.
+
+**Multi-Tool Output**
+Write one config, generate outputs for Claude Code (`.mcp.json`), Gemini CLI (`settings.json`), Codex CLI (`config.toml`), and Antigravity. Switch tools without reconfiguring.
 
 **Web UI**
 Visual interface for managing everything above. File explorer for `.claude` folders, MCP toggles, memory editor, workstream management. Runs locally on port 3333.
