@@ -219,7 +219,7 @@ export default function PluginSelectorDialog({ open, onOpenChange, projectDir, p
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0">
+      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-4 border-b dark:border-slate-800">
           <DialogTitle className="flex items-center gap-2">
             <Puzzle className="w-5 h-5 text-indigo-600" />
@@ -348,7 +348,7 @@ export default function PluginSelectorDialog({ open, onOpenChange, projectDir, p
         </div>
 
         {/* Plugin List */}
-        <ScrollArea className="flex-1 px-6 py-4">
+        <ScrollArea className="flex-1 min-h-0 px-6 py-4">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
