@@ -36,11 +36,11 @@ const navItems = [
   // Projects section
   { id: 'projects', label: 'All Projects', icon: Layers, section: 'Projects' },
   { id: 'explorer', label: 'Project Explorer', icon: FolderOpen, section: 'Projects' },
+  { id: 'workstreams', label: 'Workstreams', icon: Workflow, section: 'Projects' },
   // Tools section (above Configuration)
   { id: 'registry', label: 'MCP Registry', icon: Package, section: 'Tools' },
   { id: 'plugins', label: 'Plugins', icon: Puzzle, section: 'Tools' },
   { id: 'memory', label: 'Memory', icon: Brain, section: 'Tools' },
-  { id: 'workstreams', label: 'Workstreams', icon: Workflow, section: 'Tools' },
   { id: 'loops', label: 'Ralph Loops', icon: RefreshCcw, section: 'Tools', isNew: true },
   // Configuration section (tool-specific settings)
   { id: 'claude-settings', label: 'Claude Code', icon: Shield, section: 'Configuration' },
