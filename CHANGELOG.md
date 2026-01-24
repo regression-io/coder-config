@@ -5,15 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.42.11] - 2026-01-24
+
+### Changed
+
+- **Apply now auto-cascades** - Single Apply button propagates changes to all child projects
+  - No separate "Cascade" button needed - Apply always does the right thing
+  - Shows count when multiple projects updated
+
 ## [0.42.10] - 2026-01-24
 
 ### Added
 
-- **Cascade Apply** - Propagate MCP changes from parent configs to all child projects
-  - New "Cascade" button in MCP editor applies changes to all downstream projects
-  - When you change `~/.claude/mcps.json`, cascade applies to all registered projects
-  - API endpoint `/api/apply-cascade` for programmatic use
-  - Shows count of projects updated
+- **Cascade Apply API** - `/api/apply-cascade` endpoint for propagating MCP changes to child projects
 
 ## [0.42.9] - 2026-01-24
 
