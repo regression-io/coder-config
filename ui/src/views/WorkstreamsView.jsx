@@ -431,10 +431,8 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
 
       {/* Info */}
       <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg p-4 text-sm text-purple-700 dark:text-purple-400">
-        <p className="font-medium mb-1">What are Workstreams?</p>
         <p>
-          Workstreams are virtual projects that group repos belonging to the same product.
-          When active, workstream rules are automatically injected into every Claude session.
+          <strong>Workstreams</strong> let you group related repos together so Claude sees them as one cohesive project. Perfect for microservices, monorepos, or any multi-repo setup where context matters. Your custom rules and context persist across sessions, and Claude stays scoped to only the directories you specify.
         </p>
       </div>
 
