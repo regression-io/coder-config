@@ -494,7 +494,7 @@ class ConfigUIServer {
         break;
 
       case '/api/file-hashes':
-        return this.json(res, routes.fileExplorer.getFileHashes(this.manager, this.projectDir));
+        return this.json(res, routes.fileExplorer.getFileHashes(this.manager, this.projectDir, this.config));
 
       case '/api/version-check':
         return this.json(res, await routes.updates.checkForUpdates(this.manager, __dirname));

@@ -618,7 +618,7 @@ async function scanMcpTools(toolsDir) {
 /**
  * Get file hashes for change detection
  */
-function getFileHashes(manager, projectDir) {
+function getFileHashes(manager, projectDir, config = {}) {
   const hashes = {};
   const crypto = require('crypto');
 
@@ -657,6 +657,35 @@ function getFileHashes(manager, projectDir) {
     const envPath = path.join(dir, '.claude', '.env');
     const hash = hashFile(envPath);
     if (hash) hashes[envPath] = hash;
+  }
+
+  // Hash subprojects list (detect new/removed subprojects)
+  try {
+    const subprojectDirs = [];
+    const entries = fs.readdirSync(projectDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
+      const fullPath = path.join(projectDir, entry.name);
+      const hasGit = fs.existsSync(path.join(fullPath, '.git'));
+      const hasClaude = fs.existsSync(path.join(fullPath, '.claude'));
+      if (hasGit) {
+        // Include both path and whether it has .claude config
+        subprojectDirs.push(`${fullPath}:${hasClaude}`);
+      }
+    }
+    // Also include manual subprojects
+    const manualSubprojects = config.manualSubprojects?.[projectDir] || [];
+    for (const subDir of manualSubprojects) {
+      if (fs.existsSync(subDir)) {
+        const hasClaude = fs.existsSync(path.join(subDir, '.claude'));
+        subprojectDirs.push(`manual:${subDir}:${hasClaude}`);
+      }
+    }
+    subprojectDirs.sort();
+    const subprojectsHash = crypto.createHash('md5').update(subprojectDirs.join('\n')).digest('hex');
+    hashes['__subprojects__'] = subprojectsHash;
+  } catch (e) {
+    // Ignore errors scanning for subprojects
   }
 
   return { hashes };

@@ -313,9 +313,22 @@ export default function Dashboard() {
           key => !hashes[key]
         );
 
+        // Check if subprojects specifically changed
+        const subprojectsChanged = oldHashes['__subprojects__'] !== hashes['__subprojects__'];
+
         if (hasChanges && Object.keys(oldHashes).length > 0) {
           toast.info('Files changed externally, reloading...');
           await loadData();
+
+          // If subprojects changed, also refresh rootProject
+          if (subprojectsChanged && rootProject) {
+            try {
+              const subData = await api.getSubprojects(rootProject.dir);
+              setRootProject(prev => ({ ...prev, subprojects: subData.subprojects || [] }));
+            } catch (e) {
+              // Ignore errors refreshing subprojects
+            }
+          }
         }
 
         setFileHashes(hashes);
@@ -328,7 +341,7 @@ export default function Dashboard() {
     checkFileChanges(); // Initial check
 
     return () => clearInterval(interval);
-  }, [fileHashes, loadData]);
+  }, [fileHashes, loadData, rootProject]);
 
   // Calculate unique enabled MCPs (not counting duplicates across levels)
   const uniqueEnabledMcps = new Set();
