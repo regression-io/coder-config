@@ -1,5 +1,10 @@
 {
   "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"],
+      "description": "Browser automation for web scraping and testing"
+    },
     "github": {
       "command": "npx",
       "args": [
