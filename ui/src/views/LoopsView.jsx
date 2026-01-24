@@ -3,7 +3,7 @@ import {
   RefreshCcw, Plus, Trash2, Play, Pause, XCircle, Check,
   ChevronDown, ChevronRight, Loader2, Clock,
   AlertCircle, CheckCircle2, FileText, Settings, History,
-  RotateCcw, Eye, Copy, Terminal as TerminalIcon
+  RotateCcw, Eye, Copy, Terminal as TerminalIcon, Layers, Filter
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +49,7 @@ export default function LoopsView({ activeProject = null }) {
   // Workstreams state (fetched locally)
   const [workstreams, setWorkstreams] = useState([]);
   const [activeWorkstreamId, setActiveWorkstreamId] = useState(null);
+  const [filterWorkstreamId, setFilterWorkstreamId] = useState(''); // For filtering loops
 
   // Dialog states
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -370,6 +371,18 @@ export default function LoopsView({ activeProject = null }) {
 
   const hooksInstalled = hookStatus.stopHook?.exists && hookStatus.prepromptHook?.exists;
 
+  // Helper to get workstream name from ID
+  const getWorkstreamName = (wsId) => {
+    if (!wsId) return null;
+    const ws = workstreams.find(w => w.id === wsId);
+    return ws?.name || wsId;
+  };
+
+  // Filter loops by workstream
+  const filteredLoops = filterWorkstreamId
+    ? loops.filter(loop => loop.workstreamId === filterWorkstreamId)
+    : loops;
+
   // Build the /ralph-loop command for the official plugin
   const buildRalphCommand = (loop) => {
     const task = (loop.task?.original || '').replace(/"/g, '\\"'); // Escape double quotes
@@ -395,6 +408,22 @@ export default function LoopsView({ activeProject = null }) {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {/* Workstream filter */}
+          {workstreams.length > 0 && (
+            <div className="flex items-center gap-1">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <select
+                className="text-sm border rounded px-2 py-1 bg-background"
+                value={filterWorkstreamId}
+                onChange={(e) => setFilterWorkstreamId(e.target.value)}
+              >
+                <option value="">All workstreams</option>
+                {workstreams.map((ws) => (
+                  <option key={ws.id} value={ws.id}>{ws.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -453,15 +482,15 @@ export default function LoopsView({ activeProject = null }) {
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
-      ) : loops.length === 0 ? (
+      ) : filteredLoops.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <RefreshCcw className="w-12 h-12 mx-auto mb-4 opacity-50" />
-          <p className="text-lg font-medium">No loops yet</p>
+          <p className="text-lg font-medium">{filterWorkstreamId ? 'No loops in this workstream' : 'No loops yet'}</p>
           <p className="text-sm mt-1">Create a loop to start autonomous development</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {loops.map((loop) => (
+          {filteredLoops.map((loop) => (
             <div
               key={loop.id}
               className="border rounded-lg bg-card overflow-hidden"
@@ -487,6 +516,13 @@ export default function LoopsView({ activeProject = null }) {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
+                    {/* Workstream badge */}
+                    {loop.workstreamId && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 flex items-center gap-1">
+                        <Layers className="w-3 h-3" />
+                        {getWorkstreamName(loop.workstreamId)}
+                      </span>
+                    )}
                     {/* Phase badge */}
                     <span className={`text-xs px-2 py-0.5 rounded-full ${PHASE_COLORS[loop.phase] || 'bg-gray-100'}`}>
                       {loop.phase}
@@ -622,7 +658,10 @@ export default function LoopsView({ activeProject = null }) {
                     {loop.workstreamId && (
                       <div className="col-span-2">
                         <span className="text-muted-foreground">Workstream:</span>
-                        <span className="ml-2">{loop.workstreamId}</span>
+                        <span className="ml-2 inline-flex items-center gap-1">
+                          <Layers className="w-3 h-3 text-purple-500" />
+                          {getWorkstreamName(loop.workstreamId)}
+                        </span>
                       </div>
                     )}
                   </div>

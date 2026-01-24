@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.32] - 2026-01-24
+
+### Enhanced
+
+- **Workstream Integration for Ralph Loops** - Loops now fully integrate with workstreams
+  - Workstream badge displayed on loop cards (purple with Layers icon)
+  - Filter dropdown to show loops by workstream
+  - Workstream name shown (not just ID) in expanded details
+  - `CODER_WORKSTREAM` env passed to Claude terminal (pre-prompt hook injects context)
+  - Auto-selects active workstream when creating new loop
+
 ## [0.41.30] - 2026-01-24
 
 ### Enhanced
