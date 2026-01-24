@@ -209,6 +209,14 @@ export const api = {
     });
   },
 
+  // Apply cascade - propagate changes to all child projects
+  async applyCascade(dir) {
+    return request('/apply-cascade', {
+      method: 'POST',
+      body: { dir },
+    });
+  },
+
   // Environment
   async getEnv(dir) {
     return request(`/env?dir=${encodeURIComponent(dir)}`);

@@ -198,6 +198,93 @@ function applyConfig(dir, projectDir, uiConfig, manager) {
 }
 
 /**
+ * Apply config cascade - apply to a directory and all child projects that inherit from it
+ * This is called when a parent config changes to propagate to downstream projects
+ */
+function applyCascade(changedDir, uiConfig, manager, getSubprojectsForDir) {
+  const homeDir = require('os').homedir();
+  const enabledTools = uiConfig.enabledTools || ['claude'];
+  const results = {
+    applied: [],
+    failed: [],
+    skipped: []
+  };
+
+  // Helper to apply to a single directory
+  const applyToDir = (dir) => {
+    try {
+      // Check if directory has .claude folder
+      if (!fs.existsSync(path.join(dir, '.claude'))) {
+        return { dir, status: 'skipped', reason: 'no .claude folder' };
+      }
+      const toolResults = manager.applyForTools(dir, enabledTools);
+      const anySuccess = Object.values(toolResults).some(s => s);
+      return { dir, status: anySuccess ? 'applied' : 'failed', tools: toolResults };
+    } catch (e) {
+      return { dir, status: 'failed', error: e.message };
+    }
+  };
+
+  // Apply to the changed directory itself
+  const changedResult = applyToDir(changedDir);
+  if (changedResult.status === 'applied') {
+    results.applied.push(changedResult);
+  } else if (changedResult.status === 'failed') {
+    results.failed.push(changedResult);
+  }
+
+  // Get all registered projects
+  const registry = manager.loadProjectsRegistry();
+  const projects = registry.projects || [];
+
+  // Find projects that have changedDir in their hierarchy (i.e., inherit from it)
+  for (const project of projects) {
+    if (!fs.existsSync(project.path)) continue;
+    if (project.path === changedDir) continue; // Already applied above
+
+    // Check if this project inherits from changedDir
+    const projectConfigs = manager.findAllConfigs(project.path);
+    const inheritsFromChanged = projectConfigs.some(c => c.dir === changedDir);
+
+    if (inheritsFromChanged) {
+      // Apply to this project
+      const projectResult = applyToDir(project.path);
+      if (projectResult.status === 'applied') {
+        results.applied.push(projectResult);
+      } else if (projectResult.status === 'failed') {
+        results.failed.push(projectResult);
+      } else {
+        results.skipped.push(projectResult);
+      }
+
+      // Also apply to subprojects of this project
+      if (getSubprojectsForDir) {
+        const subprojects = getSubprojectsForDir(manager, uiConfig, project.path);
+        for (const sub of subprojects) {
+          if (!fs.existsSync(sub.dir)) continue;
+          const subResult = applyToDir(sub.dir);
+          if (subResult.status === 'applied') {
+            results.applied.push(subResult);
+          } else if (subResult.status === 'failed') {
+            results.failed.push(subResult);
+          } else {
+            results.skipped.push(subResult);
+          }
+        }
+      }
+    }
+  }
+
+  return {
+    success: results.applied.length > 0,
+    applied: results.applied.length,
+    failed: results.failed.length,
+    skipped: results.skipped.length,
+    details: results
+  };
+}
+
+/**
  * Detect template for a directory
  */
 function detectTemplate(dir, manager, getTemplates) {
@@ -452,6 +539,7 @@ module.exports = {
   getInheritedMcps,
   updateConfig,
   applyConfig,
+  applyCascade,
   detectTemplate,
   applyTemplateBatch,
   applyTemplateToDir,

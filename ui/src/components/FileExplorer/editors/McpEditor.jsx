@@ -20,7 +20,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
-import { Server, Plus, Save, Trash2, Ban, Link2, AlertCircle, Zap } from 'lucide-react';
+import { Server, Plus, Save, Trash2, Ban, Link2, AlertCircle, Zap, GitBranch } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function McpEditor({ content, parsed, onSave, registry, configDir }) {
@@ -32,6 +32,11 @@ export default function McpEditor({ content, parsed, onSave, registry, configDir
   const [inheritedMcps, setInheritedMcps] = useState([]);
   const [needsApply, setNeedsApply] = useState(false);
   const [applying, setApplying] = useState(false);
+  const [cascading, setCascading] = useState(false);
+
+  // Detect if this is a parent-level config (global ~ or workspace level)
+  const isParentConfig = configDir === process.env.HOME ||
+    (configDir && !configDir.includes('/') && configDir !== '.');
 
   useEffect(() => {
     setLocalConfig(parsed || { include: [], exclude: [], mcpServers: {} });
@@ -181,6 +186,27 @@ export default function McpEditor({ content, parsed, onSave, registry, configDir
     }
   };
 
+  const handleCascade = async () => {
+    if (!configDir) return;
+    setCascading(true);
+    try {
+      const result = await api.applyCascade(configDir);
+      if (result.success) {
+        const msg = `Applied to ${result.applied} project${result.applied !== 1 ? 's' : ''}`;
+        toast.success(msg);
+        setNeedsApply(false);
+      } else if (result.applied === 0 && result.skipped > 0) {
+        toast.info(`No projects needed updates (${result.skipped} skipped)`);
+      } else {
+        toast.error('Failed to cascade apply');
+      }
+    } catch (e) {
+      toast.error('Failed to cascade: ' + e.message);
+    } finally {
+      setCascading(false);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between p-3 border-b bg-gray-50 dark:bg-slate-800">
@@ -217,22 +243,47 @@ export default function McpEditor({ content, parsed, onSave, registry, configDir
               No <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">.mcp.json</code> generated yet. Apply to enable MCPs for Claude Code.
             </span>
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleApply}
-            disabled={applying}
-            className="border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900"
-          >
-            {applying ? (
-              <span className="animate-pulse">Applying...</span>
-            ) : (
-              <>
-                <Zap className="w-3 h-3 mr-1" />
-                Apply
-              </>
-            )}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleApply}
+              disabled={applying || cascading}
+              className="border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900"
+            >
+              {applying ? (
+                <span className="animate-pulse">Applying...</span>
+              ) : (
+                <>
+                  <Zap className="w-3 h-3 mr-1" />
+                  Apply
+                </>
+              )}
+            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCascade}
+                  disabled={applying || cascading}
+                  className="border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900"
+                >
+                  {cascading ? (
+                    <span className="animate-pulse">Cascading...</span>
+                  ) : (
+                    <>
+                      <GitBranch className="w-3 h-3 mr-1" />
+                      Cascade
+                    </>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Apply to this config and all child projects</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
       )}
 

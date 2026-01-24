@@ -488,6 +488,18 @@ class ConfigUIServer {
         if (req.method === 'POST') return this.json(res, this.applyConfig(body.dir));
         break;
 
+      case '/api/apply-cascade':
+        if (req.method === 'POST') {
+          const result = routes.configs.applyCascade(
+            body.dir || this.projectDir,
+            this.config,
+            this.manager,
+            routes.subprojects.getSubprojectsForDir
+          );
+          return this.json(res, result);
+        }
+        break;
+
       case '/api/env':
         if (req.method === 'GET') return this.json(res, routes.env.getEnv(query.dir, this.projectDir));
         if (req.method === 'PUT') return this.json(res, routes.env.saveEnv(body));
