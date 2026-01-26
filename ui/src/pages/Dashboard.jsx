@@ -41,7 +41,6 @@ const navItems = [
   { id: 'registry', label: 'MCP Registry', icon: Package, section: 'Tools' },
   { id: 'plugins', label: 'Plugins', icon: Puzzle, section: 'Tools' },
   { id: 'memory', label: 'Memory', icon: Brain, section: 'Tools' },
-  { id: 'loops', label: 'Ralph Loops', icon: RefreshCcw, section: 'Tools', isNew: true },
   // Configuration section (tool-specific settings)
   { id: 'claude-settings', label: 'Claude Code', icon: Shield, section: 'Configuration' },
   { id: 'gemini-settings', label: 'Gemini CLI', icon: Terminal, section: 'Configuration' },
@@ -49,6 +48,7 @@ const navItems = [
   { id: 'antigravity-settings', label: 'Antigravity', icon: Rocket, section: 'Configuration' },
   // Developer section
   { id: 'create-mcp', label: 'Create MCP', icon: Wand2, section: 'Developer' },
+  { id: 'loops', label: 'Ralph Loops', icon: RefreshCcw, section: 'Developer', isNew: true },
   // System section
   { id: 'preferences', label: 'Preferences', icon: Wrench, section: 'System' },
   // Help section
