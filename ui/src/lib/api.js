@@ -620,6 +620,55 @@ export const api = {
     });
   },
 
+  // Workstream folder auto-activation
+  async addTriggerFolder(workstreamId, folderPath) {
+    return request(`/workstreams/${workstreamId}/add-trigger`, {
+      method: 'POST',
+      body: { folderPath },
+    });
+  },
+
+  async removeTriggerFolder(workstreamId, folderPath) {
+    return request(`/workstreams/${workstreamId}/remove-trigger`, {
+      method: 'POST',
+      body: { folderPath },
+    });
+  },
+
+  async setWorkstreamAutoActivate(workstreamId, value) {
+    return request(`/workstreams/${workstreamId}/auto-activate`, {
+      method: 'POST',
+      body: { value },
+    });
+  },
+
+  async getWorkstreamSettings() {
+    return request('/workstreams/settings');
+  },
+
+  async setGlobalAutoActivate(value) {
+    return request('/workstreams/settings', {
+      method: 'PUT',
+      body: { workstreamAutoActivate: value },
+    });
+  },
+
+  async getCdHookStatus() {
+    return request('/workstreams/cd-hook-status');
+  },
+
+  async installCdHook() {
+    return request('/workstreams/install-cd-hook', {
+      method: 'POST',
+    });
+  },
+
+  async uninstallCdHook() {
+    return request('/workstreams/uninstall-cd-hook', {
+      method: 'POST',
+    });
+  },
+
   // Loops (Ralph Loop)
   async getLoops() {
     return request('/loops');

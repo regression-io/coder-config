@@ -75,11 +75,41 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
   const [generatingRules, setGeneratingRules] = useState(false);
   const [useClaudeForRules, setUseClaudeForRules] = useState(false);
 
+  // CD hook and global settings
+  const [cdHookStatus, setCdHookStatus] = useState({ installed: false, loading: true });
+  const [globalSettings, setGlobalSettings] = useState({ workstreamAutoActivate: true });
+  const [installingCdHook, setInstallingCdHook] = useState(false);
+
+  // Add trigger folder dialog
+  const [addTriggerDialogOpen, setAddTriggerDialogOpen] = useState(false);
+  const [selectedWorkstreamForTrigger, setSelectedWorkstreamForTrigger] = useState(null);
+  const [newTriggerFolder, setNewTriggerFolder] = useState('');
+
   useEffect(() => {
     loadWorkstreams();
     loadHookStatus();
     loadActivity();
+    loadCdHookStatus();
+    loadGlobalSettings();
   }, []);
+
+  const loadCdHookStatus = async () => {
+    try {
+      const status = await api.getCdHookStatus();
+      setCdHookStatus({ ...status, loading: false });
+    } catch (error) {
+      setCdHookStatus({ installed: false, loading: false, error: error.message });
+    }
+  };
+
+  const loadGlobalSettings = async () => {
+    try {
+      const result = await api.getWorkstreamSettings();
+      setGlobalSettings(result.settings || { workstreamAutoActivate: true });
+    } catch (error) {
+      console.error('Failed to load global settings:', error);
+    }
+  };
 
   const loadHookStatus = async () => {
     try {
@@ -211,6 +241,97 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
       toast.error('Failed to install hook: ' + error.message);
     } finally {
       setInstallingHook(false);
+    }
+  };
+
+  const handleInstallCdHook = async () => {
+    setInstallingCdHook(true);
+    try {
+      const result = await api.installCdHook();
+      if (result.success) {
+        toast.success('CD hook installed. Restart your shell to activate.');
+        setCdHookStatus(prev => ({ ...prev, installed: true }));
+      } else {
+        toast.error(result.error || 'Failed to install CD hook');
+      }
+    } catch (error) {
+      toast.error('Failed to install CD hook: ' + error.message);
+    } finally {
+      setInstallingCdHook(false);
+    }
+  };
+
+  const handleUninstallCdHook = async () => {
+    setInstallingCdHook(true);
+    try {
+      const result = await api.uninstallCdHook();
+      if (result.success) {
+        toast.success('CD hook uninstalled. Restart your shell to apply.');
+        setCdHookStatus(prev => ({ ...prev, installed: false }));
+      } else {
+        toast.error(result.error || 'Failed to uninstall CD hook');
+      }
+    } catch (error) {
+      toast.error('Failed to uninstall CD hook: ' + error.message);
+    } finally {
+      setInstallingCdHook(false);
+    }
+  };
+
+  const handleToggleGlobalAutoActivate = async () => {
+    const newValue = !globalSettings.workstreamAutoActivate;
+    try {
+      await api.setGlobalAutoActivate(newValue);
+      setGlobalSettings(prev => ({ ...prev, workstreamAutoActivate: newValue }));
+      toast.success(`Auto-activation ${newValue ? 'enabled' : 'disabled'}`);
+    } catch (error) {
+      toast.error('Failed to update setting: ' + error.message);
+    }
+  };
+
+  const handleToggleWorkstreamAutoActivate = async (ws, value) => {
+    try {
+      const result = await api.setWorkstreamAutoActivate(ws.id, value);
+      if (result.success) {
+        setWorkstreams(prev => prev.map(w =>
+          w.id === ws.id ? { ...w, autoActivate: value === 'default' ? undefined : value === 'on' } : w
+        ));
+        toast.success(`Auto-activate ${value} for ${ws.name}`);
+      }
+    } catch (error) {
+      toast.error('Failed to update: ' + error.message);
+    }
+  };
+
+  const handleAddTriggerFolder = async () => {
+    if (!selectedWorkstreamForTrigger || !newTriggerFolder.trim()) return;
+    try {
+      const result = await api.addTriggerFolder(selectedWorkstreamForTrigger.id, newTriggerFolder.trim());
+      if (result.success) {
+        setWorkstreams(prev => prev.map(w =>
+          w.id === selectedWorkstreamForTrigger.id ? result.workstream : w
+        ));
+        toast.success('Trigger folder added');
+        setAddTriggerDialogOpen(false);
+        setNewTriggerFolder('');
+        setSelectedWorkstreamForTrigger(null);
+      }
+    } catch (error) {
+      toast.error('Failed to add trigger folder: ' + error.message);
+    }
+  };
+
+  const handleRemoveTriggerFolder = async (ws, folderPath) => {
+    try {
+      const result = await api.removeTriggerFolder(ws.id, folderPath);
+      if (result.success) {
+        setWorkstreams(prev => prev.map(w =>
+          w.id === ws.id ? result.workstream : w
+        ));
+        toast.success('Trigger folder removed');
+      }
+    } catch (error) {
+      toast.error('Failed to remove trigger folder: ' + error.message);
     }
   };
 
@@ -569,6 +690,95 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                       )}
                     </div>
 
+                    {/* Trigger Folders */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-medium text-gray-700 dark:text-slate-300">Trigger Folders</h4>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="w-3.5 h-3.5 text-gray-400" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs text-xs">
+                                  Additional folders that activate this workstream when you cd into them.
+                                  Projects are always trigger folders automatically.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedWorkstreamForTrigger(ws);
+                            setAddTriggerDialogOpen(true);
+                          }}
+                        >
+                          <FolderPlus className="w-4 h-4 mr-1" />
+                          Add Folder
+                        </Button>
+                      </div>
+                      {ws.triggerFolders?.length > 0 ? (
+                        <div className="space-y-1">
+                          {ws.triggerFolders.map(f => (
+                            <div
+                              key={f}
+                              className="flex items-center justify-between py-1.5 px-3 bg-white dark:bg-slate-800 rounded border border-gray-200 dark:border-slate-700"
+                            >
+                              <span className="text-sm font-mono text-gray-700 dark:text-slate-300 truncate">
+                                {f.replace(/^\/Users\/[^/]+/, '~')}
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleRemoveTriggerFolder(ws, f)}
+                                className="text-gray-400 hover:text-red-500 h-6 w-6 p-0"
+                              >
+                                <FolderMinus className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500 dark:text-slate-400 italic">
+                          No extra trigger folders. Projects auto-trigger this workstream.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Auto-Activate Setting */}
+                    <div className="flex items-center justify-between py-2 px-3 bg-white dark:bg-slate-800 rounded border border-gray-200 dark:border-slate-700">
+                      <div className="flex items-center gap-2">
+                        <Zap className="w-4 h-4 text-amber-500" />
+                        <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Auto-Activate on cd</span>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            {ws.autoActivate === true ? 'On' : ws.autoActivate === false ? 'Off' : 'Default'}
+                            <ChevronDown className="w-3 h-3 ml-1" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleToggleWorkstreamAutoActivate(ws, 'on')}>
+                            <Check className={`w-4 h-4 mr-2 ${ws.autoActivate === true ? 'opacity-100' : 'opacity-0'}`} />
+                            On
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleToggleWorkstreamAutoActivate(ws, 'off')}>
+                            <Check className={`w-4 h-4 mr-2 ${ws.autoActivate === false ? 'opacity-100' : 'opacity-0'}`} />
+                            Off
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleToggleWorkstreamAutoActivate(ws, 'default')}>
+                            <Check className={`w-4 h-4 mr-2 ${ws.autoActivate === undefined ? 'opacity-100' : 'opacity-0'}`} />
+                            Default ({globalSettings.workstreamAutoActivate ? 'On' : 'Off'})
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
                     {/* Rules Preview */}
                     <div>
                       <h4 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Rules</h4>
@@ -658,6 +868,98 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
             </div>
           </div>
         )}
+      </div>
+
+      {/* CD Hook Auto-Activation */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-slate-300">Folder Auto-Activation</h3>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="w-4 h-4 text-gray-400" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-sm">
+                <p className="text-sm mb-2">
+                  <strong>How it works:</strong>
+                </p>
+                <ol className="text-xs space-y-1 list-decimal list-inside">
+                  <li>Install the CD hook to your shell</li>
+                  <li>When you <code className="bg-slate-700 px-1 rounded">cd</code> into a folder matching a workstream, it auto-activates</li>
+                  <li>If multiple workstreams match, you'll be prompted to choose</li>
+                </ol>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
+        <div className="bg-white dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm p-4">
+          {/* Global Setting */}
+          <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-amber-500" />
+              <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Global Auto-Activate</span>
+              <span className="text-xs text-gray-500 dark:text-slate-400">(default for all workstreams)</span>
+            </div>
+            <Button
+              variant={globalSettings.workstreamAutoActivate ? "default" : "outline"}
+              size="sm"
+              onClick={handleToggleGlobalAutoActivate}
+            >
+              {globalSettings.workstreamAutoActivate ? 'Enabled' : 'Disabled'}
+            </Button>
+          </div>
+
+          {/* CD Hook Status */}
+          {cdHookStatus.installed ? (
+            <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-medium text-green-800 dark:text-green-300">CD Hook Installed</p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                  Shell: {cdHookStatus.shell} • RC file: <code className="bg-green-100 dark:bg-green-900/50 px-1 rounded">{cdHookStatus.rcFile?.replace(/^\/Users\/[^/]+/, '~')}</code>
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={handleUninstallCdHook}
+                  disabled={installingCdHook}
+                >
+                  {installingCdHook ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Uninstall
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+              <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-amber-800 dark:text-amber-300 mb-1">CD Hook Not Installed</p>
+                <p className="text-xs text-amber-600 dark:text-amber-400 mb-2">
+                  Install the hook to auto-activate workstreams when you cd into matching folders.
+                </p>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={handleInstallCdHook}
+                  disabled={installingCdHook || cdHookStatus.loading}
+                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                >
+                  {installingCdHook ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Download className="w-4 h-4 mr-2" />
+                  )}
+                  Install CD Hook
+                </Button>
+                <p className="text-xs mt-2 text-amber-600 dark:text-amber-500">
+                  Adds function to <code className="bg-amber-100 dark:bg-amber-900/50 px-1 rounded">~/.zshrc</code> or <code className="bg-amber-100 dark:bg-amber-900/50 px-1 rounded">~/.bashrc</code>
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Activity Insights */}
@@ -1496,6 +1798,57 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                 <Plus className="w-4 h-4 mr-2" />
               )}
               Add Selected ({selectedProjectsToAdd.size})
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Trigger Folder Dialog */}
+      <Dialog open={addTriggerDialogOpen} onOpenChange={(open) => {
+        if (!open) {
+          setAddTriggerDialogOpen(false);
+          setNewTriggerFolder('');
+          setSelectedWorkstreamForTrigger(null);
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Trigger Folder</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-gray-600 dark:text-slate-400">
+              Add a folder that will trigger the workstream <strong>{selectedWorkstreamForTrigger?.name}</strong> when you cd into it.
+            </p>
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-1 block">
+                Folder Path
+              </label>
+              <Input
+                value={newTriggerFolder}
+                onChange={(e) => setNewTriggerFolder(e.target.value)}
+                placeholder="~/path/to/folder"
+                className="font-mono"
+              />
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                Use absolute path or ~ for home directory
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setAddTriggerDialogOpen(false);
+              setNewTriggerFolder('');
+              setSelectedWorkstreamForTrigger(null);
+            }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddTriggerFolder}
+              disabled={!newTriggerFolder.trim()}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              <FolderPlus className="w-4 h-4 mr-2" />
+              Add Folder
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -232,6 +232,115 @@ async function generateRules(manager, projects, useClaude = false) {
   }
 }
 
+/**
+ * Add trigger folder to workstream
+ */
+function addTriggerFolder(manager, workstreamId, folderPath) {
+  if (!manager) return { error: 'Manager not available' };
+  if (!workstreamId || !folderPath) {
+    return { error: 'Workstream ID and folder path are required' };
+  }
+  const ws = manager.workstreamAddTrigger(workstreamId, folderPath);
+  if (!ws) {
+    return { error: 'Workstream not found' };
+  }
+  return { success: true, workstream: ws };
+}
+
+/**
+ * Remove trigger folder from workstream
+ */
+function removeTriggerFolder(manager, workstreamId, folderPath) {
+  if (!manager) return { error: 'Manager not available' };
+  if (!workstreamId || !folderPath) {
+    return { error: 'Workstream ID and folder path are required' };
+  }
+  const ws = manager.workstreamRemoveTrigger(workstreamId, folderPath);
+  if (!ws) {
+    return { error: 'Workstream not found' };
+  }
+  return { success: true, workstream: ws };
+}
+
+/**
+ * Set auto-activate for workstream
+ */
+function setAutoActivate(manager, workstreamId, value) {
+  if (!manager) return { error: 'Manager not available' };
+  if (!workstreamId) {
+    return { error: 'Workstream ID is required' };
+  }
+  const ws = manager.workstreamSetAutoActivate(workstreamId, value);
+  if (!ws) {
+    return { error: 'Workstream not found' };
+  }
+  return { success: true, workstream: ws };
+}
+
+/**
+ * Get global settings
+ */
+function getGlobalSettings(manager) {
+  if (!manager) return { error: 'Manager not available' };
+  const settings = manager.loadSettings();
+  return { settings };
+}
+
+/**
+ * Set global auto-activate setting
+ */
+function setGlobalAutoActivate(manager, value) {
+  if (!manager) return { error: 'Manager not available' };
+  const settings = manager.setGlobalAutoActivate(value);
+  return { success: true, settings };
+}
+
+/**
+ * Check folder for matching workstreams
+ */
+function checkFolder(manager, folderPath) {
+  if (!manager) return { error: 'Manager not available' };
+  // Capture the result without console output
+  const result = manager.workstreamCheckFolder(folderPath || process.cwd(), true);
+  // Parse the JSON that was logged
+  return result;
+}
+
+/**
+ * Get CD hook status
+ */
+function getCdHookStatus(manager) {
+  if (!manager) return { error: 'Manager not available' };
+  const status = manager.workstreamCdHookStatus();
+  return status;
+}
+
+/**
+ * Install CD hook
+ */
+function installCdHook(manager) {
+  if (!manager) return { error: 'Manager not available' };
+  try {
+    manager.workstreamInstallCdHook();
+    return { success: true, message: 'CD hook installed' };
+  } catch (error) {
+    return { error: error.message };
+  }
+}
+
+/**
+ * Uninstall CD hook
+ */
+function uninstallCdHook(manager) {
+  if (!manager) return { error: 'Manager not available' };
+  try {
+    manager.workstreamUninstallCdHook();
+    return { success: true, message: 'CD hook uninstalled' };
+  } catch (error) {
+    return { error: error.message };
+  }
+}
+
 module.exports = {
   getWorkstreams,
   getActiveWorkstream,
@@ -247,4 +356,14 @@ module.exports = {
   getWorkstreamHookStatus,
   installWorkstreamHook,
   generateRules,
+  // Folder auto-activation
+  addTriggerFolder,
+  removeTriggerFolder,
+  setAutoActivate,
+  getGlobalSettings,
+  setGlobalAutoActivate,
+  checkFolder,
+  getCdHookStatus,
+  installCdHook,
+  uninstallCdHook,
 };

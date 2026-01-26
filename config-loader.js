@@ -28,7 +28,7 @@ const { init, show } = require('./lib/init');
 const { memoryList, memoryInit, memoryAdd, memorySearch } = require('./lib/memory');
 const { envList, envSet, envUnset } = require('./lib/env');
 const { getProjectsRegistryPath, loadProjectsRegistry, saveProjectsRegistry, projectList, projectAdd, projectRemove } = require('./lib/projects');
-const { getWorkstreamsPath, loadWorkstreams, saveWorkstreams, workstreamList, workstreamCreate, workstreamUpdate, workstreamDelete, workstreamUse, workstreamActive, workstreamAddProject, workstreamRemoveProject, workstreamInject, workstreamDetect, workstreamGet, getActiveWorkstream, countWorkstreamsForProject, workstreamInstallHook, workstreamInstallHookGemini, workstreamInstallHookCodex, workstreamDeactivate, workstreamCheckPath } = require('./lib/workstreams');
+const { getWorkstreamsPath, loadWorkstreams, saveWorkstreams, workstreamList, workstreamCreate, workstreamUpdate, workstreamDelete, workstreamUse, workstreamActive, workstreamAddProject, workstreamRemoveProject, workstreamInject, workstreamDetect, workstreamGet, getActiveWorkstream, countWorkstreamsForProject, workstreamInstallHook, workstreamInstallHookGemini, workstreamInstallHookCodex, workstreamDeactivate, workstreamCheckPath, getSettingsPath, loadSettings, saveSettings, workstreamAddTrigger, workstreamRemoveTrigger, workstreamSetAutoActivate, setGlobalAutoActivate, shouldAutoActivate, workstreamCheckFolder, workstreamInstallCdHook, workstreamUninstallCdHook, workstreamCdHookStatus } = require('./lib/workstreams');
 const { getActivityPath, getDefaultActivity, loadActivity, saveActivity, detectProjectRoot, activityLog, activitySummary, generateWorkstreamName, activitySuggestWorkstreams, activityClear } = require('./lib/activity');
 const { getLoopsPath, loadLoops, saveLoops, loadLoopState, saveLoopState, loadHistory, saveHistory, loopList, loopCreate, loopGet, loopUpdate, loopDelete, loopStart, loopPause, loopResume, loopCancel, loopApprove, loopComplete, loopStatus, loopHistory, loopConfig, getActiveLoop, recordIteration, saveClarifications, savePlan, loadClarifications, loadPlan, loopInject, archiveLoop } = require('./lib/loops');
 const { runCli } = require('./lib/cli');
@@ -148,6 +148,19 @@ class ClaudeConfigManager {
   workstreamInstallHookCodex() { return workstreamInstallHookCodex(); }
   workstreamDeactivate() { return workstreamDeactivate(); }
   workstreamCheckPath(targetPath, silent) { return workstreamCheckPath(this.installDir, targetPath, silent); }
+  // Workstream folder auto-activation
+  getSettingsPath() { return getSettingsPath(this.installDir); }
+  loadSettings() { return loadSettings(this.installDir); }
+  saveSettings(settings) { return saveSettings(this.installDir, settings); }
+  workstreamAddTrigger(idOrName, folderPath) { return workstreamAddTrigger(this.installDir, idOrName, folderPath); }
+  workstreamRemoveTrigger(idOrName, folderPath) { return workstreamRemoveTrigger(this.installDir, idOrName, folderPath); }
+  workstreamSetAutoActivate(idOrName, value) { return workstreamSetAutoActivate(this.installDir, idOrName, value); }
+  setGlobalAutoActivate(value) { return setGlobalAutoActivate(this.installDir, value); }
+  shouldAutoActivate(workstream) { return shouldAutoActivate(this.installDir, workstream); }
+  workstreamCheckFolder(folderPath, jsonOutput) { return workstreamCheckFolder(this.installDir, folderPath, jsonOutput); }
+  workstreamInstallCdHook() { return workstreamInstallCdHook(); }
+  workstreamUninstallCdHook() { return workstreamUninstallCdHook(); }
+  workstreamCdHookStatus() { return workstreamCdHookStatus(); }
 
   // Loops (Ralph Loop)
   getLoopsPath() { return getLoopsPath(this.installDir); }

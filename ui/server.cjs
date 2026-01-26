@@ -714,6 +714,28 @@ class ConfigUIServer {
         }
         break;
 
+      // Workstream folder auto-activation
+      case '/api/workstreams/settings':
+        if (req.method === 'GET') return this.json(res, routes.workstreams.getGlobalSettings(this.manager));
+        if (req.method === 'PUT') return this.json(res, routes.workstreams.setGlobalAutoActivate(this.manager, body.workstreamAutoActivate));
+        break;
+
+      case '/api/workstreams/check-folder':
+        if (req.method === 'POST') return this.json(res, routes.workstreams.checkFolder(this.manager, body.folderPath));
+        break;
+
+      case '/api/workstreams/cd-hook-status':
+        if (req.method === 'GET') return this.json(res, routes.workstreams.getCdHookStatus(this.manager));
+        break;
+
+      case '/api/workstreams/install-cd-hook':
+        if (req.method === 'POST') return this.json(res, routes.workstreams.installCdHook(this.manager));
+        break;
+
+      case '/api/workstreams/uninstall-cd-hook':
+        if (req.method === 'POST') return this.json(res, routes.workstreams.uninstallCdHook(this.manager));
+        break;
+
       // Loops (Ralph Loop)
       case '/api/loops':
         if (req.method === 'GET') return this.json(res, routes.loops.getLoops(this.manager));
@@ -790,6 +812,10 @@ class ConfigUIServer {
         if (req.method === 'DELETE' && !action) return this.json(res, routes.workstreams.deleteWorkstream(this.manager, workstreamId));
         if (req.method === 'POST' && action === 'add-project') return this.json(res, routes.workstreams.addProjectToWorkstream(this.manager, workstreamId, body.projectPath));
         if (req.method === 'POST' && action === 'remove-project') return this.json(res, routes.workstreams.removeProjectFromWorkstream(this.manager, workstreamId, body.projectPath));
+        // Folder auto-activation actions
+        if (req.method === 'POST' && action === 'add-trigger') return this.json(res, routes.workstreams.addTriggerFolder(this.manager, workstreamId, body.folderPath));
+        if (req.method === 'POST' && action === 'remove-trigger') return this.json(res, routes.workstreams.removeTriggerFolder(this.manager, workstreamId, body.folderPath));
+        if (req.method === 'POST' && action === 'auto-activate') return this.json(res, routes.workstreams.setAutoActivate(this.manager, workstreamId, body.value));
       }
     }
 
