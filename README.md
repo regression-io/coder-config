@@ -143,6 +143,15 @@ coder-config workstream install-hook      # Install hook for Claude Code
 coder-config workstream install-hook --gemini  # Install hook for Gemini CLI
 coder-config workstream install-hook --codex   # Install hook for Codex CLI
 coder-config workstream install-hook --all     # Install hooks for all supported tools
+
+# Folder auto-activation
+coder-config workstream add-trigger <ws> <folder>  # Add trigger folder
+coder-config workstream remove-trigger <ws> <folder>  # Remove trigger folder
+coder-config workstream auto-activate <ws> [on|off|default]  # Set auto-activate
+coder-config workstream check-folder [path] [--json]  # Check folder for matches
+coder-config workstream install-cd-hook    # Install cd hook for shell
+coder-config workstream uninstall-cd-hook  # Remove cd hook
+coder-config workstream cd-hook-status     # Check cd hook status
 ```
 
 **Per-terminal isolation**: With [shell integration](#shell-integration), each terminal can have its own active workstream:
@@ -169,6 +178,37 @@ coder-config workstream install-hook --codex
 
 # For all supported tools
 coder-config workstream install-hook --all
+```
+
+**Folder auto-activation**: Automatically activate workstreams when you cd into matching directories:
+```bash
+# Install the cd hook (adds function to ~/.zshrc or ~/.bashrc)
+coder-config workstream install-cd-hook
+
+# Now when you cd into a project folder:
+cd ~/projects/my-app  # Auto-activates matching workstream
+# Output: 📂 Workstream: My App
+
+# If multiple workstreams match, you'll be prompted:
+cd ~/projects
+# Output: Multiple workstreams match this folder:
+#   1) Frontend
+#   2) Backend
+#   0) Skip
+# Choose [0-2]:
+```
+
+**Trigger folders**: Besides project paths, you can add extra trigger folders:
+```bash
+coder-config workstream add-trigger "My Work" ~/projects
+coder-config workstream remove-trigger "My Work" ~/projects
+```
+
+**Auto-activate setting**: Control per-workstream or globally:
+```bash
+coder-config workstream auto-activate "My Work" on      # Always auto-activate
+coder-config workstream auto-activate "My Work" off     # Never auto-activate
+coder-config workstream auto-activate "My Work" default # Use global setting
 ```
 
 ### Loop Commands (Ralph Loop)

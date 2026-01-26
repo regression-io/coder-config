@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.42.14] - 2026-01-26
+
+### Added
+
+- **Workstream Folder Auto-Activation** - Automatically activate workstreams when you cd into matching folders
+  - **CD hook**: Install with `coder-config workstream install-cd-hook` - adds shell function to `~/.zshrc` or `~/.bashrc`
+  - **Trigger folders**: Add extra folders (beyond projects) that activate a workstream
+  - **Auto-activate setting**: Per-workstream on/off/default, plus global default
+  - **Multi-match prompting**: When multiple workstreams match a folder, prompts you to choose
+  - **New CLI commands**: `add-trigger`, `remove-trigger`, `auto-activate`, `check-folder`, `install-cd-hook`, `uninstall-cd-hook`, `cd-hook-status`
+  - **UI support**: Trigger folders section, auto-activate dropdown, global toggle, CD hook install button
+
+## [0.42.13] - 2026-01-26
+
+### Changed
+
+- **UI Navigation** - Moved Ralph Loops from Tools section to Developer section (under Create MCP)
+
 ## [0.42.11] - 2026-01-24
 
 ### Changed
