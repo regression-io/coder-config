@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.42.25] - 2026-01-27
+
+### Added
+
+- **Session Persistence** - Save and restore Claude Code session context
+  - `/flush` command template - tells Claude to save context to a resumable doc
+  - `session-start.sh` hook - restores saved context when starting a new session
+  - `session-end.sh` hook - preserves flushed context when session ends
+  - **CLI commands**: `session`, `session flush`, `session clear`, `session install-hooks`
+  - Context stored in `~/.coder-config/sessions/`
+  - Auto-restore within 24 hours of last save
+
 ## [0.42.24] - 2026-01-27
 
 ### Changed

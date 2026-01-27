@@ -382,6 +382,44 @@ Persistent memory for Claude Code sessions.
 
 Manage via Web UI or edit files directly.
 
+## Session Persistence
+
+Save context from a Claude Code session and restore it on the next session start.
+
+### How It Works
+
+1. **Save context** - Use `/flush` in Claude Code to write a context summary
+2. **Auto-preserve** - The `session-end` hook preserves your flushed context when the session ends
+3. **Auto-restore** - The `session-start` hook injects saved context into your next session
+
+Context is automatically restored within 24 hours of being saved.
+
+### Setup
+
+```bash
+# Install the Claude Code hooks
+coder-config session install-hooks
+
+# Copy the /flush command to your Claude Code commands
+cp /path/to/coder-config/templates/commands/flush.md ~/.claude/commands/
+```
+
+### CLI Commands
+
+```bash
+coder-config session                 # Show session status
+coder-config session flush           # Instructions for saving context
+coder-config session clear           # Clear saved context
+coder-config session install-hooks   # Install Claude Code hooks
+```
+
+### Storage Location
+
+Session data is stored in `~/.coder-config/sessions/`:
+- `flushed-context.md` - Context saved by /flush command
+- `last-flushed-context.md` - Preserved context from last session end
+- `last-session.json` - Metadata about the last session
+
 ## Workstreams
 
 Workstreams are **context sets** for multi-project workflows. They group related projects and inject context rules into every Claude session.
