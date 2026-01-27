@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.43.11] - 2026-01-27
+
+### Fixed
+
+- **Workstream cd hook now works** - Fixed bug where `cd` was running in a subshell
+  - The command substitution `$(builtin cd "$@")` ran cd in a subshell, so directory never changed
+  - Now runs `builtin cd "$@" || return $?` directly
+  - Re-run `coder-config workstream install-cd-hook` to update
+
 ## [0.43.0] - 2026-01-27
 
 ### Added
