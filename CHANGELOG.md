@@ -5,18 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.43.15] - 2026-01-27
-
-### Added
-
-- **`cws` shell function for workstream activation** - Just type `cws <name>` to activate
-  - Automatically installed with the cd hook
-  - If you already have the cd hook, re-run `coder-config workstream install-cd-hook` to add it
-  - No more `eval "$(coder-config workstream use ...)"` nonsense
+## [0.43.17] - 2026-01-27
 
 ### Changed
 
-- **Improved `workstream use` messaging** - Now suggests using `cws` if available
+- **`coder-config workstream use <name>` now works directly** - No more eval nonsense
+  - Installs a shell wrapper that intercepts `workstream use` and sets env var in current shell
+  - Re-run `coder-config workstream install-cd-hook` to update
+  - Old hook is automatically replaced with the new version
 
 ## [0.43.13] - 2026-01-27
 
