@@ -50,7 +50,8 @@ export default function FolderRow({
   hasSubprojects,
   onAddSubproject,
   onRemoveSubproject,
-  onHideSubproject
+  onHideSubproject,
+  enabledTools = ['claude']
 }) {
   // Check what files already exist
   const hasMcps = folder.files?.some(f => f.name === 'mcps.json');
@@ -84,8 +85,10 @@ export default function FolderRow({
   const Icon = getIcon();
   const displayLabel = isHome ? 'Home' : folder.label;
 
-  // Count total files across all tool folders
-  const totalFiles = (folder.files?.length || 0) + (folder.geminiFiles?.length || 0) + (folder.agentFiles?.length || 0);
+  // Count total files across enabled tool folders only
+  const totalFiles = (enabledTools.includes('claude') ? folder.files?.length || 0 : 0) +
+    (enabledTools.includes('gemini') ? folder.geminiFiles?.length || 0 : 0) +
+    (enabledTools.includes('antigravity') ? folder.agentFiles?.length || 0 : 0);
 
   return (
     <div className="border-b border-gray-200 dark:border-slate-700">
@@ -223,7 +226,7 @@ export default function FolderRow({
       {isExpanded && (
         <div className="bg-white dark:bg-slate-950 py-1">
           {/* Claude Code .claude files */}
-          {folder.files && folder.files.length > 0 && (
+          {enabledTools.includes('claude') && folder.files && folder.files.length > 0 && (
             <div className="mb-1">
               <div className="px-4 py-1 text-[10px] font-medium text-orange-600 dark:text-orange-400 uppercase tracking-wide flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
@@ -244,7 +247,7 @@ export default function FolderRow({
           )}
 
           {/* Gemini CLI .gemini files */}
-          {folder.geminiFiles && folder.geminiFiles.length > 0 && (
+          {enabledTools.includes('gemini') && folder.geminiFiles && folder.geminiFiles.length > 0 && (
             <div className="mb-1 border-t border-dashed border-gray-200 dark:border-slate-700 pt-1">
               <div className="px-4 py-1 text-[10px] font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
@@ -265,7 +268,7 @@ export default function FolderRow({
           )}
 
           {/* Antigravity .agent files */}
-          {folder.agentFiles && folder.agentFiles.length > 0 && (
+          {enabledTools.includes('antigravity') && folder.agentFiles && folder.agentFiles.length > 0 && (
             <div className="mb-1 border-t border-dashed border-gray-200 dark:border-slate-700 pt-1">
               <div className="px-4 py-1 text-[10px] font-medium text-purple-600 dark:text-purple-400 uppercase tracking-wide flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
@@ -286,9 +289,9 @@ export default function FolderRow({
           )}
 
           {/* Empty state */}
-          {(!folder.files || folder.files.length === 0) &&
-           (!folder.geminiFiles || folder.geminiFiles.length === 0) &&
-           (!folder.agentFiles || folder.agentFiles.length === 0) && (
+          {(!enabledTools.includes('claude') || !folder.files || folder.files.length === 0) &&
+           (!enabledTools.includes('gemini') || !folder.geminiFiles || folder.geminiFiles.length === 0) &&
+           (!enabledTools.includes('antigravity') || !folder.agentFiles || folder.agentFiles.length === 0) && (
             <div className="px-4 py-3 text-sm text-gray-400 dark:text-slate-500 italic text-center">
               No config files. Use + to create.
             </div>

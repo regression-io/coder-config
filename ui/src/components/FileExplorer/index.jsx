@@ -392,6 +392,7 @@ export default function FileExplorer({ project, onRefresh }) {
               onAddSubproject={(projectDir) => setAddSubprojectDialog({ open: true, projectDir })}
               onRemoveSubproject={handleRemoveSubproject}
               onHideSubproject={handleHideSubproject}
+              enabledTools={enabledTools}
             />
           ))}
         </ScrollArea>
