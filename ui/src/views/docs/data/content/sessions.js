@@ -14,7 +14,9 @@ When a Claude Code session ends (context limit, exit, crash), you lose all the c
 
 Session persistence lets you:
 1. Save context before exiting with \`/flush\`
-2. Automatically restore that context when you start a new session
+2. Automatically restore that context when you start a new session in the same project
+
+Context is stored locally in each project's \`.claude/session-context.md\` - each project has its own context.
 
 ### Quick Setup
 
@@ -26,8 +28,7 @@ coder-config session install
 \`\`\`
 
 This installs:
-- **SessionStart hook** - Restores saved context
-- **SessionEnd hook** - Preserves flushed context
+- **SessionStart hook** - Restores saved context from project
 - **/flush command** - Tells Claude to save context
     `
   },
@@ -44,7 +45,7 @@ Before exiting Claude Code, run:
 /flush
 \`\`\`
 
-Claude will write a summary including:
+Claude will write a summary to \`.claude/session-context.md\` including:
 - Task summary and current state
 - Key decisions made
 - Files modified
@@ -53,7 +54,7 @@ Claude will write a summary including:
 
 ### Restoring Context
 
-Just start a new Claude Code session. If you have saved context from the last 24 hours, it's automatically injected.
+Just start a new Claude Code session in the same project. If you have saved context, it's automatically injected.
 
 ### Checking Status
 
@@ -61,10 +62,7 @@ Just start a new Claude Code session. If you have saved context from the last 24
 coder-config session
 \`\`\`
 
-Shows:
-- Whether saved context exists
-- How old the context is
-- Last session metadata
+Shows whether saved context exists for the current project.
 
 ### Clearing Context
 
@@ -72,7 +70,7 @@ Shows:
 coder-config session clear
 \`\`\`
 
-Removes all saved session data.
+Removes saved context for the current project.
     `
   },
   'sessions-storage': {
@@ -80,21 +78,21 @@ Removes all saved session data.
     content: `
 ## Session Storage
 
-Session data is stored in \`~/.coder-config/sessions/\`:
+Session context is stored in each project:
 
-| File | Purpose |
-|------|---------|
-| \`flushed-context.md\` | Context saved by /flush |
-| \`last-flushed-context.md\` | Preserved from last session end |
-| \`last-session.json\` | Metadata about last session |
+\`\`\`
+<project>/.claude/session-context.md
+\`\`\`
+
+Each project has its own session context. /flush saves to the current project, and the next session in that project restores it.
 
 ### Context Expiration
 
-Saved context is automatically restored if it's less than 24 hours old. Older context is ignored (but not deleted).
+Saved context is automatically restored if it's less than 7 days old.
 
 ### Manual Context
 
-You can also manually edit \`flushed-context.md\` to inject custom context into your next session.
+You can manually edit \`.claude/session-context.md\` to inject custom context into your next session.
     `
   },
 };

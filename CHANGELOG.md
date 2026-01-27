@@ -5,15 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.42.32] - 2026-01-27
+
+### Changed
+
+- **Session context now project-local** - `/flush` saves to `.claude/session-context.md` in each project
+  - Each project has its own session context (no more global file)
+  - Removed SessionEnd hook (no longer needed)
+  - Simplified session-start hook
+
 ## [0.42.30] - 2026-01-27
 
 ### Added
 
 - **Sessions Settings UI** - Visual interface for session persistence in System > Sessions
-  - View installation status for hooks and /flush command
-  - One-click "Install All" button
-  - View and clear saved session context
-  - See last session metadata
 
 ## [0.42.29] - 2026-01-27
 
@@ -21,11 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Session Persistence** - Save and restore Claude Code session context across sessions
   - `coder-config session install` - one command installs hooks + /flush command
-  - `/flush` command - tells Claude to save context to a resumable doc
+  - `/flush` command - tells Claude to save context to project-local file
   - `session-start.sh` hook - restores saved context when starting a new session
-  - `session-end.sh` hook - preserves flushed context when session ends
-  - Context stored in `~/.coder-config/sessions/`
-  - Auto-restore within 24 hours of last save
 
 ### Changed
 

@@ -389,10 +389,9 @@ Save context from a Claude Code session and restore it on the next session start
 ### How It Works
 
 1. **Save context** - Use `/flush` in Claude Code to write a context summary
-2. **Auto-preserve** - The `session-end` hook preserves your flushed context when the session ends
-3. **Auto-restore** - The `session-start` hook injects saved context into your next session
+2. **Auto-restore** - The `session-start` hook injects saved context into your next session
 
-Context is automatically restored within 24 hours of being saved.
+Context is stored per-project in `.claude/session-context.md`.
 
 ### Setup
 
@@ -403,7 +402,7 @@ Context is automatically restored within 24 hours of being saved.
 coder-config session install
 ```
 
-This installs the Claude Code hooks and the `/flush` command.
+This installs the SessionStart hook and the `/flush` command.
 
 ### CLI Commands
 
@@ -415,10 +414,7 @@ coder-config session clear     # Clear saved context
 
 ### Storage Location
 
-Session data is stored in `~/.coder-config/sessions/`:
-- `flushed-context.md` - Context saved by /flush command
-- `last-flushed-context.md` - Preserved context from last session end
-- `last-session.json` - Metadata about the last session
+Session context is stored in each project at `.claude/session-context.md`.
 
 ## Workstreams
 
