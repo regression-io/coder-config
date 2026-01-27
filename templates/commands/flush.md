@@ -1,26 +1,37 @@
 # Flush Context to Resumable Doc
 
-Save all current session context to a resumable document in the current project's `.claude/` directory.
+Save all current session context to a resumable document.
 
 ## Instructions
 
-1. Create a comprehensive summary of the current session including:
-   - **Task Summary**: What the user asked for and the overall goal
-   - **Current State**: Where we are in the task (completed, in-progress, blocked)
-   - **Key Decisions Made**: Important choices and their rationale
-   - **Files Modified**: List of files created or changed
-   - **Pending Work**: What still needs to be done
-   - **Important Context**: Any critical information needed to continue
+### Step 1: Find or Create .claude Directory
 
-2. Determine the project root (where `.git/` or `.claude/` exists) and write this summary to: `<project-root>/.claude/session-context.md`
-   - If `.claude/` directory doesn't exist, create it
-   - This keeps the context local to this specific project
+Check for `.claude/` directory:
 
-3. Confirm to the user that context has been saved to the project directory and will be available on the next session in this project.
+1. **If `.claude/` exists in current directory**: Use it directly
+2. **If no `.claude/` in current directory**: Search parent directories for the first `.claude/` folder
+   - If found in a parent: Ask the user which to use:
+     - "Use parent project at `<parent-path>`" (saves to parent's `.claude/session-context.md`)
+     - "Create `.claude/` here" (creates `.claude/` in current directory)
+   - If no `.claude/` found anywhere: Ask the user:
+     - "Create `.claude/` in current directory?"
+     - If yes, create it. If no, abort.
+
+### Step 2: Create Session Summary
+
+Create a comprehensive summary including:
+- **Task Summary**: What the user asked for and the overall goal
+- **Current State**: Where we are in the task (completed, in-progress, blocked)
+- **Key Decisions Made**: Important choices and their rationale
+- **Files Modified**: List of files created or changed
+- **Pending Work**: What still needs to be done
+- **Important Context**: Any critical information needed to continue
+
+### Step 3: Write and Confirm
+
+Write the summary to `<chosen-directory>/.claude/session-context.md` and confirm to the user.
 
 ## Output Format
-
-Write the file in this format:
 
 ```markdown
 # Session Context - [Date]
