@@ -135,7 +135,7 @@ class ClaudeConfigManager {
   workstreamCreate(name, projects, rules) { return workstreamCreate(this.installDir, name, projects, rules); }
   workstreamUpdate(idOrName, updates) { return workstreamUpdate(this.installDir, idOrName, updates); }
   workstreamDelete(idOrName) { return workstreamDelete(this.installDir, idOrName); }
-  workstreamUse(idOrName) { return workstreamUse(this.installDir, idOrName); }
+  workstreamUse(idOrName, evalMode) { return workstreamUse(this.installDir, idOrName, evalMode); }
   workstreamActive() { return workstreamActive(this.installDir); }
   workstreamAddProject(idOrName, projectPath) { return workstreamAddProject(this.installDir, idOrName, projectPath); }
   workstreamRemoveProject(idOrName, projectPath) { return workstreamRemoveProject(this.installDir, idOrName, projectPath); }
