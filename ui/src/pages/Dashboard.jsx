@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Settings, Package, RefreshCw, Rocket, Terminal,
-  Folder, FolderOpen, Loader2, Brain, Wand2, Wrench, Shield, Download, Layers, BookOpen, Puzzle, Workflow, GraduationCap, RefreshCcw
+  Folder, FolderOpen, Loader2, Brain, Wand2, Wrench, Shield, Download, Layers, BookOpen, Puzzle, Workflow, GraduationCap, RefreshCcw, Save
 } from 'lucide-react';
 import FileExplorer from "@/components/FileExplorer";
 import ProjectSwitcher from "@/components/ProjectSwitcher";
@@ -29,7 +29,8 @@ import {
   PluginsView,
   WorkstreamsView,
   LoopsView,
-  TutorialView
+  TutorialView,
+  SessionsView
 } from "@/views";
 
 const navItems = [
@@ -50,6 +51,7 @@ const navItems = [
   { id: 'create-mcp', label: 'Create MCP', icon: Wand2, section: 'Developer' },
   { id: 'loops', label: 'Ralph Loops', icon: RefreshCcw, section: 'Developer', isNew: true },
   // System section
+  { id: 'sessions', label: 'Sessions', icon: Save, section: 'System' },
   { id: 'preferences', label: 'Preferences', icon: Wrench, section: 'System' },
   // Help section
   { id: 'tutorial', label: 'Tutorial', icon: GraduationCap, section: 'Help' },
@@ -475,6 +477,8 @@ export default function Dashboard() {
         return <CodexSettingsView />;
       case 'antigravity-settings':
         return <AntigravitySettingsView />;
+      case 'sessions':
+        return <SessionsView />;
       case 'preferences':
         return <PreferencesView onConfigChange={(newConfig) => setAppConfig(newConfig)} />;
       case 'projects':

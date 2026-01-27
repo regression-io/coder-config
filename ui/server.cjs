@@ -631,6 +631,31 @@ class ConfigUIServer {
         if (req.method === 'PUT') return this.json(res, routes.settings.saveCodexSettings(body));
         break;
 
+      // Session persistence
+      case '/api/sessions':
+        if (req.method === 'GET') return this.json(res, routes.sessions.getSessionStatus());
+        break;
+
+      case '/api/sessions/context':
+        if (req.method === 'GET') return this.json(res, routes.sessions.getContextContent());
+        break;
+
+      case '/api/sessions/clear':
+        if (req.method === 'POST') return this.json(res, routes.sessions.clearContext());
+        break;
+
+      case '/api/sessions/install-hooks':
+        if (req.method === 'POST') return this.json(res, routes.sessions.installHooks());
+        break;
+
+      case '/api/sessions/install-command':
+        if (req.method === 'POST') return this.json(res, routes.sessions.installFlushCommand());
+        break;
+
+      case '/api/sessions/install-all':
+        if (req.method === 'POST') return this.json(res, routes.sessions.installAll());
+        break;
+
       case '/api/preferences':
         if (req.method === 'GET') return this.json(res, { config: this.config, path: this.configPath });
         if (req.method === 'PUT') return this.json(res, this.saveConfig(body));

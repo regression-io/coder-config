@@ -18,6 +18,9 @@ Session persistence lets you:
 
 ### Quick Setup
 
+**From the UI:** Go to **Settings > Sessions** and click "Install All"
+
+**From the CLI:**
 \`\`\`bash
 coder-config session install
 \`\`\`

@@ -396,6 +396,9 @@ Context is automatically restored within 24 hours of being saved.
 
 ### Setup
 
+**From the UI:** Go to **System > Sessions** and click "Install All"
+
+**From the CLI:**
 ```bash
 coder-config session install
 ```

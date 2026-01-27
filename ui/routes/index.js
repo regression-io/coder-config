@@ -17,6 +17,7 @@ const toolSync = require('./tool-sync');
 const fileExplorer = require('./file-explorer');
 const memory = require('./memory');
 const settings = require('./settings');
+const sessions = require('./sessions');
 const env = require('./env');
 const configs = require('./configs');
 const mcpDiscovery = require('./mcp-discovery');
@@ -37,6 +38,7 @@ module.exports = {
   fileExplorer,
   memory,
   settings,
+  sessions,
   env,
   configs,
   mcpDiscovery,

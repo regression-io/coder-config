@@ -807,6 +807,39 @@ export const api = {
     });
   },
 
+  // Session Persistence
+  async getSessionStatus() {
+    return request('/sessions');
+  },
+
+  async getSessionContext() {
+    return request('/sessions/context');
+  },
+
+  async clearSessionContext() {
+    return request('/sessions/clear', {
+      method: 'POST',
+    });
+  },
+
+  async installSessionHooks() {
+    return request('/sessions/install-hooks', {
+      method: 'POST',
+    });
+  },
+
+  async installFlushCommand() {
+    return request('/sessions/install-command', {
+      method: 'POST',
+    });
+  },
+
+  async installSessionAll() {
+    return request('/sessions/install-all', {
+      method: 'POST',
+    });
+  },
+
 };
 
 export default api;

@@ -14,3 +14,4 @@ export { default as PluginsView } from './PluginsView';
 export { default as WorkstreamsView } from './WorkstreamsView';
 export { default as LoopsView } from './LoopsView';
 export { default as TutorialView } from './TutorialView';
+export { default as SessionsView } from './SessionsView';

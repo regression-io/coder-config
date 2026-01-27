@@ -1,6 +1,6 @@
 # Flush Context to Resumable Doc
 
-Save all current session context to a resumable document that will be automatically restored on the next session start.
+Save all current session context to a resumable document in the current project's `.claude/` directory.
 
 ## Instructions
 
@@ -12,9 +12,11 @@ Save all current session context to a resumable document that will be automatica
    - **Pending Work**: What still needs to be done
    - **Important Context**: Any critical information needed to continue
 
-2. Write this summary to: `~/.coder-config/sessions/flushed-context.md`
+2. Determine the project root (where `.git/` or `.claude/` exists) and write this summary to: `<project-root>/.claude/session-context.md`
+   - If `.claude/` directory doesn't exist, create it
+   - This keeps the context local to this specific project
 
-3. Confirm to the user that context has been saved and will be restored on next session.
+3. Confirm to the user that context has been saved to the project directory and will be available on the next session in this project.
 
 ## Output Format
 
