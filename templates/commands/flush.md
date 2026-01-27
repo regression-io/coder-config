@@ -17,6 +17,8 @@ Check for `.claude/` directory:
      - "Create `.claude/` in current directory?"
      - If yes, create it. If no, abort.
 
+3. **If creating new `.claude/`**: After creating, ask if they want to run `/init` to set up project configuration (CLAUDE.md, rules, etc.)
+
 ### Step 2: Create Session Summary
 
 Create a comprehensive summary including:
