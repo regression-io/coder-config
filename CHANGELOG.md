@@ -5,14 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.42.41] - 2026-01-27
+## [0.43.0] - 2026-01-27
 
 ### Added
 
 - **Workstream auto-detection** - Workstreams now auto-detect from current directory
-  - No need to set `CODER_WORKSTREAM` env var or global active workstream
-  - Auto-detect takes precedence over global active workstream
+  - No need to set `CODER_WORKSTREAM` env var
   - Session start hook now injects both workstream and session context
+
+### Removed
+
+- **Global active workstream** - The `workstream use <name>` command no longer sets a global active
+  - Workstreams are now purely auto-detected from current directory
+  - Use `CODER_WORKSTREAM` env var to override if needed
+  - `workstream list` now shows ● for auto-detected workstream based on cwd
 
 ### Fixed
 
