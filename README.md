@@ -397,20 +397,17 @@ Context is automatically restored within 24 hours of being saved.
 ### Setup
 
 ```bash
-# Install the Claude Code hooks
-coder-config session install-hooks
-
-# Copy the /flush command to your Claude Code commands
-cp /path/to/coder-config/templates/commands/flush.md ~/.claude/commands/
+coder-config session install
 ```
+
+This installs the Claude Code hooks and the `/flush` command.
 
 ### CLI Commands
 
 ```bash
-coder-config session                 # Show session status
-coder-config session flush           # Instructions for saving context
-coder-config session clear           # Clear saved context
-coder-config session install-hooks   # Install Claude Code hooks
+coder-config session           # Show session status
+coder-config session install   # Install hooks and /flush command
+coder-config session clear     # Clear saved context
 ```
 
 ### Storage Location
