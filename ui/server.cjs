@@ -633,15 +633,15 @@ class ConfigUIServer {
 
       // Session persistence
       case '/api/sessions':
-        if (req.method === 'GET') return this.json(res, routes.sessions.getSessionStatus());
+        if (req.method === 'GET') return this.json(res, routes.sessions.getSessionStatus(this.projectDir));
         break;
 
       case '/api/sessions/context':
-        if (req.method === 'GET') return this.json(res, routes.sessions.getContextContent());
+        if (req.method === 'GET') return this.json(res, routes.sessions.getContextContent(this.projectDir));
         break;
 
       case '/api/sessions/clear':
-        if (req.method === 'POST') return this.json(res, routes.sessions.clearContext());
+        if (req.method === 'POST') return this.json(res, routes.sessions.clearContext(this.projectDir));
         break;
 
       case '/api/sessions/install-hooks':
