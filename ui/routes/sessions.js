@@ -36,8 +36,9 @@ function getSessionStatus(projectDir) {
     }
   }
 
-  // Check if hooks are installed
+  // Check if hooks and permissions are installed
   const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+  status.permissionInstalled = false;
   if (fs.existsSync(settingsPath)) {
     try {
       const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
@@ -46,6 +47,11 @@ function getSessionStatus(projectDir) {
       status.hooksInstalled = sessionStartHooks.some(h =>
         typeof h === 'object' && h.command && h.command.includes('session-start')
       );
+
+      // Check for write permission
+      const permissions = settings.permissions || {};
+      const allow = permissions.allow || [];
+      status.permissionInstalled = allow.includes('Write(**/.claude/session-context.md)');
     } catch (e) {
       // Ignore errors
     }
@@ -82,7 +88,7 @@ function clearContext(projectDir) {
 }
 
 /**
- * Install session hooks
+ * Install session hooks and permissions
  */
 function installHooks() {
   const claudeDir = path.join(os.homedir(), '.claude');
@@ -132,9 +138,22 @@ function installHooks() {
     settings.hooks.SessionStart.push({ type: 'command', command: sessionStartHook });
   }
 
+  // Add permission to write session context file
+  if (!settings.permissions) {
+    settings.permissions = {};
+  }
+  if (!settings.permissions.allow) {
+    settings.permissions.allow = [];
+  }
+
+  const contextPermission = 'Write(**/.claude/session-context.md)';
+  if (!settings.permissions.allow.includes(contextPermission)) {
+    settings.permissions.allow.push(contextPermission);
+  }
+
   try {
     fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
-    return { success: true, message: 'Session hook installed' };
+    return { success: true, message: 'Session hook and permissions installed' };
   } catch (e) {
     return { success: false, error: 'Error writing settings.json: ' + e.message };
   }

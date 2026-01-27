@@ -132,7 +132,7 @@ export default function SessionsView() {
     );
   }
 
-  const allInstalled = status?.hooksInstalled && status?.flushCommandInstalled;
+  const allInstalled = status?.hooksInstalled && status?.flushCommandInstalled && status?.permissionInstalled;
 
   return (
     <div className="space-y-6">
@@ -228,6 +228,26 @@ export default function SessionsView() {
                 </Button>
               )}
             </div>
+          </div>
+
+          {/* Write Permission */}
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {status?.permissionInstalled ? (
+                <Check className="w-5 h-5 text-green-500" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-amber-500" />
+              )}
+              <div>
+                <div className="text-sm font-medium text-gray-900 dark:text-white">Write Permission</div>
+                <div className="text-xs text-gray-500 dark:text-slate-400">
+                  Allows Claude to write session context without prompting
+                </div>
+              </div>
+            </div>
+            <Badge variant={status?.permissionInstalled ? 'default' : 'secondary'}>
+              {status?.permissionInstalled ? 'Granted' : 'Not Granted'}
+            </Badge>
           </div>
         </div>
 
