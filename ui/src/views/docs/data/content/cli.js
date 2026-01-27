@@ -85,13 +85,6 @@ coder-config env set KEY value   # Set variable
 coder-config env unset KEY       # Remove variable
 \`\`\`
 
-### Templates
-
-\`\`\`bash
-coder-config templates           # List templates
-coder-config apply-template X    # Apply template
-\`\`\`
-
 ### Workstreams
 
 \`\`\`bash
@@ -100,10 +93,33 @@ coder-config workstream create "X"   # Create workstream
 coder-config workstream delete "X"   # Delete workstream
 coder-config workstream use "X"      # Set active
 coder-config workstream active       # Show active
+coder-config workstream deactivate   # Show how to deactivate
 coder-config workstream add "X" /path     # Add project
 coder-config workstream remove "X" /path  # Remove project
 coder-config workstream inject       # Output rules for hooks
 coder-config workstream detect       # Detect from directory
+coder-config workstream install-hook      # Install Claude Code hook
+coder-config workstream install-hook --all  # Install for all tools
+\`\`\`
+
+### Workstream Folder Auto-Activation
+
+\`\`\`bash
+coder-config workstream install-cd-hook    # Install cd hook
+coder-config workstream uninstall-cd-hook  # Remove cd hook
+coder-config workstream cd-hook-status     # Check hook status
+coder-config workstream add-trigger "X" /folder    # Add trigger folder
+coder-config workstream remove-trigger "X" /folder # Remove trigger
+coder-config workstream auto-activate "X" on|off   # Set auto-activate
+coder-config workstream check-folder /path  # Check for matches
+\`\`\`
+
+### Session Persistence
+
+\`\`\`bash
+coder-config session             # Show session status
+coder-config session install     # Install hooks + /flush command
+coder-config session clear       # Clear saved context
 \`\`\`
     `
   },

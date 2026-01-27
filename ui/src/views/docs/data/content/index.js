@@ -7,6 +7,7 @@ import { loopsContent } from './loops';
 import { pluginsContent } from './plugins';
 import { mcpRegistryContent } from './mcp-registry';
 import { memoryContent } from './memory';
+import { sessionsContent } from './sessions';
 import { claudeSettingsContent } from './claude-settings';
 import { geminiSettingsContent } from './gemini-settings';
 import { codexSettingsContent } from './codex-settings';
@@ -25,6 +26,7 @@ const docContent = {
   ...pluginsContent,
   ...mcpRegistryContent,
   ...memoryContent,
+  ...sessionsContent,
   ...claudeSettingsContent,
   ...geminiSettingsContent,
   ...codexSettingsContent,

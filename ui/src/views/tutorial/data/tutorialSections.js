@@ -84,7 +84,7 @@ const tutorialSections = [
     id: 'loops-guide',
     title: 'Ralph Loops',
     icon: RefreshCcw,
-    isNew: true,
+    isExperimental: true,
     subsections: [
       { id: 'what-are-loops', title: 'What Are Ralph Loops?' },
       { id: 'creating-first-loop', title: 'Your First Loop' },

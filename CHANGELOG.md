@@ -5,41 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.42.25] - 2026-01-27
+## [0.42.29] - 2026-01-27
 
 ### Added
 
-- **Session Persistence** - Save and restore Claude Code session context
-  - `/flush` command template - tells Claude to save context to a resumable doc
+- **Session Persistence** - Save and restore Claude Code session context across sessions
+  - `coder-config session install` - one command installs hooks + /flush command
+  - `/flush` command - tells Claude to save context to a resumable doc
   - `session-start.sh` hook - restores saved context when starting a new session
   - `session-end.sh` hook - preserves flushed context when session ends
-  - **CLI commands**: `session`, `session flush`, `session clear`, `session install-hooks`
   - Context stored in `~/.coder-config/sessions/`
   - Auto-restore within 24 hours of last save
-
-## [0.42.24] - 2026-01-27
 
 ### Changed
 
 - **Auto-refresh on server update** - UI now auto-refreshes when server version changes
-  - No more manual refresh needed after updates
-  - Seamless experience when auto-update is enabled
-- **Project Explorer synced with enabled tools** - Tool sections (Claude Code, Gemini CLI, Antigravity) only show when enabled in Preferences
-- **Sidebar synced with enabled tools** - Configuration nav items match enabled tools in Preferences
-- **Click version to check for updates** - Version number in sidebar footer is now clickable
-
-## [0.42.18] - 2026-01-27
-
-### Changed
-
-- **Ralph Loops behind experimental flag** - Ralph Loops is now hidden by default
-  - Enable in Preferences > Experimental Features
-  - Warning dialog shown when enabling
-  - CLI commands hidden until feature is enabled
+- **Project Explorer synced with enabled tools** - Tool sections only show when enabled in Preferences
+- **Sidebar synced with enabled tools** - Configuration nav items match enabled tools
+- **Click version to check for updates** - Version number in sidebar footer is clickable
+- **Ralph Loops behind experimental flag** - Hidden by default, enable in Preferences > Experimental Features
 
 ### Fixed
 
-- **CD hook error messages** - Workstream cd hook now passes through clean error messages instead of showing function-prefixed errors
+- **CD hook error messages** - Workstream cd hook now passes through clean error messages
 
 ## [0.42.14] - 2026-01-26
 

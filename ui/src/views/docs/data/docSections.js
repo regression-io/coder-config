@@ -1,6 +1,6 @@
 import {
   BookOpen, Folder, Package, Brain, Terminal,
-  Layers, Keyboard, Shield, HelpCircle, Sparkles, Rocket, RefreshCcw
+  Layers, Keyboard, Shield, HelpCircle, Sparkles, Rocket, RefreshCcw, Save
 } from 'lucide-react';
 
 const docSections = [
@@ -52,7 +52,7 @@ const docSections = [
     id: 'loops',
     title: 'Ralph Loops',
     icon: RefreshCcw,
-    isNew: true,
+    isExperimental: true,
     subsections: [
       { id: 'loops-overview', title: 'Overview' },
       { id: 'creating-loops', title: 'Creating Loops' },
@@ -65,7 +65,6 @@ const docSections = [
     id: 'plugins',
     title: 'Plugins',
     icon: Package,
-    isNew: true,
     subsections: [
       { id: 'plugins-overview', title: 'Overview' },
       { id: 'installing-plugins', title: 'Installing Plugins' },
@@ -95,6 +94,17 @@ const docSections = [
     ]
   },
   {
+    id: 'sessions',
+    title: 'Session Persistence',
+    icon: Save,
+    isNew: true,
+    subsections: [
+      { id: 'sessions-overview', title: 'Overview' },
+      { id: 'sessions-usage', title: 'Using Sessions' },
+      { id: 'sessions-storage', title: 'Storage' },
+    ]
+  },
+  {
     id: 'claude-settings',
     title: 'Claude Code Settings',
     icon: Shield,
@@ -109,7 +119,6 @@ const docSections = [
     id: 'gemini-settings',
     title: 'Gemini CLI Settings',
     icon: Terminal,
-    isNew: true,
     subsections: [
       { id: 'gemini-model', title: 'Model Selection' },
       { id: 'gemini-display', title: 'Display Options' },
@@ -121,7 +130,6 @@ const docSections = [
     id: 'codex-settings',
     title: 'Codex CLI Settings',
     icon: Terminal,
-    isNew: true,
     subsections: [
       { id: 'codex-overview', title: 'Overview' },
       { id: 'codex-model', title: 'Model Selection' },
@@ -134,7 +142,6 @@ const docSections = [
     id: 'antigravity-settings',
     title: 'Antigravity Settings',
     icon: Rocket,
-    isNew: true,
     subsections: [
       { id: 'antigravity-security', title: 'Security Policies' },
       { id: 'antigravity-mcp', title: 'MCP Servers' },
