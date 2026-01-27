@@ -281,96 +281,78 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  // Compare semantic versions - returns true if v1 > v2
+  const isNewerVersion = (v1, v2) => {
+    if (!v1 || !v2) return false;
+    const parse = (v) => v.split('.').map(n => parseInt(n, 10) || 0);
+    const a = parse(v1), b = parse(v2);
+    for (let i = 0; i < Math.max(a.length, b.length); i++) {
+      if ((a[i] || 0) > (b[i] || 0)) return true;
+      if ((a[i] || 0) < (b[i] || 0)) return false;
+    }
+    return false;
+  };
+
+  // Trigger update and handle restart
+  const triggerUpdate = async (targetVersion, updateMethod = 'npm') => {
+    setUpdating(true);
+    const result = await api.performUpdate({ updateMethod, targetVersion });
+    if (result.success) {
+      toast.success(`Updated to v${result.newVersion}! Restarting server...`);
+      setUpdateInfo(null);
+      try { await api.restartServer(); } catch {}
+      let attempts = 0;
+      const checkServer = setInterval(async () => {
+        attempts++;
+        try {
+          await api.checkVersion();
+          clearInterval(checkServer);
+          toast.success('Server restarted! Reloading...');
+          setTimeout(() => window.location.reload(), 500);
+        } catch {
+          if (attempts > 30) {
+            clearInterval(checkServer);
+            toast.info('Server restarting. Please refresh the page.');
+            setUpdating(false);
+          }
+        }
+      }, 500);
+      return true;
+    } else {
+      toast.error('Update failed: ' + result.error);
+      setUpdating(false);
+      return false;
+    }
+  };
+
   // Manual check for updates (triggered by clicking version)
   const handleCheckForUpdates = async () => {
     setCheckingUpdates(true);
     try {
       const versionData = await api.checkVersion();
+      const installed = versionData?.installedVersion;
+      const latest = versionData?.latestVersion;
 
       // Check for stale UI first - auto-refresh
-      if (versionData?.installedVersion && loadedVersionRef.current &&
-          versionData.installedVersion !== loadedVersionRef.current) {
-        toast.info(`Refreshing to v${versionData.installedVersion}...`);
+      if (installed && loadedVersionRef.current && installed !== loadedVersionRef.current) {
+        toast.info(`Refreshing to v${installed}...`);
         setTimeout(() => window.location.reload(), 500);
         return;
-      } else if (versionData?.updateAvailable) {
-        // If auto-update is enabled, trigger update immediately
+      }
+
+      // Compare versions directly (ignore updateAvailable flag which has pre-cache logic)
+      const hasUpdate = isNewerVersion(latest, installed);
+
+      if (hasUpdate) {
+        // Update available
         if (appConfig?.autoUpdate) {
           setCheckingUpdates(false);
-          toast.info(`Auto-updating to v${versionData.latestVersion}...`);
-          setUpdating(true);
-          const result = await api.performUpdate({
-            updateMethod: versionData.updateMethod,
-            targetVersion: versionData.latestVersion
-          });
-          if (result.success) {
-            toast.success(`Updated to v${result.newVersion}! Restarting server...`);
-            try { await api.restartServer(); } catch {}
-            let attempts = 0;
-            const checkServer = setInterval(async () => {
-              attempts++;
-              try {
-                await api.checkVersion();
-                clearInterval(checkServer);
-                toast.success('Server restarted! Reloading...');
-                setTimeout(() => window.location.reload(), 500);
-              } catch {
-                if (attempts > 30) {
-                  clearInterval(checkServer);
-                  toast.info('Server restarting. Please refresh the page.');
-                  setUpdating(false);
-                }
-              }
-            }, 500);
-          } else {
-            toast.error('Auto-update failed: ' + result.error);
-            setUpdating(false);
-            setUpdateInfo(versionData);
-          }
-          return;
-        }
-        // Manual update: show the badge
-        setUpdateInfo(versionData);
-        toast.info(`Update available: v${versionData.latestVersion}`);
-      } else if (updateInfo?.updateAvailable) {
-        // There's already a known update, don't contradict it
-        // If auto-update enabled, trigger it
-        if (appConfig?.autoUpdate) {
-          setCheckingUpdates(false);
-          toast.info(`Auto-updating to v${updateInfo.latestVersion}...`);
-          setUpdating(true);
-          const result = await api.performUpdate({
-            updateMethod: updateInfo.updateMethod,
-            targetVersion: updateInfo.latestVersion
-          });
-          if (result.success) {
-            toast.success(`Updated to v${result.newVersion}! Restarting server...`);
-            try { await api.restartServer(); } catch {}
-            let attempts = 0;
-            const checkServer = setInterval(async () => {
-              attempts++;
-              try {
-                await api.checkVersion();
-                clearInterval(checkServer);
-                toast.success('Server restarted! Reloading...');
-                setTimeout(() => window.location.reload(), 500);
-              } catch {
-                if (attempts > 30) {
-                  clearInterval(checkServer);
-                  toast.info('Server restarting. Please refresh the page.');
-                  setUpdating(false);
-                }
-              }
-            }, 500);
-          } else {
-            toast.error('Update failed: ' + result.error);
-            setUpdating(false);
-          }
+          toast.info(`Auto-updating to v${latest}...`);
+          await triggerUpdate(latest, versionData?.updateMethod || 'npm');
         } else {
-          toast.info(`Update available: v${updateInfo.latestVersion}`);
+          setUpdateInfo({ ...versionData, updateAvailable: true });
+          toast.info(`Update available: v${latest}`);
         }
-      } else {
-        toast.success('You\'re on the latest version');
       }
     } catch (error) {
       toast.error('Failed to check for updates');
