@@ -5,7 +5,34 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { spawn } = require('child_process');
+const { spawn, execFileSync } = require('child_process');
+
+/**
+ * Get the full path to the claude binary
+ * Needed because daemon processes may not have full PATH
+ */
+function getClaudePath() {
+  // Common locations
+  const candidates = [
+    path.join(os.homedir(), '.local', 'bin', 'claude'),
+    '/usr/local/bin/claude',
+    '/opt/homebrew/bin/claude',
+    path.join(os.homedir(), '.npm-global', 'bin', 'claude'),
+  ];
+
+  for (const p of candidates) {
+    if (fs.existsSync(p)) return p;
+  }
+
+  // Try to resolve via which command
+  try {
+    const resolved = execFileSync('which', ['claude'], { encoding: 'utf8' }).trim();
+    if (resolved && fs.existsSync(resolved)) return resolved;
+  } catch (e) {}
+
+  // Fallback to hoping it's in PATH
+  return 'claude';
+}
 
 /**
  * Default marketplace to auto-install
@@ -59,7 +86,7 @@ async function ensureDefaultMarketplace() {
  */
 function addMarketplaceInternal(repo) {
   return new Promise((resolve, reject) => {
-    const proc = spawn('claude', ['plugin', 'marketplace', 'add', repo], {
+    const proc = spawn(getClaudePath(), ['plugin', 'marketplace', 'add', repo], {
       cwd: os.homedir(),
       env: process.env,
       stdio: ['ignore', 'pipe', 'pipe']
@@ -221,7 +248,7 @@ async function installPlugin(pluginId, marketplace, scope = 'user', projectDir =
     args.push('--scope', scope);
   }
   return new Promise((resolve) => {
-    const proc = spawn('claude', args, {
+    const proc = spawn(getClaudePath(), args, {
       cwd: projectDir || os.homedir(),
       env: process.env,
       stdio: ['ignore', 'pipe', 'pipe']
@@ -252,7 +279,7 @@ async function installPlugin(pluginId, marketplace, scope = 'user', projectDir =
  */
 async function uninstallPlugin(pluginId) {
   return new Promise((resolve) => {
-    const proc = spawn('claude', ['plugin', 'uninstall', pluginId], {
+    const proc = spawn(getClaudePath(), ['plugin', 'uninstall', pluginId], {
       cwd: os.homedir(),
       env: process.env,
       stdio: ['ignore', 'pipe', 'pipe']
@@ -283,7 +310,7 @@ async function uninstallPlugin(pluginId) {
  */
 async function addMarketplace(name, repo) {
   return new Promise((resolve) => {
-    const proc = spawn('claude', ['plugin', 'marketplace', 'add', repo], {
+    const proc = spawn(getClaudePath(), ['plugin', 'marketplace', 'add', repo], {
       cwd: os.homedir(),
       env: process.env,
       stdio: ['ignore', 'pipe', 'pipe']
@@ -314,7 +341,7 @@ async function addMarketplace(name, repo) {
  */
 async function refreshMarketplace(name) {
   return new Promise((resolve) => {
-    const proc = spawn('claude', ['plugin', 'marketplace', 'update', name], {
+    const proc = spawn(getClaudePath(), ['plugin', 'marketplace', 'update', name], {
       cwd: os.homedir(),
       env: process.env,
       stdio: ['ignore', 'pipe', 'pipe']
