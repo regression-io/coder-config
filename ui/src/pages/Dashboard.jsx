@@ -630,8 +630,10 @@ export default function Dashboard() {
           </div>
         </aside>
 
-        {/* Main Content */}
-        <main className={cn(
+        {/* Main Content - 90% zoom */}
+        <main
+          style={{ zoom: 0.9 }}
+          className={cn(
           "flex-1 overflow-auto",
           ['explorer', 'docs', 'tutorial'].includes(currentView) ? "h-[calc(100vh-64px)]" : "p-6"
         )}>
