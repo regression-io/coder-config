@@ -423,7 +423,7 @@ export default function Dashboard() {
       case 'antigravity-settings':
         return <AntigravitySettingsView />;
       case 'preferences':
-        return <PreferencesView />;
+        return <PreferencesView onConfigChange={(newConfig) => setAppConfig(newConfig)} />;
       case 'projects':
         return <ProjectsView onProjectSwitch={(result) => {
           setProject({ dir: result.dir, hierarchy: result.hierarchy, subprojects: result.subprojects });

@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import api from "@/lib/api";
 import PathPicker from "@/components/PathPicker";
 
-export default function PreferencesView() {
+export default function PreferencesView({ onConfigChange }) {
   const [config, setConfig] = useState(null);
   const [configPath, setConfigPath] = useState('');
   const [picker, setPicker] = useState({ open: false, field: null, type: 'directory' });
@@ -622,6 +622,7 @@ export default function PreferencesView() {
                       };
                       setConfig(newConfig);
                       api.saveConfig(newConfig);
+                      onConfigChange?.(newConfig);
                       toast.success('Ralph Loops disabled');
                     }
                   }}
@@ -858,6 +859,7 @@ export default function PreferencesView() {
                 };
                 setConfig(newConfig);
                 api.saveConfig(newConfig);
+                onConfigChange?.(newConfig);
                 toast.success('Ralph Loops enabled');
                 setExperimentalWarning({ open: false, feature: null });
               }}
