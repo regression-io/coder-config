@@ -4,6 +4,8 @@ export const loopsContent = {
     content: `
 ## Ralph Loops
 
+> **Experimental Feature:** Ralph Loops must be enabled in **Preferences > Experimental Features** before use.
+
 Ralph Loops enable **autonomous development** - Claude Code runs continuously until a task is completed, without requiring manual intervention between iterations.
 
 ### The Problem
@@ -41,9 +43,13 @@ The loop continues until the task is complete or budget limits are reached.
     content: `
 ## Creating Loops
 
+### First: Enable the Feature
+
+Go to **Preferences > Experimental Features** and enable **Ralph Loops**.
+
 ### Via UI
 
-1. Go to **Ralph Loops** in the sidebar
+1. Go to **Ralph Loops** in the sidebar (under Developer)
 2. Click **New Loop**
 3. Describe the task you want completed
 4. Optionally select a workstream context

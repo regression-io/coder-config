@@ -5,14 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.42.20] - 2026-01-27
+## [0.42.24] - 2026-01-27
 
-### Added
+### Changed
 
-- **Stale UI detection** - UI now detects when server has restarted with a new version
-  - Polls server version every 30 seconds
-  - Shows "v{version} available - click to refresh" in sidebar footer when mismatch detected
-  - No more stale UI after auto-updates
+- **Auto-refresh on server update** - UI now auto-refreshes when server version changes
+  - No more manual refresh needed after updates
+  - Seamless experience when auto-update is enabled
+- **Project Explorer synced with enabled tools** - Tool sections (Claude Code, Gemini CLI, Antigravity) only show when enabled in Preferences
+- **Sidebar synced with enabled tools** - Configuration nav items match enabled tools in Preferences
+- **Click version to check for updates** - Version number in sidebar footer is now clickable
 
 ## [0.42.18] - 2026-01-27
 

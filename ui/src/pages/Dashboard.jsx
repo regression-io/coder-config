@@ -97,7 +97,6 @@ export default function Dashboard() {
   const [addProjectOpen, setAddProjectOpen] = useState(false);
   const [rootProject, setRootProject] = useState(null); // Track root project for sticky subprojects
   const [appConfig, setAppConfig] = useState(null); // coder-config preferences
-  const [versionMismatch, setVersionMismatch] = useState(false); // Server restarted with new version
   const [checkingUpdates, setCheckingUpdates] = useState(false); // Manual update check in progress
   const loadedVersionRef = useRef(null); // Version when UI first loaded
 
@@ -266,8 +265,9 @@ export default function Dashboard() {
       try {
         const versionData = await api.checkVersion();
         if (versionData?.installedVersion && versionData.installedVersion !== loadedVersionRef.current) {
-          setVersionMismatch(true);
-          setVersion(versionData.installedVersion);
+          // Auto-refresh when server has newer version
+          console.log(`[stale-ui] Server updated to v${versionData.installedVersion}, refreshing...`);
+          window.location.reload();
         }
       } catch {
         // Server might be restarting, ignore
@@ -285,12 +285,12 @@ export default function Dashboard() {
     try {
       const versionData = await api.checkVersion();
 
-      // Check for stale UI first
+      // Check for stale UI first - auto-refresh
       if (versionData?.installedVersion && loadedVersionRef.current &&
           versionData.installedVersion !== loadedVersionRef.current) {
-        setVersionMismatch(true);
-        setVersion(versionData.installedVersion);
-        toast.info('New version loaded on server - click to refresh');
+        toast.info(`Refreshing to v${versionData.installedVersion}...`);
+        setTimeout(() => window.location.reload(), 500);
+        return;
       } else if (versionData?.updateAvailable) {
         setUpdateInfo(versionData);
         toast.info(`Update available: v${versionData.latestVersion}`);
@@ -612,27 +612,17 @@ export default function Dashboard() {
           </ScrollArea>
           {/* Version footer */}
           <div className="px-4 py-3 border-t border-border">
-            {versionMismatch ? (
-              <button
-                onClick={() => window.location.reload()}
-                className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400 hover:underline"
-              >
-                <RefreshCw className="w-3 h-3" />
-                v{version} available - click to refresh
-              </button>
-            ) : (
-              <button
-                onClick={handleCheckForUpdates}
-                disabled={checkingUpdates}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-                title="Check for updates"
-              >
-                {checkingUpdates ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : null}
-                {version ? `v${version}` : ''}
-              </button>
-            )}
+            <button
+              onClick={handleCheckForUpdates}
+              disabled={checkingUpdates}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              title="Check for updates"
+            >
+              {checkingUpdates ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : null}
+              {version ? `v${version}` : ''}
+            </button>
           </div>
         </aside>
 

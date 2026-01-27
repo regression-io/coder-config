@@ -4,6 +4,8 @@ export const loopsContent = {
     content: `
 ## Ralph Loops: Autonomous Development
 
+> **Experimental Feature:** Ralph Loops must be enabled in **Preferences > Experimental Features** before use.
+
 Ever wished Claude could just... keep going until a task is done?
 
 That's exactly what **Ralph Loops** do.
@@ -51,9 +53,13 @@ Claude: "Done! Authentication system complete."
     content: `
 ## Let's Create a Loop!
 
+### Step 0: Enable the Feature
+
+First, go to **Preferences > Experimental Features** and enable **Ralph Loops**.
+
 ### Step 1: Open Ralph Loops
 
-Click **Ralph Loops** in the sidebar (under Tools).
+Click **Ralph Loops** in the sidebar (under Developer).
 
 ### Step 2: Click New Loop
 

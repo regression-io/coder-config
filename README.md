@@ -211,7 +211,9 @@ coder-config workstream auto-activate "My Work" off     # Never auto-activate
 coder-config workstream auto-activate "My Work" default # Use global setting
 ```
 
-### Loop Commands (Ralph Loop)
+### Loop Commands (Ralph Loop) - Experimental
+
+> **Note:** Ralph Loops is an experimental feature, disabled by default. Enable it in the Web UI under **Preferences > Experimental Features**.
 
 Ralph Loops enable autonomous development - Claude Code runs continuously until a task is completed.
 
@@ -268,7 +270,7 @@ coder-config update --check     # Check for updates without installing
 coder-config update /path/src   # Update from local development source
 ```
 
-The UI also checks for updates automatically and shows a notification when a new version is available.
+The UI checks for updates automatically and auto-updates when enabled in Preferences. After server updates, the UI auto-refreshes to load the new version.
 
 ### Web UI
 
