@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Old format: `{ type: 'command', command: '...' }`
   - New format: `{ hooks: [{ type: 'command', command: '...' }] }`
   - Note: `matcher` field omitted for SessionStart/SessionEnd (only used for tool-specific hooks)
-  - Detection logic updated to recognize both old and new formats
+  - `session install` now cleans up old-format hooks and consolidates duplicates
 
 ## [0.42.33] - 2026-01-27
 

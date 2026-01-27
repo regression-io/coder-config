@@ -131,6 +131,7 @@ function installHooks() {
     // Continue
   }
 
+  // Clean up and migrate SessionStart hooks to new format
   if (!settings.hooks.SessionStart) {
     settings.hooks.SessionStart = [];
   }
@@ -138,22 +139,75 @@ function installHooks() {
     settings.hooks.SessionStart = [settings.hooks.SessionStart];
   }
 
-  // Check for hook in both old and new formats
-  const hasStartHook = settings.hooks.SessionStart.some(h => {
+  // Filter out old format hooks and invalid entries, collect commands to migrate
+  const commandsToKeep = new Set();
+  settings.hooks.SessionStart = settings.hooks.SessionStart.filter(h => {
     if (typeof h !== 'object') return false;
-    // Old format: { type, command }
-    if (h.command === sessionStartHook) return true;
-    // New format: { matcher, hooks: [{ type, command }] }
+    // Old format: { type, command } - remove but track command
+    if (h.command && !h.hooks) {
+      commandsToKeep.add(h.command);
+      return false;
+    }
+    // Invalid format: { matcher: {} } object - remove matcher
+    if (h.matcher && typeof h.matcher === 'object') {
+      delete h.matcher;
+    }
+    // New format with hooks array - keep
     if (Array.isArray(h.hooks)) {
-      return h.hooks.some(hh => hh.command === sessionStartHook);
+      h.hooks.forEach(hh => {
+        if (hh.command) commandsToKeep.add(hh.command);
+      });
+      return true;
     }
     return false;
   });
-  if (!hasStartHook) {
-    // Use new hook format (no matcher for SessionStart)
+
+  // Add our hook command if not already present
+  commandsToKeep.add(sessionStartHook);
+
+  // Consolidate all commands into a single entry
+  if (settings.hooks.SessionStart.length === 0) {
     settings.hooks.SessionStart.push({
-      hooks: [{ type: 'command', command: sessionStartHook }]
+      hooks: Array.from(commandsToKeep).map(cmd => ({ type: 'command', command: cmd }))
     });
+  } else {
+    // Add missing commands to existing entry
+    const existingCommands = new Set(
+      settings.hooks.SessionStart[0].hooks.map(h => h.command)
+    );
+    for (const cmd of commandsToKeep) {
+      if (!existingCommands.has(cmd)) {
+        settings.hooks.SessionStart[0].hooks.push({ type: 'command', command: cmd });
+      }
+    }
+  }
+
+  // Clean up SessionEnd hooks (same migration as SessionStart)
+  if (settings.hooks.SessionEnd && Array.isArray(settings.hooks.SessionEnd)) {
+    const endCommandsToKeep = new Set();
+    settings.hooks.SessionEnd = settings.hooks.SessionEnd.filter(h => {
+      if (typeof h !== 'object') return false;
+      if (h.command && !h.hooks) {
+        endCommandsToKeep.add(h.command);
+        return false;
+      }
+      if (h.matcher && typeof h.matcher === 'object') {
+        delete h.matcher;
+      }
+      if (Array.isArray(h.hooks)) {
+        h.hooks.forEach(hh => {
+          if (hh.command) endCommandsToKeep.add(hh.command);
+        });
+        return true;
+      }
+      return false;
+    });
+    // Consolidate remaining commands
+    if (endCommandsToKeep.size > 0 && settings.hooks.SessionEnd.length === 0) {
+      settings.hooks.SessionEnd.push({
+        hooks: Array.from(endCommandsToKeep).map(cmd => ({ type: 'command', command: cmd }))
+      });
+    }
   }
 
   // Add permission to write session context file
