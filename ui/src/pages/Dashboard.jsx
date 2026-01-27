@@ -96,6 +96,7 @@ export default function Dashboard() {
   const [activeProject, setActiveProject] = useState(null);
   const [addProjectOpen, setAddProjectOpen] = useState(false);
   const [rootProject, setRootProject] = useState(null); // Track root project for sticky subprojects
+  const [appConfig, setAppConfig] = useState(null); // coder-config preferences
 
   // Persist currentView to localStorage
   useEffect(() => {
@@ -200,6 +201,7 @@ export default function Dashboard() {
         ]);
 
         setVersion(versionData?.installedVersion);
+        setAppConfig(configData?.config || {});
 
         if (versionData?.updateAvailable && versionData?.updateMethod === 'npm') {
           // Check if auto-update is enabled
@@ -519,6 +521,7 @@ export default function Dashboard() {
                 <div className="space-y-0.5">
                   {navItems
                     .filter(item => item.section === section)
+                    .filter(item => item.id !== 'loops' || appConfig?.experimental?.ralphLoops)
                     .map((item) => {
                     const Icon = item.icon;
                     const isActive = currentView === item.id;

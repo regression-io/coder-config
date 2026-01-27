@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.42.18] - 2026-01-27
+
+### Changed
+
+- **Ralph Loops behind experimental flag** - Ralph Loops is now hidden by default
+  - Enable in Preferences > Experimental Features
+  - Warning dialog shown when enabling
+  - CLI commands hidden until feature is enabled
+
+### Fixed
+
+- **CD hook error messages** - Workstream cd hook now passes through clean error messages instead of showing function-prefixed errors
+
 ## [0.42.14] - 2026-01-26
 
 ### Added

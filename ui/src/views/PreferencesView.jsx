@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Wrench, Folder, Layout, FileText, Save, Loader2, RefreshCw, Download, FolderOpen, Plus, X, FolderPlus, Cpu, Sparkles, Bot, Terminal, Eye, EyeOff, History } from 'lucide-react';
+import { Wrench, Folder, Layout, FileText, Save, Loader2, RefreshCw, Download, FolderOpen, Plus, X, FolderPlus, Cpu, Sparkles, Bot, Terminal, Eye, EyeOff, History, FlaskConical, AlertTriangle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -9,6 +9,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
@@ -26,6 +28,7 @@ export default function PreferencesView() {
   const [projectDir, setProjectDir] = useState(null);
   const [hiddenSubprojects, setHiddenSubprojects] = useState([]);
   const [changelogDialog, setChangelogDialog] = useState({ open: false, content: '', loading: false });
+  const [experimentalWarning, setExperimentalWarning] = useState({ open: false, feature: null });
 
   useEffect(() => {
     loadConfig();
@@ -582,6 +585,51 @@ export default function PreferencesView() {
             </div>
           )}
 
+          {/* Experimental Features Section */}
+          <div className="border-b border-border pb-6">
+            <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+              <FlaskConical className="w-4 h-4" />
+              Experimental Features
+            </h3>
+            <p className="text-xs text-muted-foreground mb-4">
+              These features are experimental and may change or be removed in future versions.
+            </p>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-yellow-500/20">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-md bg-yellow-500/10 flex items-center justify-center">
+                    <FlaskConical className="w-4 h-4 text-yellow-500" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-foreground">Ralph Loops</label>
+                    <p className="text-xs text-muted-foreground">
+                      Autonomous development loops with Claude Code
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={config?.experimental?.ralphLoops || false}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      // Show warning dialog before enabling
+                      setExperimentalWarning({ open: true, feature: 'ralphLoops' });
+                    } else {
+                      // Disable immediately
+                      const newConfig = {
+                        ...config,
+                        experimental: { ...config?.experimental, ralphLoops: false }
+                      };
+                      setConfig(newConfig);
+                      api.saveConfig(newConfig);
+                      toast.success('Ralph Loops disabled');
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* About Section */}
           <div>
             <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
@@ -762,6 +810,62 @@ export default function PreferencesView() {
               </div>
             </ScrollArea>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Experimental Feature Warning Dialog */}
+      <Dialog open={experimentalWarning.open} onOpenChange={(open) => setExperimentalWarning(prev => ({ ...prev, open }))}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400">
+              <AlertTriangle className="w-5 h-5" />
+              Experimental Feature Warning
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <p>
+                  <strong className="text-foreground">Ralph Loops</strong> is an experimental feature that enables autonomous development loops with Claude Code.
+                </p>
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+                  <p className="text-yellow-700 dark:text-yellow-300 font-medium mb-2">Please be aware:</p>
+                  <ul className="list-disc pl-4 space-y-1 text-yellow-600 dark:text-yellow-400">
+                    <li>This feature runs Claude autonomously with minimal intervention</li>
+                    <li>It may make many API calls and incur costs</li>
+                    <li>Always review generated code before committing</li>
+                    <li>This feature may change or be removed in future versions</li>
+                  </ul>
+                </div>
+                <p>
+                  Do you want to enable Ralph Loops?
+                </p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setExperimentalWarning({ open: false, feature: null })}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              className="bg-yellow-600 hover:bg-yellow-700 text-white"
+              onClick={() => {
+                const newConfig = {
+                  ...config,
+                  experimental: { ...config?.experimental, ralphLoops: true }
+                };
+                setConfig(newConfig);
+                api.saveConfig(newConfig);
+                toast.success('Ralph Loops enabled');
+                setExperimentalWarning({ open: false, feature: null });
+              }}
+            >
+              <FlaskConical className="w-4 h-4 mr-2" />
+              Enable Feature
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
