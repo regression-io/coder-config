@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Settings, Package, RefreshCw, Rocket, Terminal,
@@ -97,6 +97,8 @@ export default function Dashboard() {
   const [addProjectOpen, setAddProjectOpen] = useState(false);
   const [rootProject, setRootProject] = useState(null); // Track root project for sticky subprojects
   const [appConfig, setAppConfig] = useState(null); // coder-config preferences
+  const [versionMismatch, setVersionMismatch] = useState(false); // Server restarted with new version
+  const loadedVersionRef = useRef(null); // Version when UI first loaded
 
   // Persist currentView to localStorage
   useEffect(() => {
@@ -203,6 +205,11 @@ export default function Dashboard() {
         setVersion(versionData?.installedVersion);
         setAppConfig(configData?.config || {});
 
+        // Store initial version for stale UI detection
+        if (!loadedVersionRef.current && versionData?.installedVersion) {
+          loadedVersionRef.current = versionData.installedVersion;
+        }
+
         if (versionData?.updateAvailable && versionData?.updateMethod === 'npm') {
           // Check if auto-update is enabled
           if (configData?.config?.autoUpdate) {
@@ -249,6 +256,26 @@ export default function Dashboard() {
     };
 
     checkForUpdates();
+  }, []);
+
+  // Periodic check for stale UI (server restarted with new version)
+  useEffect(() => {
+    const checkForStaleUI = async () => {
+      if (!loadedVersionRef.current) return;
+      try {
+        const versionData = await api.checkVersion();
+        if (versionData?.installedVersion && versionData.installedVersion !== loadedVersionRef.current) {
+          setVersionMismatch(true);
+          setVersion(versionData.installedVersion);
+        }
+      } catch {
+        // Server might be restarting, ignore
+      }
+    };
+
+    // Check every 30 seconds
+    const interval = setInterval(checkForStaleUI, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   // Handle one-click update
@@ -558,9 +585,19 @@ export default function Dashboard() {
           </ScrollArea>
           {/* Version footer */}
           <div className="px-4 py-3 border-t border-border">
-            <span className="text-xs text-muted-foreground">
-              {version ? `v${version}` : ''}
-            </span>
+            {versionMismatch ? (
+              <button
+                onClick={() => window.location.reload()}
+                className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400 hover:underline"
+              >
+                <RefreshCw className="w-3 h-3" />
+                v{version} available - click to refresh
+              </button>
+            ) : (
+              <span className="text-xs text-muted-foreground">
+                {version ? `v${version}` : ''}
+              </span>
+            )}
           </div>
         </aside>
 

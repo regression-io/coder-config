@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.42.20] - 2026-01-27
+
+### Added
+
+- **Stale UI detection** - UI now detects when server has restarted with a new version
+  - Polls server version every 30 seconds
+  - Shows "v{version} available - click to refresh" in sidebar footer when mismatch detected
+  - No more stale UI after auto-updates
+
 ## [0.42.18] - 2026-01-27
 
 ### Changed
