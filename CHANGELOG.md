@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.43.13] - 2026-01-27
+
+### Added
+
+- **Inline rules editing in Workstreams view** - Edit workstream rules directly in the expanded panel
+  - Click the rules text or Edit button to start editing
+  - Save/Cancel buttons appear when editing
+  - No need to open the full edit dialog for quick rule changes
+
 ## [0.43.11] - 2026-01-27
 
 ### Fixed

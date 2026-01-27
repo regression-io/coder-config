@@ -75,6 +75,11 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
   const [generatingRules, setGeneratingRules] = useState(false);
   const [useClaudeForRules, setUseClaudeForRules] = useState(false);
 
+  // Inline rules editing
+  const [editingRulesId, setEditingRulesId] = useState(null);
+  const [editingRulesValue, setEditingRulesValue] = useState('');
+  const [savingRules, setSavingRules] = useState(false);
+
   // CD hook and global settings
   const [cdHookStatus, setCdHookStatus] = useState({ installed: false, loading: true });
   const [globalSettings, setGlobalSettings] = useState({ workstreamAutoActivate: true });
@@ -416,6 +421,42 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
       toast.error('Failed to update workstream: ' + error.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Inline rules editing handlers
+  const handleStartEditRules = (ws) => {
+    setEditingRulesId(ws.id);
+    setEditingRulesValue(ws.rules || '');
+  };
+
+  const handleCancelEditRules = () => {
+    setEditingRulesId(null);
+    setEditingRulesValue('');
+  };
+
+  const handleSaveInlineRules = async (ws) => {
+    setSavingRules(true);
+    try {
+      const result = await api.updateWorkstream(ws.id, {
+        name: ws.name,
+        rules: editingRulesValue,
+        projects: ws.projects || [],
+      });
+      if (result.success) {
+        setWorkstreams(prev => prev.map(w =>
+          w.id === ws.id ? result.workstream : w
+        ));
+        toast.success('Rules updated');
+        setEditingRulesId(null);
+        setEditingRulesValue('');
+      } else {
+        toast.error(result.error || 'Failed to update rules');
+      }
+    } catch (error) {
+      toast.error('Failed to update rules: ' + error.message);
+    } finally {
+      setSavingRules(false);
     }
   };
 
@@ -779,16 +820,71 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
                       </DropdownMenu>
                     </div>
 
-                    {/* Rules Preview */}
+                    {/* Rules Preview / Inline Edit */}
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Rules</h4>
-                      {ws.rules ? (
-                        <pre className="text-sm text-gray-600 dark:text-slate-400 bg-white dark:bg-slate-800 rounded border border-gray-200 dark:border-slate-700 p-3 overflow-auto max-h-40 whitespace-pre-wrap">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-sm font-medium text-gray-700 dark:text-slate-300">Rules</h4>
+                        {editingRulesId === ws.id ? (
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={handleCancelEditRules}
+                              disabled={savingRules}
+                              className="text-gray-500 dark:text-slate-400 h-7"
+                            >
+                              <X className="w-4 h-4 mr-1" />
+                              Cancel
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleSaveInlineRules(ws)}
+                              disabled={savingRules}
+                              className="bg-purple-600 hover:bg-purple-700 h-7"
+                            >
+                              {savingRules ? (
+                                <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                              ) : (
+                                <Save className="w-4 h-4 mr-1" />
+                              )}
+                              Save
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleStartEditRules(ws)}
+                            className="text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 h-7"
+                          >
+                            <Edit2 className="w-4 h-4 mr-1" />
+                            Edit
+                          </Button>
+                        )}
+                      </div>
+                      {editingRulesId === ws.id ? (
+                        <Textarea
+                          value={editingRulesValue}
+                          onChange={(e) => setEditingRulesValue(e.target.value)}
+                          placeholder="Context rules for this workstream. These will be injected into every Claude session when this workstream is active."
+                          rows={8}
+                          className="font-mono text-sm"
+                          autoFocus
+                        />
+                      ) : ws.rules ? (
+                        <pre
+                          className="text-sm text-gray-600 dark:text-slate-400 bg-white dark:bg-slate-800 rounded border border-gray-200 dark:border-slate-700 p-3 overflow-auto max-h-40 whitespace-pre-wrap cursor-pointer hover:border-purple-300 dark:hover:border-purple-700 transition-colors"
+                          onClick={() => handleStartEditRules(ws)}
+                          title="Click to edit"
+                        >
                           {ws.rules}
                         </pre>
                       ) : (
-                        <p className="text-sm text-gray-500 dark:text-slate-400 italic">
-                          No rules defined. Click Edit to add context rules for this workstream.
+                        <p
+                          className="text-sm text-gray-500 dark:text-slate-400 italic cursor-pointer hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                          onClick={() => handleStartEditRules(ws)}
+                        >
+                          No rules defined. Click to add context rules for this workstream.
                         </p>
                       )}
                     </div>
