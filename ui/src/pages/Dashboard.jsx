@@ -332,6 +332,43 @@ export default function Dashboard() {
         // Manual update: show the badge
         setUpdateInfo(versionData);
         toast.info(`Update available: v${versionData.latestVersion}`);
+      } else if (updateInfo?.updateAvailable) {
+        // There's already a known update, don't contradict it
+        // If auto-update enabled, trigger it
+        if (appConfig?.autoUpdate) {
+          setCheckingUpdates(false);
+          toast.info(`Auto-updating to v${updateInfo.latestVersion}...`);
+          setUpdating(true);
+          const result = await api.performUpdate({
+            updateMethod: updateInfo.updateMethod,
+            targetVersion: updateInfo.latestVersion
+          });
+          if (result.success) {
+            toast.success(`Updated to v${result.newVersion}! Restarting server...`);
+            try { await api.restartServer(); } catch {}
+            let attempts = 0;
+            const checkServer = setInterval(async () => {
+              attempts++;
+              try {
+                await api.checkVersion();
+                clearInterval(checkServer);
+                toast.success('Server restarted! Reloading...');
+                setTimeout(() => window.location.reload(), 500);
+              } catch {
+                if (attempts > 30) {
+                  clearInterval(checkServer);
+                  toast.info('Server restarting. Please refresh the page.');
+                  setUpdating(false);
+                }
+              }
+            }, 500);
+          } else {
+            toast.error('Update failed: ' + result.error);
+            setUpdating(false);
+          }
+        } else {
+          toast.info(`Update available: v${updateInfo.latestVersion}`);
+        }
       } else {
         toast.success('You\'re on the latest version');
       }
