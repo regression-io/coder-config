@@ -98,6 +98,7 @@ export default function Dashboard() {
   const [rootProject, setRootProject] = useState(null); // Track root project for sticky subprojects
   const [appConfig, setAppConfig] = useState(null); // coder-config preferences
   const [versionMismatch, setVersionMismatch] = useState(false); // Server restarted with new version
+  const [checkingUpdates, setCheckingUpdates] = useState(false); // Manual update check in progress
   const loadedVersionRef = useRef(null); // Version when UI first loaded
 
   // Persist currentView to localStorage
@@ -277,6 +278,31 @@ export default function Dashboard() {
     const interval = setInterval(checkForStaleUI, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Manual check for updates (triggered by clicking version)
+  const handleCheckForUpdates = async () => {
+    setCheckingUpdates(true);
+    try {
+      const versionData = await api.checkVersion();
+
+      // Check for stale UI first
+      if (versionData?.installedVersion && loadedVersionRef.current &&
+          versionData.installedVersion !== loadedVersionRef.current) {
+        setVersionMismatch(true);
+        setVersion(versionData.installedVersion);
+        toast.info('New version loaded on server - click to refresh');
+      } else if (versionData?.updateAvailable) {
+        setUpdateInfo(versionData);
+        toast.info(`Update available: v${versionData.latestVersion}`);
+      } else {
+        toast.success('You\'re on the latest version');
+      }
+    } catch (error) {
+      toast.error('Failed to check for updates');
+    } finally {
+      setCheckingUpdates(false);
+    }
+  };
 
   // Handle one-click update
   const handleUpdate = async () => {
@@ -594,9 +620,17 @@ export default function Dashboard() {
                 v{version} available - click to refresh
               </button>
             ) : (
-              <span className="text-xs text-muted-foreground">
+              <button
+                onClick={handleCheckForUpdates}
+                disabled={checkingUpdates}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                title="Check for updates"
+              >
+                {checkingUpdates ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : null}
                 {version ? `v${version}` : ''}
-              </span>
+              </button>
             )}
           </div>
         </aside>
