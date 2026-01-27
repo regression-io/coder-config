@@ -1,0 +1,14 @@
+{
+  "name": "coder-config",
+  "description": "Workstream context management and session persistence for multi-project workflows",
+  "version": "1.0.0",
+  "author": {
+    "name": "regression-io",
+    "email": "support@regression.io"
+  },
+  "homepage": "https://github.com/regression-io/coder-config",
+  "repository": "https://github.com/regression-io/coder-config",
+  "license": "MIT",
+  "keywords": ["workstreams", "context", "sessions", "multi-project"],
+  "category": "productivity"
+}
