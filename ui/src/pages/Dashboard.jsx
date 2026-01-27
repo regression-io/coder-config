@@ -41,11 +41,11 @@ const navItems = [
   { id: 'registry', label: 'MCP Registry', icon: Package, section: 'Tools' },
   { id: 'plugins', label: 'Plugins', icon: Puzzle, section: 'Tools' },
   { id: 'memory', label: 'Memory', icon: Brain, section: 'Tools' },
-  // Configuration section (tool-specific settings)
-  { id: 'claude-settings', label: 'Claude Code', icon: Shield, section: 'Configuration' },
-  { id: 'gemini-settings', label: 'Gemini CLI', icon: Terminal, section: 'Configuration' },
-  { id: 'codex-settings', label: 'Codex CLI', icon: Terminal, section: 'Configuration', isNew: true },
-  { id: 'antigravity-settings', label: 'Antigravity', icon: Rocket, section: 'Configuration' },
+  // Configuration section (tool-specific settings) - visibility controlled by enabledTools
+  { id: 'claude-settings', label: 'Claude Code', icon: Shield, section: 'Configuration', tool: 'claude' },
+  { id: 'gemini-settings', label: 'Gemini CLI', icon: Terminal, section: 'Configuration', tool: 'gemini' },
+  { id: 'codex-settings', label: 'Codex CLI', icon: Terminal, section: 'Configuration', isNew: true, tool: 'codex' },
+  { id: 'antigravity-settings', label: 'Antigravity', icon: Rocket, section: 'Configuration', tool: 'antigravity' },
   // Developer section
   { id: 'create-mcp', label: 'Create MCP', icon: Wand2, section: 'Developer' },
   { id: 'loops', label: 'Ralph Loops', icon: RefreshCcw, section: 'Developer', isNew: true },
@@ -575,6 +575,7 @@ export default function Dashboard() {
                   {navItems
                     .filter(item => item.section === section)
                     .filter(item => item.id !== 'loops' || appConfig?.experimental?.ralphLoops)
+                    .filter(item => !item.tool || (appConfig?.enabledTools || ['claude']).includes(item.tool))
                     .map((item) => {
                     const Icon = item.icon;
                     const isActive = currentView === item.id;

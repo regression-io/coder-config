@@ -202,7 +202,9 @@ export default function PreferencesView({ onConfigChange }) {
     // Auto-save immediately
     try {
       await api.saveConfig(newConfig);
-      toast.success(`${tool === 'claude' ? 'Claude Code' : tool === 'gemini' ? 'Gemini CLI' : 'Antigravity'} ${newTools.includes(tool) ? 'enabled' : 'disabled'}`);
+      onConfigChange?.(newConfig);
+      const toolName = { claude: 'Claude Code', gemini: 'Gemini CLI', antigravity: 'Antigravity', codex: 'Codex CLI' }[tool] || tool;
+      toast.success(`${toolName} ${newTools.includes(tool) ? 'enabled' : 'disabled'}`);
     } catch (error) {
       // Revert on error
       setConfig(config);
