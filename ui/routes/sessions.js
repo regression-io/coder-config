@@ -44,9 +44,16 @@ function getSessionStatus(projectDir) {
       const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
       const hooks = settings.hooks || {};
       const sessionStartHooks = Array.isArray(hooks.SessionStart) ? hooks.SessionStart : [];
-      status.hooksInstalled = sessionStartHooks.some(h =>
-        typeof h === 'object' && h.command && h.command.includes('session-start')
-      );
+      status.hooksInstalled = sessionStartHooks.some(h => {
+        if (typeof h !== 'object') return false;
+        // Old format: { type, command }
+        if (h.command && h.command.includes('session-start')) return true;
+        // New format: { matcher, hooks: [{ type, command }] }
+        if (Array.isArray(h.hooks)) {
+          return h.hooks.some(hh => hh.command && hh.command.includes('session-start'));
+        }
+        return false;
+      });
 
       // Check for write permission
       const permissions = settings.permissions || {};
@@ -131,11 +138,23 @@ function installHooks() {
     settings.hooks.SessionStart = [settings.hooks.SessionStart];
   }
 
-  const hasStartHook = settings.hooks.SessionStart.some(h =>
-    typeof h === 'object' && h.command === sessionStartHook
-  );
+  // Check for hook in both old and new formats
+  const hasStartHook = settings.hooks.SessionStart.some(h => {
+    if (typeof h !== 'object') return false;
+    // Old format: { type, command }
+    if (h.command === sessionStartHook) return true;
+    // New format: { matcher, hooks: [{ type, command }] }
+    if (Array.isArray(h.hooks)) {
+      return h.hooks.some(hh => hh.command === sessionStartHook);
+    }
+    return false;
+  });
   if (!hasStartHook) {
-    settings.hooks.SessionStart.push({ type: 'command', command: sessionStartHook });
+    // Use new hook format with matcher
+    settings.hooks.SessionStart.push({
+      matcher: {},
+      hooks: [{ type: 'command', command: sessionStartHook }]
+    });
   }
 
   // Add permission to write session context file

@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.42.37] - 2026-01-27
+
+### Fixed
+
+- **Hook format updated for Claude Code** - Session hooks now use the new matcher/hooks format
+  - Old format: `{ type: 'command', command: '...' }`
+  - New format: `{ matcher: {}, hooks: [{ type: 'command', command: '...' }] }`
+  - Fixes "hooks: Expected array" settings errors in Claude Code
+  - Detection logic updated to recognize both old and new formats
+
 ## [0.42.33] - 2026-01-27
 
 ### Added
