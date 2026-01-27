@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Hook format updated for Claude Code** - Session hooks now use the new matcher/hooks format
+- **Hook format updated for Claude Code** - Session hooks now use the new hooks array format
   - Old format: `{ type: 'command', command: '...' }`
-  - New format: `{ matcher: {}, hooks: [{ type: 'command', command: '...' }] }`
-  - Fixes "hooks: Expected array" settings errors in Claude Code
+  - New format: `{ hooks: [{ type: 'command', command: '...' }] }`
+  - Note: `matcher` field omitted for SessionStart/SessionEnd (only used for tool-specific hooks)
   - Detection logic updated to recognize both old and new formats
 
 ## [0.42.33] - 2026-01-27
