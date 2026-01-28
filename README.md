@@ -211,48 +211,6 @@ coder-config workstream auto-activate "My Work" off     # Never auto-activate
 coder-config workstream auto-activate "My Work" default # Use global setting
 ```
 
-### Loop Commands (Ralph Loop) - Experimental
-
-> **Note:** Ralph Loops is an experimental feature, disabled by default. Enable it in the Web UI under **Preferences > Experimental Features**.
-
-Ralph Loops enable autonomous development - Claude Code runs continuously until a task is completed.
-
-```bash
-coder-config loop                           # List all loops
-coder-config loop create "Task description" # Create new loop
-coder-config loop create "Task" --workstream <name>  # Create loop in workstream context
-coder-config loop start <id>                # Start/resume a loop
-coder-config loop pause <id>                # Pause loop at next safe point
-coder-config loop resume <id>               # Resume paused loop
-coder-config loop cancel <id>               # Cancel loop
-coder-config loop delete <id>               # Delete loop and its data
-coder-config loop approve <id>              # Approve plan (when in plan phase)
-coder-config loop complete <id>             # Mark loop as complete
-coder-config loop status [id]               # Show status (active loop if no id)
-coder-config loop active                    # Show current active loop
-coder-config loop history                   # Show completed loops
-coder-config loop config                    # Show loop configuration
-coder-config loop config --max-iterations 50    # Set max iterations
-coder-config loop config --auto-approve-plan    # Skip manual plan approval
-```
-
-**Three-Phase Workflow**:
-1. **Clarify** - Claude asks questions to understand requirements
-2. **Plan** - Claude creates an implementation plan (requires approval)
-3. **Execute** - Claude implements the plan until complete
-
-**Running a loop**:
-```bash
-export CODER_LOOP_ID=<id>
-claude --continue "Your task description"
-```
-
-**Safety mechanisms**:
-- Iteration limits (default: 50)
-- Cost budget caps (default: $10)
-- Phase gates (manual plan approval)
-- Graceful pause on budget exceeded
-
 ### Registry Commands
 
 ```bash
@@ -659,6 +617,47 @@ User settings stored in `~/.claude-config/config.json`:
 | `registryPath` | Path to custom MCP registry |
 | `ui.port` | Default port for web UI |
 | `ui.openBrowser` | Auto-open browser on `coder-config ui` |
+
+## Ralph Loops (Experimental)
+
+> **Note:** Ralph Loops is an experimental feature, disabled by default. Enable it in the Web UI under **Preferences > Experimental Features**.
+
+Ralph Loops enable autonomous development - Claude Code runs continuously until a task is completed.
+
+```bash
+coder-config loop                           # List all loops
+coder-config loop create "Task description" # Create new loop
+coder-config loop create "Task" --workstream <name>  # Create loop in workstream context
+coder-config loop start <id>                # Start/resume a loop
+coder-config loop pause <id>                # Pause loop at next safe point
+coder-config loop resume <id>               # Resume paused loop
+coder-config loop cancel <id>               # Cancel loop
+coder-config loop delete <id>               # Delete loop and its data
+coder-config loop approve <id>              # Approve plan (when in plan phase)
+coder-config loop complete <id>             # Mark loop as complete
+coder-config loop status [id]               # Show status (active loop if no id)
+coder-config loop active                    # Show current active loop
+coder-config loop history                   # Show completed loops
+coder-config loop config                    # Show loop configuration
+coder-config loop config --max-iterations 50    # Set max iterations
+coder-config loop config --auto-approve-plan    # Skip manual plan approval
+```
+
+**Three-Phase Workflow**:
+1. **Clarify** - Claude asks questions to understand requirements
+2. **Plan** - Claude creates an implementation plan (requires approval)
+3. **Execute** - Claude implements the plan until complete
+
+**Running a loop**:
+```bash
+export CODER_LOOP_ID=<id>
+claude --continue "Your task description"
+```
+
+**Safety mechanisms**:
+- Iteration limits (default: 50)
+- Phase gates (manual plan approval)
+- Graceful pause on limit exceeded
 
 ## Requirements
 
