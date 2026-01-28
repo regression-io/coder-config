@@ -32,7 +32,7 @@ With a project added, let's look at what you can do with it.
 
 Click **Project Explorer** in the sidebar. This is your window into your project's Claude configuration. If the project has a \`.claude\` folder, you'll see its contents laid out as a file tree. If there's no \`.claude\` folder yet, you'll see a prompt to create one.
 
-The explorer shows the files Claude cares about: rules in the \`rules/\` folder, custom commands in \`commands/\`, MCP configurations, and local settings. You can click any file to view or edit it right in the browser. Right-click for more options—rename, duplicate, delete.
+The explorer shows the files Claude cares about: rules in the \`rules/\` folder, skills in \`commands/\`, MCP configurations, and local settings. You can click any file to view or edit it right in the browser. Right-click for more options—rename, duplicate, delete.
 
 ### Project Information
 
@@ -61,7 +61,7 @@ If your project doesn't have a \`.claude\` folder yet, go to Project Explorer an
 \`\`\`
 .claude/
 ├── rules/           # Markdown files with guidelines
-├── commands/        # Reusable prompt templates
+├── commands/        # Skills (reusable prompts)
 ├── settings.local.json  # Project-specific settings
 └── mcps.json        # MCP server configurations
 \`\`\`
@@ -72,7 +72,7 @@ You can also create this manually if you prefer—it's just regular folders and 
 
 The \`rules/\` folder contains markdown files that tell Claude about your project. These are instructions, conventions, things to avoid—any guidance you'd give a new team member. Claude reads them at the start of every session.
 
-The \`commands/\` folder holds reusable prompts. If you find yourself typing the same instructions over and over, turn them into a command.
+The \`commands/\` folder holds skills—reusable prompts you can invoke with slash commands. If you find yourself typing the same instructions over and over, turn them into a skill.
 
 The \`settings.local.json\` file stores project-specific settings that override global defaults. And \`mcps.json\` defines which MCP servers this project uses.
 

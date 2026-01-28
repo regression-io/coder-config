@@ -43,7 +43,7 @@ export default function CreateFileDialog({ open, onClose, dir, type, onCreate })
             <label className="text-sm font-medium">Name</label>
             <Input
               className="mt-1"
-              placeholder={type === 'command' ? 'my-command.md' : type === 'workflow' ? 'my-workflow.md' : type === 'memory' ? 'context.md' : 'my-rule.md'}
+              placeholder={type === 'command' ? 'my-skill.md' : type === 'workflow' ? 'my-workflow.md' : type === 'memory' ? 'context.md' : 'my-rule.md'}
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}

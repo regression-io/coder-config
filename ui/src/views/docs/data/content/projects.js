@@ -78,7 +78,7 @@ your-project/
 │   ├── rules/          # Rule files (*.md)
 │   │   ├── style.md
 │   │   └── patterns.md
-│   ├── commands/       # Command files (*.md)
+│   ├── commands/       # Skill files (*.md)
 │   │   ├── review.md
 │   │   └── test.md
 │   ├── workflows/      # Workflow files (*.md)

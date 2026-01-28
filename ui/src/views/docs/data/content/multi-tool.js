@@ -62,7 +62,7 @@ When you apply config, both files are generated:
 | MCP Config | Separate \`.mcp.json\` | Embedded in settings.json |
 | Global Instructions | \`~/.claude/CLAUDE.md\` | \`~/.gemini/GEMINI.md\` |
 | Project Instructions | \`CLAUDE.md\` | \`GEMINI.md\` |
-| Commands | \`.claude/commands/\` | \`.gemini/commands/\` (TOML) |
+| Skills | \`.claude/commands/\` | \`.gemini/commands/\` (TOML) |
 
 ### Gemini Settings Editor
 
@@ -77,7 +77,7 @@ Access via **Gemini CLI** in the sidebar to:
 | Purpose | File |
 |---------|------|
 | Project instructions | \`GEMINI.md\` or \`.gemini/GEMINI.md\` |
-| Commands | \`.gemini/commands/*.toml\` |
+| Skills | \`.gemini/commands/*.toml\` |
 | Config folder | \`.gemini/\` |
     `
   },
@@ -155,7 +155,7 @@ All tools use identical JSON format for MCP server definitions:
 | MCP Config | \`.mcp.json\` | \`.gemini/settings.json\` | \`~/.codex/config.toml\` | \`~/.gemini/antigravity/\` |
 | Config Format | JSON | JSON | TOML | JSON |
 | Env Interpolation | Yes (\`\${VAR}\`) | Yes | Yes | No |
-| Commands | \`.claude/commands/\` | \`.gemini/commands/\` | N/A | Unknown |
+| Skills | \`.claude/commands/\` | \`.gemini/commands/\` | N/A | Unknown |
 | Rules | \`.claude/rules/\` | \`.gemini/rules/\` | N/A | \`.agent/rules/\` |
 | Instructions | \`CLAUDE.md\` | \`GEMINI.md\` | N/A | \`GEMINI.md\` |
 
@@ -242,7 +242,7 @@ Rules can be synced in any direction between these three tools.
 - Syncing **copies** files (doesn't move them)
 - Target files are **overwritten** if they exist
 - Instructions files (CLAUDE.md / GEMINI.md) are not synced
-- Commands and workflows are Claude-specific (not synced)
+- Skills and workflows are Claude-specific (not synced)
     `
   },
 };

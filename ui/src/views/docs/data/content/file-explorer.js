@@ -65,27 +65,27 @@ Rules should be written in markdown and contain:
 Rules are loaded in order from global to project. Project rules can override global rules.
     `
   },
-  'commands': {
-    title: 'Commands',
+  'skills': {
+    title: 'Skills',
     content: `
-## Commands
+## Skills
 
-Commands are reusable prompts that can be invoked in Claude Code.
+Skills are reusable prompts that can be invoked in Claude Code via slash commands.
 
-### Creating Commands
+### Creating Skills
 
 1. Navigate to a \`.claude\` folder in the Project Explorer
-2. Click the "+" button next to "commands"
+2. Click the "+" button and select "New Skill"
 3. Enter a name (e.g., "review")
 
-### Command Content
+### Skill Content
 
-Commands are markdown files containing a prompt template. They can include:
+Skills are markdown files containing a prompt template. They can include:
 - Instructions for Claude
 - Templates with placeholders
 - Multi-step workflows
 
-### Example Command
+### Example Skill
 
 \`\`\`markdown
 # Code Review
@@ -100,9 +100,13 @@ Review the selected code for:
 Provide specific suggestions with code examples.
 \`\`\`
 
-### Using Commands
+### Using Skills
 
-In Claude Code, use \`/command-name\` to invoke a command.
+In Claude Code, use \`/skill-name\` to invoke a skill.
+
+### Note on Commands
+
+Claude Code previously called these "commands" and stored them in \`.claude/commands/\`. Both locations still work - skills and commands have been merged into one system.
     `
   },
   'workflows': {
@@ -209,7 +213,7 @@ Coder Config uses a hierarchical configuration system where settings cascade fro
 
 - **MCPs**: Merged, with local configs overriding global
 - **Rules**: All rules are loaded, local rules can override
-- **Commands**: All commands are available, local takes precedence
+- **Skills**: All skills are available, local takes precedence
 - **Settings**: Deep merged, local values override
 
 ### Viewing the Hierarchy

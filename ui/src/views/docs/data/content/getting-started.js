@@ -64,7 +64,7 @@ Click "Add Project" to register directories where you use Claude Code.
 | Feature | Description |
 |---------|-------------|
 | **Rules** | Guidelines Claude follows in this project |
-| **Commands** | Reusable prompts (slash commands) |
+| **Skills** | Reusable prompts (slash commands) |
 | **MCPs** | External tools Claude can use |
 | **Permissions** | What Claude can do automatically |
 

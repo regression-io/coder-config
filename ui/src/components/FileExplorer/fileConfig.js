@@ -28,7 +28,7 @@ export const FILE_CONFIG = {
     icon: Terminal,
     color: 'text-green-600',
     bgColor: 'bg-green-50',
-    label: 'Command',
+    label: 'Skill',
   },
   rule: {
     icon: BookOpen,

@@ -4,7 +4,7 @@ export const pluginsContent = {
     content: `
 ## Plugins
 
-Claude Code plugins extend functionality with LSP servers, MCP servers, and commands.
+Claude Code plugins extend functionality with LSP servers, MCP servers, and skills.
 
 ### What Are Plugins?
 
@@ -12,7 +12,7 @@ Plugins are packages that add capabilities to Claude Code:
 
 - **LSP Servers** - Language Server Protocol servers for code intelligence
 - **MCP Servers** - Model Context Protocol servers for additional tools
-- **Commands** - Reusable prompts and workflows
+- **Skills** - Reusable prompts and workflows
 
 ### Plugin Directory
 
@@ -29,7 +29,7 @@ The **Plugins** page shows all available plugins with:
 |------|-------|-------------|
 | LSP | \`LSP\` | Language server providing code intelligence |
 | MCP | \`MCP\` | Model context protocol server |
-| Commands | \`CMD\` | Custom commands and prompts |
+| Skills | \`CMD\` | Custom skills and prompts |
     `
   },
   'installing-plugins': {

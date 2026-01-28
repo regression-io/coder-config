@@ -160,7 +160,7 @@ export default function FolderRow({
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'command'); }}>
               <Terminal className="w-4 h-4 mr-2" />
-              New Command
+              New Skill
             </DropdownMenuItem>
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'rule'); }}>
               <BookOpen className="w-4 h-4 mr-2" />

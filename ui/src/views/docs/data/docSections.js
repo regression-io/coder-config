@@ -31,7 +31,7 @@ const docSections = [
     subsections: [
       { id: 'claude-folders', title: '.claude Folders' },
       { id: 'rules', title: 'Rules' },
-      { id: 'commands', title: 'Commands' },
+      { id: 'skills', title: 'Skills' },
       { id: 'workflows', title: 'Workflows' },
       { id: 'hierarchy', title: 'Configuration Hierarchy' },
       { id: 'subprojects', title: 'Sub-Projects' },
