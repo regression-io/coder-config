@@ -2,60 +2,47 @@ export const mcpContent = {
   'what-are-mcps': {
     title: 'What Are MCPs?',
     content: `
-MCP stands for **Model Context Protocol**. Think of MCPs as "plugins" that give Claude new abilities.
+MCP stands for Model Context Protocol. In practical terms, MCPs are plugins that give Claude new abilities—ways to interact with systems beyond just reading and writing files.
 
-### What Can MCPs Do?
+### What MCPs Can Do
 
-MCPs connect Claude to external systems:
+By default, Claude can read files, run shell commands, and write code. MCPs extend this. A database MCP lets Claude query your PostgreSQL or MySQL database directly. A GitHub MCP lets it read issues, create pull requests, and manage repositories. A memory MCP gives Claude persistent storage across sessions.
 
-- **Database access** - Query your PostgreSQL, MySQL, or SQLite databases
-- **File operations** - Read/write files with more control
-- **API integrations** - Connect to GitHub, Slack, Linear, and more
-- **Memory** - Persistent storage across sessions
-- **Custom tools** - Anything you can imagine!
+The protocol is standardized, so MCPs work consistently regardless of who built them. Anthropic publishes official MCPs for common use cases, and there's a growing ecosystem of community-built ones for everything from Slack integration to Kubernetes management.
 
 ### How They Work
 
-1. An MCP server runs in the background
-2. Claude connects to it via the MCP protocol
-3. Claude can now use the tools that server provides
+When you configure an MCP, you're telling Claude how to start a server that provides specific tools. Claude connects to that server and can then use whatever capabilities it offers. From your perspective, you just see Claude suddenly able to do things it couldn't do before—query your database, post to Slack, read from a spreadsheet.
 
-### Example: Filesystem MCP
+The server runs locally on your machine. Your data doesn't go anywhere unusual; the MCP just acts as a bridge between Claude and the system you're connecting to.
 
-The filesystem MCP lets Claude:
-- Read files from specific directories
-- Write files with proper permissions
-- Search file contents
+### A Practical Example
 
-\`\`\`
-Claude: "Read the config file at /etc/myapp/config.json"
-→ Uses filesystem MCP to safely access the file
-\`\`\`
+Say you add the filesystem MCP configured to access \`/var/logs/\`. Now Claude can read log files from that directory. You can ask "What errors happened in the last hour?" and Claude reads the actual logs to answer, rather than asking you to paste them.
 
-### Where Do MCPs Come From?
+Or add the GitHub MCP with your personal token. Claude can now list your repos, read issues, even create PRs on your behalf. The things you'd normally do through the GitHub UI or CLI, Claude can do directly.
 
-- **Official MCPs** - Built by Anthropic and partners
-- **Community MCPs** - Open source on npm and GitHub
-- **Custom MCPs** - Build your own for specific needs
+### Where MCPs Come From
+
+Anthropic maintains official MCPs for common integrations. The community has built many more, available through npm or GitHub. And if you have specific needs, you can build your own—the protocol is documented and there are templates to start from.
     `
   },
   'adding-mcp': {
     title: 'Adding Your First MCP',
     content: `
-Let's add an MCP to your project. We'll use the popular **filesystem** MCP as an example.
+Let's add an MCP to see how it works. We'll use the filesystem MCP as an example since it's straightforward and immediately useful.
 
-![MCP Registry](/tutorial/mcp-registry.png)
+### Finding the MCP Registry
 
-### Step by Step
+Click **MCP Registry** in the sidebar. This shows MCPs from the global registry—a curated list of known, working servers. Use the search bar to find "filesystem" and click on it to see the details.
 
-1. Click **"MCP Registry"** in the sidebar
-2. Use the search bar to find "filesystem"
-3. Click on the MCP card to see details
-4. Click **"Add to Project"**
+### Adding to Your Project
 
-### Configure the MCP
+On the MCP detail page, you'll see an **Add to Project** button. Click it. This adds the MCP to your current project's configuration, stored in \`.claude/mcps.json\`.
 
-After adding, you'll see a configuration panel:
+### Configuration
+
+After adding, you'll see the configuration panel. The filesystem MCP needs to know which directories Claude should be able to access. The default config looks like this:
 
 \`\`\`json
 {
@@ -68,75 +55,75 @@ After adding, you'll see a configuration panel:
 }
 \`\`\`
 
-Customize the path to match where you want Claude to have access.
+Change \`/path/to/allowed/directory\` to an actual path on your system—maybe \`/var/logs\` or \`/Users/yourname/data\`. You can specify multiple paths by adding more entries to the args array.
 
-### Apply Your Changes
+### Applying the Configuration
 
-After configuring:
-1. Click **"Re-apply Config"** in the header
-2. Restart Claude Code if it's running
+After configuring, click **Re-apply Config** in the header. This updates the generated config files that Claude reads. If Claude Code is already running, restart it so it picks up the new MCP.
 
-### Verify It's Working
+### Testing It Works
 
-In Claude Code, try:
-\`\`\`
-"List files in /path/to/allowed/directory"
-\`\`\`
+In Claude Code, try asking something that uses your new MCP. If you configured the filesystem MCP for \`/var/logs\`, ask "List files in /var/logs" or "Show me the most recent log entries." Claude should respond with actual content from those files.
 
-If Claude can list the files, your MCP is working!
+If it doesn't work, check that the path exists and is readable, that you clicked Re-apply, and that Claude Code was restarted after the change.
 
-### Popular MCPs to Try
+### What Else to Try
 
-- **@anthropic/mcp-server-filesystem** - File access
-- **@anthropic/mcp-server-memory** - Persistent memory
-- **@anthropic/mcp-server-github** - GitHub integration
-- **@anthropic/mcp-server-postgres** - PostgreSQL queries
+Other popular MCPs worth exploring: the **memory** MCP for persistent storage, the **GitHub** MCP if you work with GitHub repos, and the **postgres** MCP if you have databases to query. Each one unlocks new capabilities.
     `
   },
   'mcp-config': {
     title: 'Configuring MCPs',
     content: `
-Each MCP has its own configuration options. Here's how to manage them.
+Each MCP has its own configuration needs. Some just need a command to run; others need API keys, database URLs, or other credentials. Here's how to manage all of that.
 
 ### The Configuration Panel
 
-When you click on an MCP in your project, you'll see:
-- **Command** - How to start the server
-- **Args** - Arguments passed to the server
-- **Environment Variables** - Secrets and settings
+When you click an MCP that's been added to your project, you see its configuration panel. The main fields are:
 
-### Environment Variables
+**Command** — The program to run. Usually \`npx\` for npm packages, or a direct path to an executable.
 
-Many MCPs need API keys or secrets. Add them in the **Environment Variables** section:
+**Args** — Arguments passed to the command. This typically includes the package name and any configuration values.
+
+**Environment Variables** — Key-value pairs made available to the MCP process. This is where secrets go.
+
+### Environment Variables and Secrets
+
+Many MCPs need authentication. The GitHub MCP needs a personal access token. Database MCPs need connection strings. API integrations need API keys.
+
+Add these in the Environment Variables section:
 
 \`\`\`
 GITHUB_TOKEN=ghp_xxxxxxxxxxxx
-DATABASE_URL=postgres://user:pass@host/db
+DATABASE_URL=postgres://user:pass@localhost/mydb
 \`\`\`
 
-These are stored locally and **never** committed to git.
+These values are stored locally in your \`.claude/.env\` file. They're never committed to git (add that file to \`.gitignore\` if it isn't already). The MCP sees them as environment variables when it starts.
 
 ### Global vs Project MCPs
 
-- **Global MCPs** apply to all projects (configured in Preferences)
-- **Project MCPs** apply to one project (stored in \`.claude/mcps.json\`)
+You can configure MCPs at two levels:
 
-Use global for MCPs you want everywhere (like memory). Use project for project-specific ones (like a specific database).
+**Global MCPs** apply to all your projects. Configure these in Preferences → MCP Servers. Good candidates: memory (persistent storage across everything), tools you use universally.
 
-### Removing MCPs
+**Project MCPs** apply to one project. Configure these in the MCP Registry when a project is selected. Good candidates: database connections, project-specific API integrations.
 
-To remove an MCP:
-1. Go to MCP Registry
-2. Find the MCP in your project list
-3. Click the delete button
+When Claude starts in a project directory, it loads global MCPs first, then adds any project-specific ones.
+
+### Removing and Disabling
+
+To remove an MCP from a project, find it in your project's MCP list and click the delete icon. To temporarily disable without removing, look for the toggle switch—disabled MCPs stay in your config but don't load.
 
 ### Troubleshooting
 
-If an MCP isn't working:
-1. Check the environment variables are set correctly
-2. Make sure the MCP package is installed
-3. Restart Claude Code
-4. Check Claude's output for error messages
+When an MCP isn't working, check these things in order:
+
+1. Are environment variables set? Missing tokens or credentials are the most common problem.
+2. Is the MCP package installed? Try running the command manually in your terminal.
+3. Did you click Re-apply and restart Claude? Config changes don't take effect until both happen.
+4. Check Claude's output for error messages—they usually point directly at the problem.
+
+The MCP Registry includes troubleshooting notes for each MCP. Check there if you're stuck on a specific one.
     `
   },
 };

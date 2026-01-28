@@ -2,131 +2,141 @@ export const permissionsContent = {
   'understanding-permissions': {
     title: 'How Permissions Work',
     content: `
-Permissions control what Claude can do **automatically** vs what requires your approval.
+Permissions control how much autonomy Claude has. Without them, Claude either asks permission for everything (slow and tedious) or runs in full trust mode (fast but risky). Permissions let you find the middle ground—automatic approval for safe operations, manual review for sensitive ones.
 
-### The Three Categories
+### The Three Levels
 
-**Allow** (Green)
-- Claude does this without asking
-- Good for safe, routine operations
-- Example: Reading source code files
+**Allow** means Claude proceeds without asking. Use this for operations that are safe and frequent. Reading source code files, running test suites, checking git status—things you'd approve 100% of the time anyway. Allowing them saves you from constant "May I?" dialogs.
 
-**Ask** (Amber)
-- Claude asks for permission each time
-- Good for operations you want to review
-- Example: Running npm install
+**Ask** means Claude pauses and requests permission. Use this for operations you want to review before they happen. Installing npm packages, editing configuration files, running database migrations—things that could cause problems if done wrong. You see what Claude wants to do and decide whether to approve.
 
-**Deny** (Red)
-- Claude cannot do this at all
-- Good for dangerous operations
-- Example: Deleting production files
+**Deny** means Claude cannot perform that operation at all. Use this for things that should never happen automatically. Deleting production files, pushing to main without review, exposing secrets—operations where the risk isn't worth the convenience.
+
+### Finding the Balance
+
+The goal is smooth flow for routine work while keeping guardrails on risky operations. Start by thinking about your typical development session. What does Claude do repeatedly that you always approve? Those operations should be allowed. What operations would you want to review before they happen? Those should be ask. What should never happen? Those should be denied.
+
+Most developers land somewhere like: allow reading files and running tests, ask before editing files or running arbitrary shell commands, deny operations that touch production or delete things.
 
 ### Why This Matters
 
-Without permissions:
-- Claude asks about EVERYTHING (annoying)
-- Or you use "trust mode" (risky)
+Good permissions make Claude feel like a trusted collaborator rather than an overeager intern who needs constant supervision. You can give Claude a task and let it work without interrupting you every few seconds. But you still have oversight where it counts.
 
-With permissions:
-- Claude works smoothly on safe operations
-- You stay in control of sensitive ones
-
-### Example Workflow
-
-1. You allow \`Read(**)\` - Claude can read any file
-2. You ask for \`Bash(npm:*)\` - Claude asks before running npm commands
-3. You deny \`Edit(.env)\` - Claude can never edit .env files
-
-This gives you speed AND safety.
+Bad permissions—either too restrictive or too loose—create friction. Too restrictive and you're just clicking "approve" constantly. Too loose and you're anxious about what Claude might do while you're not looking.
     `
   },
   'setting-permissions': {
     title: 'Setting Up Permissions',
     content: `
-Let's configure some permissions for your workflow.
+Let's configure permissions for your workflow.
 
-![Claude Code Settings](/tutorial/claude-settings.png)
+### Getting to the Permissions Panel
 
-### Getting There
+Click **Claude Code** in the sidebar. Scroll to the **Permissions** section. You'll see three columns: Allow, Ask, and Deny. Each shows the rules currently configured for that level.
 
-1. Click **"Claude Code"** in the sidebar
-2. Find the **"Permissions"** section
-3. You'll see three tabs: Allow, Ask, Deny
+### Adding Rules
 
-### Adding a Rule
+Click **Add Rules** on any column. A dialog appears with two options: choose from presets or write a custom rule.
 
-1. Click **"Add Rules"** on any tab
-2. Choose from **presets** or create a **custom rule**
-3. Select one or more rules to add
-4. Click **"Add"**
+Presets cover common cases—"Read all files," "Run npm commands," "Edit source files." These are tested patterns that work well for most developers. Start with presets unless you have specific needs.
 
-### Recommended Starting Point
+Custom rules let you be more precise. Want to allow editing only TypeScript files? Allow bash commands only in certain directories? Custom rules give you that control.
 
-For most developers, try:
+### A Good Starting Point
+
+If you're not sure what to configure, here's a reasonable baseline:
 
 **Allow:**
-- \`Read(**)\` - Read all files
-- \`Bash(npm:*)\` - Run npm commands
-- \`Bash(git:*)\` - Run git commands
+- \`Read(**)\` — Read any file. Claude needs to understand your code to help with it.
+- \`Bash(npm:test)\` — Run tests. Tests should be safe to run.
+- \`Bash(git:status)\` — Check git state. Read-only, no risk.
 
 **Ask:**
-- \`Edit(**)\` - Edit any file (review changes)
-- \`Write(**)\` - Create new files
+- \`Edit(**)\` — Edit any file. Review changes before they happen.
+- \`Write(**)\` — Create new files. Know what's being added.
+- \`Bash(npm:install)\` — Install packages. Approve new dependencies.
 
 **Deny:**
-- \`Edit(.env)\` - Protect secrets
-- \`Bash(rm:*)\` - No delete commands
+- \`Edit(.env*)\` — Never edit env files. Too easy to expose secrets.
+- \`Bash(rm:*)\` — No delete commands. Prevent accidents.
 
-### Hover for Explanations
+Adjust based on your comfort level. Some developers allow edits to speed things up. Others ask about everything and only allow pure reads.
 
-Hover over any rule chip to see:
-- What the rule means in plain English
-- Examples of what it matches
-- What category means for this operation
+### Understanding the Patterns
+
+Permissions use patterns to match operations:
+
+\`**\` matches everything. \`*.js\` matches JavaScript files. \`src/**\` matches anything under src/.
+
+For bash commands, \`npm:*\` matches any npm command. \`git:push\` matches exactly that command. \`*\` matches any command (use carefully).
+
+Hover over any rule chip to see what it matches. The UI explains each pattern in plain English.
+
+### Testing Your Setup
+
+After configuring, try working with Claude normally. If you're approving the same thing repeatedly, consider allowing it. If something happens that makes you uncomfortable, add an ask or deny rule. Permissions are meant to be tuned over time.
     `
   },
   'permission-patterns': {
     title: 'Permission Patterns',
     content: `
-Permissions use **patterns** to match operations. Here's how they work.
+Permissions use pattern matching to determine what operations they cover. Understanding patterns lets you write precise rules.
 
 ### File Patterns
 
-- \`**\` - All files, any depth
-- \`*.js\` - All .js files in current directory
-- \`src/**\` - Everything under src/
-- \`.env\` - Exactly the .env file
+These control file operations—Read, Edit, Write.
+
+\`**\` — Everything, any depth. \`Read(**)\` means read any file anywhere.
+
+\`*.js\` — All .js files in the current directory only.
+
+\`**/*.js\` — All .js files at any depth.
+
+\`src/**\` — Everything under the src/ folder.
+
+\`.env\` — Exactly that file, nothing else.
+
+\`*.{ts,tsx}\` — TypeScript and TSX files.
 
 ### Bash Patterns
 
-- \`npm:*\` - Any npm command with any args
-- \`git:*\` - Any git command
-- \`node:*\` - Run node with any args
-- \`*\` - Any command (be careful!)
+These control what shell commands Claude can run.
 
-### Pattern Examples
+\`npm:*\` — Any npm command with any arguments. Matches "npm install", "npm test", "npm run build".
 
-\`\`\`
-Read(src/**)        → Read any file under src/
-Edit(*.ts)          → Edit TypeScript files
-Bash(npm:install)   → Run "npm install" only
-Bash(docker:*)      → Any docker command
-Write(tests/**)     → Create files under tests/
-\`\`\`
+\`git:*\` — Any git command.
+
+\`npm:test\` — Exactly "npm test" and nothing else.
+
+\`*\` — Any command at all. Be careful with this in Allow.
 
 ### MCP Patterns
 
-\`\`\`
-mcp__filesystem__*  → Any filesystem MCP tool
-mcp__github__*      → Any GitHub MCP tool
-mcp__*__*           → Any MCP tool (broad!)
-\`\`\`
+These control which MCP tools Claude can use.
 
-### Tips
+\`mcp__filesystem__*\` — Any tool from the filesystem MCP.
 
-- Start restrictive, then allow more as needed
-- Use specific patterns for sensitive operations
-- Group related permissions (all npm stuff in one rule)
+\`mcp__github__*\` — Any GitHub MCP tool.
+
+\`mcp__*__*\` — Any tool from any MCP. Very broad.
+
+### Combining Patterns
+
+You can add multiple rules at each level. They combine logically—if any Allow rule matches, the operation is allowed (unless a Deny rule also matches). Deny takes precedence.
+
+A reasonable combination:
+- Allow \`Read(**)\` — Read anything
+- Allow \`Edit(src/**)\` — Edit source files
+- Deny \`Edit(.env*)\` — But never env files
+- Ask \`Edit(**)\` — Ask for everything else
+
+### Precision vs Simplicity
+
+More precise patterns give finer control but require more maintenance. Simpler patterns are easier to understand but less flexible.
+
+Start simple. \`Allow Read(**)\` is probably fine—reading files is rarely dangerous. \`Ask Edit(**)\` is a safe default for modifications. Add more specific rules when you notice patterns in what you're approving or denying repeatedly.
+
+The permission system is designed to evolve. Your initial setup doesn't have to be perfect. Watch how Claude operates, see what interrupts your flow or makes you nervous, and adjust accordingly.
     `
   },
 };

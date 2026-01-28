@@ -2,115 +2,86 @@ export const loopsContent = {
   'what-are-loops': {
     title: 'What Are Ralph Loops?',
     content: `
-## Ralph Loops: Autonomous Development
+> **Experimental Feature:** Ralph Loops must be enabled in **Preferences → Experimental Features** before use.
 
-> **Experimental Feature:** Ralph Loops must be enabled in **Preferences > Experimental Features** before use.
+Ralph Loops let Claude work autonomously on larger tasks. Instead of the usual back-and-forth where you give Claude an instruction, it does some work, and you say "continue" over and over, loops let Claude keep going until the task is done.
 
-Ever wished Claude could just... keep going until a task is done?
+### The Problem with Long Tasks
 
-That's exactly what **Ralph Loops** do.
+Normally, working with Claude on substantial tasks feels like pushing a boulder uphill. You ask for a feature, Claude makes progress, hits a natural stopping point, and waits. You say "keep going." It continues, stops again. "Continue." More progress. "Don't stop." This can go on for a while.
 
-### The Old Way
+The overhead isn't just the typing. Each round trip breaks your flow. You're either watching Claude work, or you come back to find it waiting for permission to continue.
 
-\`\`\`
-You: "Add user authentication"
-Claude: *makes some progress* "I've started the auth module..."
-You: "Continue"
-Claude: *more progress* "Added the login endpoint..."
-You: "Keep going"
-Claude: *even more* "JWT tokens are set up..."
-You: "Finish it"
-...repeat 10 more times...
-\`\`\`
+### What Loops Change
 
-### The Ralph Loop Way
+With a Ralph Loop, you describe the task once. Claude asks clarifying questions to make sure it understands. Then it drafts a plan. You review and approve the plan. Claude executes, iteration after iteration, until the task is complete. You can walk away and come back to finished work.
 
-\`\`\`
-You: Create a loop "Add user authentication"
-Claude: *asks clarifying questions*
-Claude: *creates implementation plan*
-You: "Looks good, approve"
-Claude: *implements everything autonomously*
-Claude: "Done! Authentication system complete."
-\`\`\`
+### The Three Phases
 
-### Three Phases
+**Clarify** — Claude asks questions about requirements, scope, and preferences. This happens at the start. Better to surface ambiguities now than discover them mid-implementation.
 
-1. **Clarify** - Claude asks questions to understand requirements
-2. **Plan** - Claude creates a detailed implementation plan
-3. **Execute** - Claude implements the plan, iteration by iteration
+**Plan** — Claude creates a detailed implementation plan. You see exactly what it intends to do before any code changes. Approve to proceed, or revise the plan first.
 
-### Safety Built In
+**Execute** — Claude works through the plan, step by step. Each iteration makes progress. The loop continues automatically until the task is done or a limit is reached.
 
-- **Iteration limits** prevent runaway loops (default: 50)
-- **Cost budgets** cap spending (default: $10)
-- **Plan approval** lets you review before execution
-- **Pause anytime** and resume later
+### Built-in Safety
+
+Autonomous execution raises valid concerns. What if Claude goes off track? What if it runs up a huge bill? What if it breaks something?
+
+Loops have guardrails. **Iteration limits** cap how many rounds Claude can run (default: 50). **Cost budgets** cap spending (default: $10). You can **pause anytime** and resume later. The **plan approval** step ensures you know what's coming before execution begins.
+
+These aren't just safeguards—they're part of the workflow. You stay in control of scope and cost while still getting the benefits of autonomous execution.
     `
   },
   'creating-first-loop': {
     title: 'Creating Your First Loop',
     content: `
-## Let's Create a Loop!
+Let's create a loop to see how autonomous development works.
 
 ### Step 0: Enable the Feature
 
-First, go to **Preferences > Experimental Features** and enable **Ralph Loops**.
+Loops are experimental. Go to **Preferences → Experimental Features** and enable **Ralph Loops**. Once enabled, you'll see "Ralph Loops" appear in the sidebar under Developer.
 
 ### Step 1: Open Ralph Loops
 
-Click **Ralph Loops** in the sidebar (under Developer).
+Click **Ralph Loops** in the sidebar. You'll see a list of loops (empty if this is your first) and a button to create a new one.
 
-### Step 2: Click New Loop
+### Step 2: Describe Your Task
 
-You'll see a dialog asking for a task description.
+Click **New Loop**. A dialog asks for a task description. This is your chance to explain what you want Claude to accomplish.
 
-### Step 3: Describe Your Task
+Be specific. Good task descriptions:
+- "Add a dark mode toggle to the settings page. Store preference in localStorage. Respect system preference by default."
+- "Create unit tests for the UserService class. Cover all public methods. Use Jest."
+- "Refactor the payment module to use async/await instead of callbacks. Update all calling code."
 
-Be specific! Good examples:
+Vague descriptions lead to vague results:
+- "Fix bugs" — Which bugs?
+- "Make it better" — Better how?
 
-- "Add a dark mode toggle to the settings page"
-- "Create unit tests for the UserService class"
-- "Refactor the payment module to use async/await"
+### Step 3: Create and Start
 
-Not as helpful:
-- "Fix bugs" (which ones?)
-- "Make it better" (how?)
+Click **Create Loop**. The loop appears in your list with status "pending." Click the play button to start it, or note the command shown in the UI to start it from your terminal.
 
-### Step 4: Create the Loop
+### Step 4: Run Through the Phases
 
-Click **Create Loop**. You'll see it in the list with status "pending".
+Once started, the loop enters the **Clarify** phase. Claude might ask questions: "Should dark mode affect the entire app or just the settings page?" Answer these to help Claude understand your requirements fully.
 
-### Step 5: Start the Loop
+After clarification, Claude moves to **Plan**. You'll see a detailed breakdown of what it intends to do. Review this carefully. If something looks wrong, revise the plan. If it looks good, approve it.
 
-Click the **play button** or run:
+With plan approved, Claude enters **Execute**. Watch the progress indicators showing iterations completed and budget used. Claude works through the plan, making real changes to your codebase.
 
-\`\`\`bash
-coder-config loop start <loop-id>
-\`\`\`
+### Monitoring Progress
 
-### Step 6: Run with Claude
+The UI shows real-time status. You can see which iteration Claude is on, what it's currently doing, and how much of the budget it's consumed. If something goes wrong, you can pause the loop immediately.
 
-The UI shows you the command to run:
+When the task completes, Claude reports what it accomplished. Review the changes, run your tests, and verify everything works as expected.
 
-\`\`\`bash
-export CODER_LOOP_ID=<loop-id>
-claude --continue "Your task description"
-\`\`\`
+### When to Use Loops
 
-### What Happens Next
+Loops work best for well-defined tasks that take significant effort but don't require constant human judgment. Feature implementations, test coverage, refactoring, migration work—things where the goal is clear but the execution is tedious.
 
-1. Claude enters **Clarify** phase, asking questions
-2. Once clear, moves to **Plan** phase
-3. You **approve** the plan
-4. Claude enters **Execute** phase
-5. Loop continues until task is complete!
-
-### Pro Tip
-
-Watch the progress bars! They show:
-- **Iterations** - How many rounds completed
-- **Budget** - Estimated cost so far
+For exploratory work where you're not sure what you want yet, the normal interactive mode might serve you better. Loops shine when you know the destination; they handle the journey.
     `
   },
 };

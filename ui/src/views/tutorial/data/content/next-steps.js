@@ -2,54 +2,48 @@ export const nextStepsContent = {
   'next-steps': {
     title: 'Next Steps',
     content: `
-You've completed the Coder Config tutorial! You now know how to:
+You've finished the Coder Config tutorial. At this point you know how to add projects, write rules, configure MCP servers, set up permissions, use the memory system, install plugins, work with workstreams, and sync across multiple tools.
 
-- Add and manage projects
-- Create rules for Claude
-- Configure MCP servers
-- Set up permissions
-- Use the memory system
-- Install plugins
-- Work with workstreams
-- Sync across multiple tools
+That covers the core functionality. Here's how to go deeper.
 
-### What's Next?
+### Explore on Your Own
 
-**Explore the Docs**
+The best way to learn is to use Coder Config on real projects. Add your main development project, write some rules, install a plugin or two. Pay attention to where Claude surprises you—either by not knowing something it should, or by doing something you'd prefer it didn't. Those moments are opportunities to refine your configuration.
 
-For deeper dives, check out **Docs & Help** in the sidebar. It has detailed information on every feature.
+### The Documentation
 
-**Try Creating an MCP**
+When you need details on specific features, check **Docs & Help** in the sidebar. It has comprehensive reference material for every part of Coder Config—command syntax, configuration file formats, MCP protocol details.
 
-Click **"Create MCP"** to build your own MCP server. Great for connecting Claude to your internal tools.
+### Creating Your Own
 
-**Join the Community**
+Once you understand how plugins work, consider creating your own. Your team's conventions, your company's patterns, integrations with your internal tools—these make great plugins that you can share with colleagues.
 
-- **GitHub**: Report issues and request features
-- **Discussions**: Share your configurations
+Same goes for MCP servers. If you have internal systems that Claude should be able to access, you can build custom MCP servers. The protocol is documented, and templates exist to help you get started.
 
-### Quick Reference
+### Community and Feedback
 
-**Keyboard Shortcuts**
-- \`Cmd/Ctrl + K\` - Quick project switch
-- \`Cmd/Ctrl + ,\` - Open preferences
-- \`Cmd/Ctrl + R\` - Refresh
+Coder Config is actively developed. If you find bugs, want features, or have suggestions, the GitHub repository is the place to go. Issues and discussions welcome.
 
-**For CLI Users**
+### Command Line Reference
+
+For those who prefer the terminal, Coder Config has a full CLI:
+
 \`\`\`bash
-coder-config ui          # Start the UI
-coder-config ui stop     # Stop the daemon
-coder-config apply       # Apply config to current project
-coder-config --help      # See all commands
+coder-config ui              # Start the web interface
+coder-config ui stop         # Stop the daemon
+coder-config apply           # Apply config to current project
+coder-config mcp add <name>  # Add an MCP server
+coder-config workstream use  # Activate a workstream
+coder-config --help          # See all commands
 \`\`\`
 
-*Desktop app users: These commands are optional - the app handles everything automatically.*
+Everything you can do in the UI, you can do from the command line. Some power users prefer it.
 
-### Thank You!
+### Thank You
 
-Thanks for using Coder Config. We built this to make working with AI coding tools easier and more powerful.
+Thanks for using Coder Config. The goal is to make AI coding assistants work the way you want them to, without the friction of scattered configuration files and forgotten context. Hopefully this tool helps.
 
-Happy coding!
+Happy coding.
     `
   },
 };

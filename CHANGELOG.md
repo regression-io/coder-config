@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.43.22] - 2026-01-28
+
+### Changed
+
+- **Tutorial content rewritten** - More narrative prose, fewer bullet points
+  - All tutorial sections now use walkthrough explanations instead of reference lists
+  - Content flows as readable guidance rather than terse documentation
+
+## [0.43.21] - 2026-01-27
+
+### Fixed
+
+- **Plugin install error from daemon** - Resolve full path to `claude` binary
+  - Daemon processes don't have full PATH environment
+  - Now checks common locations before falling back to PATH lookup
+
+## [0.43.20] - 2026-01-27
+
+### Fixed
+
+- **cd hook works in Claude Code** - Only alias cd in interactive shells
+  - Prevents `command not found: _coder_workstream_cd` error in Bash tool
+  - Uses `[[ $- == *i* ]]` check before setting up the cd alias
+
 ## [0.43.19] - 2026-01-27
 
 ### Added

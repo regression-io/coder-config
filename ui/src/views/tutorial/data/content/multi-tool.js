@@ -2,94 +2,74 @@ export const multiToolContent = {
   'other-tools': {
     title: 'Beyond Claude Code',
     content: `
-Coder Config isn't just for Claude Code! It also supports other AI coding tools.
+Coder Config started as a configuration manager for Claude Code, but it's grown to support other AI coding tools too. If you use multiple assistants—maybe Claude for complex reasoning and Gemini for quick tasks—you can manage them all from one place.
 
 ### Supported Tools
 
-**Claude Code** (Full support)
-- Everything in this tutorial applies
-- The primary tool we support
+**Claude Code** has full support. Everything in this tutorial applies, and Claude Code is the primary tool Coder Config is built around.
 
-**Gemini CLI** (Good support)
-- Google's AI coding assistant
-- MCP configuration
-- Rule syncing
-- Per-project settings
+**Gemini CLI** from Google has good support. You can configure MCP servers, sync rules, and manage per-project settings. The configuration lives in \`.gemini/\` folders.
 
-**Codex CLI** (Good support)
-- OpenAI's AI coding assistant
-- MCP configuration
-- Security policies and sandbox modes
-- Per-project settings
+**Codex CLI** from OpenAI has similar support. MCP configuration, security policies, sandbox modes, and project settings. Configuration goes in \`.codex/\` folders.
 
-**Antigravity** (Basic support)
-- Alternative AI coding tool
-- MCP configuration
-- Rule syncing
+**Antigravity** has basic support. MCP configuration and rule syncing work. The tool is less mature than the others, so support is correspondingly lighter.
 
-### Why Multi-Tool?
+### Why You'd Use Multiple Tools
 
-You might use different tools for different things:
-- Claude Code for complex reasoning
-- Gemini CLI for quick tasks
-- Different tools for different languages
+Different AI assistants have different strengths. Claude excels at complex reasoning and careful analysis. Gemini is fast and well-integrated with Google services. Codex has particular strengths with certain languages and frameworks.
 
-With Coder Config, you configure once and use everywhere.
+Some developers pick one tool and stick with it. Others switch based on the task—Claude for architecture decisions, Gemini for quick fixes, Codex for Python work. Coder Config supports either approach.
+
+### The Unified Configuration Idea
+
+The value proposition is simple: configure once, use everywhere. Your rules about code style, your MCP servers, your preferences—define them in Coder Config and they apply across all your tools.
+
+In practice, there are limits. Each tool has its own configuration format and quirks. Not everything maps perfectly. But the common elements—rules, basic MCP setup, project organization—work across tools without duplicating effort.
 
 ### Enabling Other Tools
 
-1. Go to **Preferences** in the sidebar
-2. Find **"Enabled Tools"**
-3. Check the tools you want to use
-4. New tabs appear in the sidebar for each tool
+By default, Coder Config focuses on Claude Code. To add other tools, go to **Preferences** in the sidebar. Find the **Enabled Tools** section and check the tools you want to manage. New menu items appear in the sidebar for each enabled tool.
     `
   },
   'syncing-tools': {
     title: 'Syncing Between Tools',
     content: `
-Keep your rules consistent across all your AI coding tools.
+When you use multiple AI coding tools, keeping their configurations in sync becomes important. You don't want different rules telling Claude one thing and Gemini another.
 
-### The Sync Feature
+### What Sync Does
 
-Coder Config can sync rules between:
-- \`.claude/rules/\` (Claude Code)
-- \`.gemini/rules/\` (Gemini CLI)
-- \`.agent/rules/\` (Antigravity)
+Rule syncing copies your rule files between tool-specific folders:
+- \`.claude/rules/\` for Claude Code
+- \`.gemini/rules/\` for Gemini CLI
+- \`.agent/rules/\` for Antigravity
+
+When you write rules in Coder Config and sync, those rules appear in all enabled tools' configuration folders. Each tool reads from its own location, but the content is the same.
 
 ### How to Sync
 
-1. Go to **Project Explorer**
-2. Click **"Sync Rules"** button
-3. Choose which tools to sync
-4. Rules are copied to each tool's folder
+Go to **Project Explorer** and look for the **Sync Rules** button. Click it, choose which tools to sync with, and the files are copied over.
 
-### What Gets Synced
+You can also set up automatic syncing in Preferences. When enabled, changes to rules automatically propagate to other tools' folders.
 
-- Rule files (\`.md\` files)
-- Directory structure
-- File contents
+### What Syncs and What Doesn't
 
-What doesn't sync:
-- MCPs (different format per tool)
-- Settings (tool-specific)
+Rules (markdown files) sync well. They're just text with instructions, and that works the same everywhere.
 
-### Best Practice
+MCP configurations don't sync automatically. Each tool has its own MCP format—slightly different JSON structures, different paths, different conventions. You configure MCPs separately for each tool.
 
-Use Coder Config as your "source of truth":
-1. Edit rules in Coder Config
-2. Sync to other tools
-3. Don't edit directly in other tool folders
+Settings also stay tool-specific. Permission rules for Claude don't map to Gemini's security model. Each tool has unique settings that don't translate.
 
-This keeps everything consistent.
+### Source of Truth
 
-### Per-Tool Settings
+With syncing, you need a clear source of truth. The recommended approach: treat Coder Config as the primary location. Edit rules in Coder Config, then sync to other tools. Don't edit directly in \`.gemini/rules/\` or other tool folders—those edits might get overwritten on the next sync.
 
-Each tool has its own settings page in the sidebar:
-- **Claude Code** - Permissions, model, behavior
-- **Gemini CLI** - Model, display, sandbox settings
-- **Codex CLI** - Model, security policies, MCP servers
-- **Antigravity** - Security, MCP, browser allowlist
-- Configure each tool separately for tool-specific needs
+If you need tool-specific rules that shouldn't sync, put them in a separate folder that the sync process ignores.
+
+### Per-Tool Configuration
+
+Each enabled tool has its own settings page in the sidebar. Claude Code has permissions and model preferences. Gemini CLI has display and sandbox settings. Codex CLI has security policies.
+
+Configure each tool according to its capabilities and your needs. The unified rules give you consistency in coding conventions; the per-tool settings let you optimize each assistant's behavior.
     `
   },
 };

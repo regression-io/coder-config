@@ -2,110 +2,91 @@ export const rulesContent = {
   'what-are-rules': {
     title: 'What Are Rules?',
     content: `
-Rules are **instructions for Claude** written in plain Markdown. They tell Claude things like:
-
-- How your project is structured
-- What coding conventions to follow
-- What to avoid doing
-- Important context about your tech stack
+Rules are instructions for Claude written in plain Markdown. They tell Claude things about your project—how it's structured, what coding conventions to follow, what to avoid. Think of them as persistent context that Claude reads before every conversation.
 
 ### How Claude Uses Rules
 
-When you work with Claude in a project, it automatically reads:
-1. Files in \`.claude/rules/\`
-2. The \`CLAUDE.md\` file in your project root
+When you start Claude Code in a project, it looks for configuration in the \`.claude/\` folder. Any Markdown files in the \`rules/\` subfolder get loaded automatically, along with any \`CLAUDE.md\` file in your project root. Claude treats all of this as background context that shapes how it thinks and responds.
 
-These become part of Claude's "system prompt" - the background context that shapes all its responses.
+This is different from just telling Claude something in conversation. If you say "use TypeScript" in chat, Claude knows that for the current conversation. But next time you start a session, it's forgotten. Rules persist—every new conversation in that project starts with Claude already knowing your preferences.
 
-### Example Rule
+### A Simple Example
+
+Say you create a file called \`.claude/rules/code-style.md\` with this content:
 
 \`\`\`markdown
 # Code Style
 
-- Use TypeScript for all new files
-- Prefer functional components with hooks
-- Always add JSDoc comments for exported functions
-- Use absolute imports from @/
+Use TypeScript for all new files. Prefer functional components with hooks.
+Always add JSDoc comments for exported functions. Use absolute imports from @/.
 \`\`\`
 
-### Why Rules Matter
+Now Claude follows these conventions automatically. You don't have to remind it every time. If you ask Claude to create a new component, it'll use TypeScript, make it functional, add JSDoc comments, and use \`@/\` imports—because those are the rules.
 
-Without rules, Claude makes assumptions. With rules, Claude follows **your** preferences.
+### Why This Matters
 
-For example, you might want Claude to:
-- Always use a specific test framework
-- Follow a particular naming convention
-- Never modify certain files
-- Use specific patterns for error handling
+Without rules, Claude makes reasonable guesses based on what it sees in your codebase. Usually that's fine. But when you have specific preferences—your team's conventions, security requirements, patterns that aren't obvious from the code alone—rules make Claude follow them consistently.
     `
   },
   'creating-rules': {
     title: 'Creating Your First Rule',
     content: `
-Let's create a simple rule file. This takes just a minute!
+Let's create a rule file. This takes about a minute.
 
-### Step by Step
+### Finding the Rules Folder
 
-1. Go to **Project Explorer** in the sidebar
-2. Navigate to the \`rules/\` folder (create it if needed)
-3. Click the **+** button to create a new file
-4. Name it something descriptive like \`coding-style.md\`
+In the sidebar, click **Project Explorer**. You'll see your project's file tree. Look for a folder called \`.claude\`—if it doesn't exist, create one. Inside that, create a \`rules\` folder if needed.
 
-### Write Your Rule
+Click the **+** button and create a new file. Name it something descriptive like \`project-guidelines.md\`. The name doesn't matter to Claude; pick something that makes sense to you.
 
-Start simple. Here's a template:
+### Writing Your First Rule
+
+Start with the basics. Describe your tech stack and any conventions Claude should know about. Here's a template to get you started:
 
 \`\`\`markdown
 # Project Guidelines
 
-## Tech Stack
-- Frontend: React with TypeScript
-- Backend: Node.js
-- Database: PostgreSQL
+This is a React TypeScript project with a Node.js backend and PostgreSQL database.
 
-## Coding Style
-- Use async/await instead of callbacks
-- Keep functions small and focused
-- Add error handling to all API calls
+## Coding Conventions
 
-## What to Avoid
-- Don't use var, use const/let
-- Don't commit console.log statements
-- Don't modify package-lock.json
+We use async/await instead of callbacks. Functions should be small and focused—if something
+is getting long, break it into smaller pieces. All API calls need proper error handling.
+
+## Things to Avoid
+
+Don't use var—always const or let. Don't commit console.log statements (use our logger at
+src/utils/logger.ts instead). Don't modify package-lock.json directly.
 \`\`\`
 
-### Test Your Rule
+Write in natural language. You're explaining things to Claude the same way you'd explain them to a new team member.
 
-After saving:
-1. Open Claude Code in your project
-2. Ask Claude something related to your rule
-3. Notice how it follows your guidelines!
+### Testing It Out
 
-### Pro Tip
+Save your file, then open Claude Code in your project. Ask Claude something related to your rules—maybe "create a utility function for making API calls." Watch how it follows your guidelines. It should use async/await, add error handling, and use your logger instead of console.log.
 
-You can have multiple rule files. Claude reads them all. Organize by topic:
-- \`code-style.md\` - Coding conventions
-- \`architecture.md\` - Project structure
-- \`testing.md\` - Test guidelines
+If Claude isn't following a rule, the rule might be unclear. Try rephrasing it to be more specific.
     `
   },
   'rule-tips': {
     title: 'Tips for Great Rules',
     content: `
-Good rules make Claude more helpful. Here's what works best.
+Some rules work better than others. Here's what makes the difference.
 
-### Be Specific, Not Vague
+### Be Specific
 
-**Good**: "Use Tailwind CSS classes, never inline styles"
+Vague rules get vague results. "Follow good CSS practices" doesn't tell Claude much—it probably already tries to do that. But "Use Tailwind CSS classes, never inline styles" is actionable. Claude knows exactly what to do.
 
-**Vague**: "Follow good CSS practices"
+The same applies to conventions. "Use consistent naming" is too abstract. "Use camelCase for variables, PascalCase for components, SCREAMING_SNAKE for constants" gives Claude clear guidance.
 
-### Use Examples
+### Show, Don't Just Tell
+
+Examples are powerful. If you want API responses in a specific format, show the format:
 
 \`\`\`markdown
 ## API Response Format
 
-Always return responses in this format:
+Return responses like this:
 \\\`\\\`\\\`json
 {
   "success": true,
@@ -115,30 +96,23 @@ Always return responses in this format:
 \\\`\\\`\\\`
 \`\`\`
 
-### State What TO Do, Not Just What NOT to Do
+Claude can read descriptions, but concrete examples leave no room for interpretation.
 
-**Better**: "Use the logger from src/utils/logger.ts for all logging"
+### Tell Claude What TO Do
 
-**Less helpful**: "Don't use console.log"
+"Don't use console.log" tells Claude what to avoid, but not what to do instead. "Use the logger from src/utils/logger.ts for all logging" is better—now Claude knows the alternative.
 
-### Keep It Updated
+When you find yourself writing a rule about what NOT to do, add a sentence about what TO do instead.
 
-Rules should evolve with your project. Outdated rules confuse Claude.
+### Keep Rules Updated
 
-### Organize by Topic
+Rules should evolve with your project. When you change a convention, update the rules. When you add a new pattern, document it. Outdated rules confuse Claude more than no rules at all.
 
-Instead of one huge file, use multiple focused files:
-- \`database.md\` - Database conventions
-- \`api.md\` - API patterns
-- \`testing.md\` - Test guidelines
-- \`security.md\` - Security requirements
+### Don't Over-Specify
 
-### Don't Over-Rule
+Claude is smart. You don't need to specify obvious things or standard best practices. Focus your rules on things that are unique to your project—your specific conventions, patterns that aren't obvious from the code, requirements that deviate from the norm.
 
-Claude is smart. You don't need to specify everything. Focus on:
-- Your unique preferences
-- Project-specific patterns
-- Things Claude might not know about your codebase
+If you find yourself writing a very long rules file, consider whether everything in it is truly specific to your project or just general good practice Claude already knows.
     `
   },
 };

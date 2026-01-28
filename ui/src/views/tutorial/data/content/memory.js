@@ -2,85 +2,82 @@ export const memoryContent = {
   'what-is-memory': {
     title: 'What is Memory?',
     content: `
-Memory lets Claude **remember things** across conversations. Instead of repeating yourself, teach Claude once and it remembers.
+Memory lets Claude retain information across conversations. Without it, every session starts fresh—Claude doesn't know you prefer tabs over spaces, or that your team has specific naming conventions, or that last week you decided to use PostgreSQL instead of MySQL. With memory, you teach Claude once and it remembers.
 
-### Types of Memory
+### Two Kinds of Memory
 
-**Global Memory** (applies everywhere)
-- Your preferences ("I prefer tabs over spaces")
-- Corrections ("When I say 'deploy', I mean to staging")
-- Facts about you ("I work on a Mac M2")
+**Global memory** applies everywhere you use Claude. Your general preferences, facts about your development environment, corrections to mistakes Claude keeps making—these belong in global memory. It lives in \`~/.claude/memory/\` and Claude reads it no matter which project you're in.
 
-**Project Memory** (applies to one project)
-- Project context ("This is a React 18 app")
-- Code patterns ("We use React Query for data fetching")
-- Architecture decisions ("We chose PostgreSQL because...")
-- Known issues ("The auth service is flaky on Mondays")
+**Project memory** applies to one project. The tech stack, architectural decisions, code patterns unique to this codebase—these belong in project memory. It lives in \`.claude/memory/\` inside your project folder.
 
-### How It Works
+### What Goes in Memory
 
-Memory is stored in markdown files:
-- Global: \`~/.claude/memory/\`
-- Project: \`your-project/.claude/memory/\`
+Think about what you'd tell a new team member on their first day. That's memory material.
 
-Claude reads these automatically when you start a conversation.
+Preferences: "I prefer functional components with hooks, never class components." Corrections: "When I say 'deploy', I mean to staging unless I specifically say production." Facts: "We use PostgreSQL 15, not MySQL." Decisions: "We chose Redux over Context because of the debugging tools." Patterns: "API responses always use \`{ success, data, error }\` format."
 
-### Example Memory Entry
+### How Memory Works Technically
+
+Memory is just markdown files. Each file contains entries organized by type—preferences, corrections, facts, patterns, decisions. Claude reads these files when a session starts, incorporating them into its context.
+
+Here's what an entry looks like:
 
 \`\`\`markdown
 ## Preference: Testing
-- Always run tests before committing
-- Use Jest for unit tests, Playwright for e2e
-- Learned: 2024-01-15
+Always run tests before committing. Use Jest for unit tests, Playwright for e2e.
+Learned: 2024-01-15
 \`\`\`
+
+The format is flexible. What matters is that the information is clear enough for Claude to understand and apply.
+
+### Memory vs Rules
+
+Memory and rules overlap in purpose but differ in intent. Rules are prescriptive—"always do this, never do that." Memory is informational—"here's context that might help." Use rules for non-negotiable conventions. Use memory for preferences, facts, and accumulated knowledge.
     `
   },
   'using-memory': {
     title: 'Using Memory',
     content: `
-Let's add some memory entries to make Claude smarter about your work.
+Let's add some memory entries to make Claude smarter about how you work.
 
-![Memory View](/tutorial/memory-view.png)
+### Accessing the Memory View
 
-### Accessing Memory
+Click **Memory** in the sidebar. You'll see two tabs: **Global** and **Project**. Global memory affects all your projects; project memory affects only the current project. Switch between them depending on where the information belongs.
 
-1. Click **"Memory"** in the sidebar
-2. Choose **Global** or **Project** tab
-3. Browse existing entries or add new ones
+### Adding an Entry
 
-### Adding Memory
+Click **Add Entry** and choose the type that fits:
 
-Click **"Add Entry"** and choose a type:
+**Preference** — How you like things done. "Use single quotes, not double quotes." "Always add TypeScript types."
 
-- **Preference** - How you like things done
-- **Correction** - Fix a mistake Claude makes
-- **Fact** - Something Claude should know
-- **Pattern** - Code patterns in your project
-- **Decision** - Why you chose a certain approach
+**Correction** — Something Claude gets wrong that you want fixed. "Don't use console.log for debugging; use the logger at src/utils/logger.ts."
 
-### Example: Adding a Preference
+**Fact** — Objective information Claude should know. "This is a React 18 app." "The database is PostgreSQL 15."
 
-\`\`\`
-Type: Preference
-Title: Code Style
-Content: I prefer functional components with hooks.
-         Never use class components.
-\`\`\`
+**Pattern** — Code patterns specific to this project. "API errors return \`{ success: false, error: { code, message } }\`."
 
-### Example: Adding a Correction
+**Decision** — Why you chose one approach over another. "We use Server Components by default. Client Components only for interactivity."
 
-\`\`\`
-Type: Correction
-What you did wrong: Used console.log for debugging
-What to do instead: Use the logger at src/utils/logger.ts
-\`\`\`
+### Writing Good Entries
 
-### Tips
+Be specific. "Follow good practices" doesn't help Claude—it already tries to do that. "Use Tailwind classes, never inline styles" is actionable.
 
-- Be specific - vague memory isn't helpful
-- Update memory when things change
-- Delete outdated entries
-- Use project memory for project-specific stuff
+Include context when it matters. If a pattern has exceptions, mention them. If a decision had alternatives, note why you rejected them.
+
+Keep entries focused. One preference per entry is easier to maintain than a giant document covering everything.
+
+### Maintaining Memory
+
+Memory should evolve with your project. When conventions change, update the entries. When you discover Claude making a repeated mistake, add a correction. When entries become outdated, delete them—stale memory confuses Claude more than no memory at all.
+
+Check your memory files occasionally. Delete duplicates. Consolidate related entries. Keep things organized so you can actually find what's there.
+
+### Where Files Live
+
+Global memory: \`~/.claude/memory/\`
+Project memory: \`your-project/.claude/memory/\`
+
+You can edit these files directly if you prefer. They're just markdown. Coder Config's Memory view is a convenience, not a requirement.
     `
   },
 };
