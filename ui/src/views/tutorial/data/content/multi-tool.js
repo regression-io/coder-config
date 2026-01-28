@@ -38,12 +38,7 @@ When you use multiple AI coding tools, keeping their configurations in sync beco
 
 ### What Sync Does
 
-Rule syncing copies your rule files between tool-specific folders:
-- \`.claude/rules/\` for Claude Code
-- \`.gemini/rules/\` for Gemini CLI
-- \`.agent/rules/\` for Antigravity
-
-When you write rules in Coder Config and sync, those rules appear in all enabled tools' configuration folders. Each tool reads from its own location, but the content is the same.
+Rule syncing copies your rule files between tool-specific folders. Claude Code rules live in \`.claude/rules/\`, Gemini CLI rules in \`.gemini/rules/\`, and Antigravity rules in \`.agent/rules/\`. When you write rules in Coder Config and sync, those rules appear in all enabled tools' configuration folders. Each tool reads from its own location, but the content is the same.
 
 ### How to Sync
 
@@ -53,7 +48,7 @@ You can also set up automatic syncing in Preferences. When enabled, changes to r
 
 ### What Syncs and What Doesn't
 
-Rules (markdown files) sync well. They're just text with instructions, and that works the same everywhere.
+Rules—markdown files—sync well. They're just text with instructions, and that works the same everywhere.
 
 MCP configurations don't sync automatically. Each tool has its own MCP format—slightly different JSON structures, different paths, different conventions. You configure MCPs separately for each tool.
 

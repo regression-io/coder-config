@@ -14,7 +14,7 @@ Memory lets Claude retain information across conversations. Without it, every se
 
 Think about what you'd tell a new team member on their first day. That's memory material.
 
-Preferences: "I prefer functional components with hooks, never class components." Corrections: "When I say 'deploy', I mean to staging unless I specifically say production." Facts: "We use PostgreSQL 15, not MySQL." Decisions: "We chose Redux over Context because of the debugging tools." Patterns: "API responses always use \`{ success, data, error }\` format."
+Preferences describe how you like things done: "I prefer functional components with hooks, never class components." Corrections fix recurring mistakes: "When I say 'deploy', I mean to staging unless I specifically say production." Facts provide context: "We use PostgreSQL 15, not MySQL." Decisions explain choices: "We chose Redux over Context because of the debugging tools." Patterns document code conventions: "API responses always use the \`{ success, data, error }\` format."
 
 ### How Memory Works Technically
 
@@ -46,17 +46,17 @@ Click **Memory** in the sidebar. You'll see two tabs: **Global** and **Project**
 
 ### Adding an Entry
 
-Click **Add Entry** and choose the type that fits:
+Click **Add Entry** and choose the type that fits what you want to record.
 
-**Preference** — How you like things done. "Use single quotes, not double quotes." "Always add TypeScript types."
+A **Preference** captures how you like things done—something like "Use single quotes, not double quotes" or "Always add TypeScript types to function parameters."
 
-**Correction** — Something Claude gets wrong that you want fixed. "Don't use console.log for debugging; use the logger at src/utils/logger.ts."
+A **Correction** fixes something Claude gets wrong repeatedly. If Claude keeps using console.log when you have a custom logger, add a correction: "Don't use console.log for debugging; use the logger at src/utils/logger.ts."
 
-**Fact** — Objective information Claude should know. "This is a React 18 app." "The database is PostgreSQL 15."
+A **Fact** records objective information Claude should know: "This is a React 18 app" or "The database is PostgreSQL 15."
 
-**Pattern** — Code patterns specific to this project. "API errors return \`{ success: false, error: { code, message } }\`."
+A **Pattern** documents code conventions specific to this project: "API errors return an object with success set to false and an error object containing code and message."
 
-**Decision** — Why you chose one approach over another. "We use Server Components by default. Client Components only for interactivity."
+A **Decision** explains why you chose one approach over another: "We use Server Components by default. Client Components only for interactivity."
 
 ### Writing Good Entries
 
@@ -74,10 +74,7 @@ Check your memory files occasionally. Delete duplicates. Consolidate related ent
 
 ### Where Files Live
 
-Global memory: \`~/.claude/memory/\`
-Project memory: \`your-project/.claude/memory/\`
-
-You can edit these files directly if you prefer. They're just markdown. Coder Config's Memory view is a convenience, not a requirement.
+Global memory lives at \`~/.claude/memory/\` and project memory at \`your-project/.claude/memory/\`. You can edit these files directly if you prefer—they're just markdown. Coder Config's Memory view is a convenience, not a requirement.
     `
   },
 };

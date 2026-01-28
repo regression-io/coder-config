@@ -6,15 +6,7 @@ Plugins are pre-packaged configurations you can install with a click. Instead of
 
 ### What's Inside a Plugin
 
-A plugin can include any combination of:
-
-**Rules** — Markdown files with guidelines for Claude. A React plugin might include rules about hooks, component structure, and testing patterns.
-
-**Commands** — Reusable prompts. A testing plugin might include commands for generating unit tests, integration tests, and test data.
-
-**MCPs** — Server configurations. A database plugin might include pre-configured connections for PostgreSQL, MySQL, and SQLite.
-
-**Skills** — Workflows discoverable by Claude. A coder-config plugin includes skills like /flush for saving session context.
+A plugin can include any combination of configuration elements. It might have **rules**—markdown files with guidelines for Claude, like a React plugin that includes rules about hooks, component structure, and testing patterns. It might have **commands**—reusable prompts, like a testing plugin with commands for generating unit tests, integration tests, and test data. It might configure **MCPs**—server connections, like a database plugin with pre-configured connections for PostgreSQL, MySQL, and SQLite. And it might provide **skills**—workflows discoverable by Claude, like the coder-config plugin's /flush command for saving session context.
 
 ### Why Use Plugins
 
@@ -46,11 +38,11 @@ Click on a plugin card to see its details: what rules it includes, any MCPs it c
 
 ### Installing
 
-Found one you want? Click **Install**. A dialog asks where to install it:
+Found one you want? Click **Install**. A dialog asks where to install it.
 
-**Project scope** — The plugin's files go into your current project's \`.claude/\` folder. Only this project uses it. Good for project-specific plugins.
+Choosing **project scope** puts the plugin's files into your current project's \`.claude/\` folder. Only this project uses it—good for project-specific plugins.
 
-**User scope** — The plugin installs to your global \`~/.claude/\` folder. All your projects can use it. Good for plugins you want everywhere.
+Choosing **user scope** installs to your global \`~/.claude/\` folder. All your projects can use it—good for plugins you want everywhere.
 
 ### What Happens After Installing
 
@@ -58,13 +50,7 @@ The plugin's files are copied to your chosen location. Rules become active immed
 
 ### Managing Installed Plugins
 
-Back on the Plugins view, you'll see a section showing what you've installed. From here you can:
-
-**Enable/disable** — Toggle plugins without uninstalling. Useful for temporarily turning something off.
-
-**Uninstall** — Remove the plugin completely. This deletes the files it added.
-
-**Update** — When plugin authors release new versions, you can update to get the latest.
+Back on the Plugins view, you'll see a section showing what you've installed. You can toggle plugins on and off without uninstalling them—useful for temporarily disabling something. You can uninstall completely if you no longer need a plugin, which deletes the files it added. And when plugin authors release new versions, you can update to get the latest.
 
 ### Per-Directory Control
 

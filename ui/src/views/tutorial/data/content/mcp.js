@@ -79,13 +79,7 @@ Each MCP has its own configuration needs. Some just need a command to run; other
 
 ### The Configuration Panel
 
-When you click an MCP that's been added to your project, you see its configuration panel. The main fields are:
-
-**Command** — The program to run. Usually \`npx\` for npm packages, or a direct path to an executable.
-
-**Args** — Arguments passed to the command. This typically includes the package name and any configuration values.
-
-**Environment Variables** — Key-value pairs made available to the MCP process. This is where secrets go.
+When you click an MCP that's been added to your project, you see its configuration panel. The **Command** field specifies the program to run—usually \`npx\` for npm packages, or a direct path to an executable. The **Args** field contains arguments passed to that command, typically including the package name and any configuration values. The **Environment Variables** section holds key-value pairs made available to the MCP process—this is where secrets go.
 
 ### Environment Variables and Secrets
 
@@ -102,11 +96,9 @@ These values are stored locally in your \`.claude/.env\` file. They're never com
 
 ### Global vs Project MCPs
 
-You can configure MCPs at two levels:
+You can configure MCPs at two levels. **Global MCPs** apply to all your projects—configure these in Preferences → MCP Servers. Good candidates include the memory MCP for persistent storage across everything, or tools you use universally regardless of project.
 
-**Global MCPs** apply to all your projects. Configure these in Preferences → MCP Servers. Good candidates: memory (persistent storage across everything), tools you use universally.
-
-**Project MCPs** apply to one project. Configure these in the MCP Registry when a project is selected. Good candidates: database connections, project-specific API integrations.
+**Project MCPs** apply to one project only—configure these in the MCP Registry when a project is selected. Good candidates include database connections specific to that project, or API integrations you only need in certain contexts.
 
 When Claude starts in a project directory, it loads global MCPs first, then adds any project-specific ones.
 
@@ -116,12 +108,7 @@ To remove an MCP from a project, find it in your project's MCP list and click th
 
 ### Troubleshooting
 
-When an MCP isn't working, check these things in order:
-
-1. Are environment variables set? Missing tokens or credentials are the most common problem.
-2. Is the MCP package installed? Try running the command manually in your terminal.
-3. Did you click Re-apply and restart Claude? Config changes don't take effect until both happen.
-4. Check Claude's output for error messages—they usually point directly at the problem.
+When an MCP isn't working, start by checking whether environment variables are set correctly—missing tokens or credentials are the most common problem. If that looks fine, try running the MCP command manually in your terminal to see if the package is installed and working. Make sure you clicked Re-apply and restarted Claude, since config changes don't take effect until both happen. Finally, check Claude's output for error messages—they usually point directly at the problem.
 
 The MCP Registry includes troubleshooting notes for each MCP. Check there if you're stuck on a specific one.
     `

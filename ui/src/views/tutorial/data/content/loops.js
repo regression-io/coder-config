@@ -18,17 +18,17 @@ With a Ralph Loop, you describe the task once. Claude asks clarifying questions 
 
 ### The Three Phases
 
-**Clarify** — Claude asks questions about requirements, scope, and preferences. This happens at the start. Better to surface ambiguities now than discover them mid-implementation.
+The loop progresses through three phases. In the **Clarify** phase, Claude asks questions about requirements, scope, and preferences. This happens at the start—better to surface ambiguities now than discover them mid-implementation.
 
-**Plan** — Claude creates a detailed implementation plan. You see exactly what it intends to do before any code changes. Approve to proceed, or revise the plan first.
+In the **Plan** phase, Claude creates a detailed implementation plan. You see exactly what it intends to do before any code changes. Approve to proceed, or ask Claude to revise the plan first.
 
-**Execute** — Claude works through the plan, step by step. Each iteration makes progress. The loop continues automatically until the task is done or a limit is reached.
+In the **Execute** phase, Claude works through the plan step by step. Each iteration makes progress. The loop continues automatically until the task is done or a safety limit is reached.
 
 ### Built-in Safety
 
 Autonomous execution raises valid concerns. What if Claude goes off track? What if it runs up a huge bill? What if it breaks something?
 
-Loops have guardrails. **Iteration limits** cap how many rounds Claude can run (default: 50). **Cost budgets** cap spending (default: $10). You can **pause anytime** and resume later. The **plan approval** step ensures you know what's coming before execution begins.
+Loops have guardrails. Iteration limits cap how many rounds Claude can run—the default is 50. Cost budgets cap spending—the default is $10. You can pause anytime and resume later. The plan approval step ensures you know what's coming before execution begins.
 
 These aren't just safeguards—they're part of the workflow. You stay in control of scope and cost while still getting the benefits of autonomous execution.
     `
@@ -50,14 +50,9 @@ Click **Ralph Loops** in the sidebar. You'll see a list of loops (empty if this 
 
 Click **New Loop**. A dialog asks for a task description. This is your chance to explain what you want Claude to accomplish.
 
-Be specific. Good task descriptions:
-- "Add a dark mode toggle to the settings page. Store preference in localStorage. Respect system preference by default."
-- "Create unit tests for the UserService class. Cover all public methods. Use Jest."
-- "Refactor the payment module to use async/await instead of callbacks. Update all calling code."
+Be specific. A good task description might be "Add a dark mode toggle to the settings page, storing the preference in localStorage and respecting the system preference by default." Or "Create unit tests for the UserService class, covering all public methods, using Jest." Or "Refactor the payment module to use async/await instead of callbacks, updating all calling code."
 
-Vague descriptions lead to vague results:
-- "Fix bugs" — Which bugs?
-- "Make it better" — Better how?
+Vague descriptions lead to vague results. "Fix bugs" doesn't tell Claude which bugs. "Make it better" doesn't explain better how. The more specific your description, the better Claude can plan and execute.
 
 ### Step 3: Create and Start
 
@@ -65,11 +60,11 @@ Click **Create Loop**. The loop appears in your list with status "pending." Clic
 
 ### Step 4: Run Through the Phases
 
-Once started, the loop enters the **Clarify** phase. Claude might ask questions: "Should dark mode affect the entire app or just the settings page?" Answer these to help Claude understand your requirements fully.
+Once started, the loop enters the Clarify phase. Claude might ask questions like "Should dark mode affect the entire app or just the settings page?" Answer these to help Claude understand your requirements fully.
 
-After clarification, Claude moves to **Plan**. You'll see a detailed breakdown of what it intends to do. Review this carefully. If something looks wrong, revise the plan. If it looks good, approve it.
+After clarification, Claude moves to Plan. You'll see a detailed breakdown of what it intends to do. Review this carefully. If something looks wrong, ask for revisions. If it looks good, approve it.
 
-With plan approved, Claude enters **Execute**. Watch the progress indicators showing iterations completed and budget used. Claude works through the plan, making real changes to your codebase.
+With the plan approved, Claude enters Execute. Watch the progress indicators showing iterations completed and budget used. Claude works through the plan, making real changes to your codebase.
 
 ### Monitoring Progress
 
@@ -79,7 +74,7 @@ When the task completes, Claude reports what it accomplished. Review the changes
 
 ### When to Use Loops
 
-Loops work best for well-defined tasks that take significant effort but don't require constant human judgment. Feature implementations, test coverage, refactoring, migration work—things where the goal is clear but the execution is tedious.
+Loops work best for well-defined tasks that take significant effort but don't require constant human judgment. Feature implementations, test coverage expansion, refactoring, migration work—things where the goal is clear but the execution is tedious.
 
 For exploratory work where you're not sure what you want yet, the normal interactive mode might serve you better. Loops shine when you know the destination; they handle the journey.
     `
