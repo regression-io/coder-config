@@ -500,7 +500,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !['local', 'tools'].includes(searchMode) && handleRemoteSearch()}
                 placeholder={searchMode === 'local' ? 'Filter registry...' : searchMode === 'tools' ? 'Filter discovered tools...' : `Search ${searchMode} for MCPs...`}
-                className="pl-9 bg-white border-gray-300"
+                className="pl-9 bg-white dark:bg-slate-900 border-gray-300 dark:border-slate-600"
               />
             </div>
             {!['local', 'tools'].includes(searchMode) && (
@@ -577,27 +577,27 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.03 }}
-                  className="bg-purple-50 rounded-lg border border-purple-200 p-4 hover:border-purple-400 hover:shadow-md transition-all"
+                  className="bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-800 p-4 hover:border-purple-400 dark:hover:border-purple-600 hover:shadow-md transition-all"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-purple-900">{tool.name}</h3>
-                    <Badge variant="outline" className="text-purple-600 border-purple-300">
+                    <h3 className="font-semibold text-purple-900 dark:text-purple-200">{tool.name}</h3>
+                    <Badge variant="outline" className="text-purple-600 dark:text-purple-400 border-purple-300 dark:border-purple-700">
                       {tool.type === 'python' ? 'Python' : 'Node'}
                     </Badge>
                   </div>
-                  <p className="text-sm text-purple-700 mb-3">{tool.description || 'MCP tool'}</p>
-                  <code className="text-xs text-purple-600 block truncate bg-purple-100 px-2 py-1 rounded mb-3">
+                  <p className="text-sm text-purple-700 dark:text-purple-300 mb-3">{tool.description || 'MCP tool'}</p>
+                  <code className="text-xs text-purple-600 dark:text-purple-400 block truncate bg-purple-100 dark:bg-purple-900/50 px-2 py-1 rounded mb-3">
                     {tool.path}
                   </code>
                   {tool.framework && (
-                    <div className="text-xs text-purple-500 mb-3">Framework: {tool.framework}</div>
+                    <div className="text-xs text-purple-500 dark:text-purple-400 mb-3">Framework: {tool.framework}</div>
                   )}
                   <div className="flex gap-2">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => addFromDiscovered(tool)}
-                      className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-100"
+                      className="flex-1 border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/50"
                     >
                       <Plus className="w-4 h-4 mr-1" />
                       Quick
@@ -691,7 +691,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
 
       {/* Add MCP Dialog - Simple JSON paste */}
       <Dialog open={addDialog.open} onOpenChange={(open) => setAddDialog({ ...addDialog, open })}>
-        <DialogContent className=" max-w-2xl">
+        <DialogContent className="bg-white dark:bg-slate-950 max-w-2xl">
           <DialogHeader>
             <DialogTitle>Add MCP to Registry</DialogTitle>
             <DialogDescription>
@@ -726,7 +726,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
 
       {/* Edit MCP Dialog */}
       <Dialog open={editDialog.open} onOpenChange={(open) => setEditDialog({ ...editDialog, open })}>
-        <DialogContent className=" max-w-2xl">
+        <DialogContent className="bg-white dark:bg-slate-950 max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit MCP: {editDialog.name}</DialogTitle>
             <DialogDescription>
@@ -793,7 +793,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
 
       {/* Import Dialog (URL, Folder, or Local Tool) */}
       <Dialog open={importDialog.open} onOpenChange={(open) => setImportDialog({ open, url: '', showTerminal: false, localTool: null, pastedConfig: '', mode: 'url' })}>
-        <DialogContent className={`bg-white ${importDialog.showTerminal ? 'max-w-4xl h-[80vh] max-h-[800px]' : 'max-w-lg'}`}>
+        <DialogContent className={`bg-white dark:bg-slate-950 ${importDialog.showTerminal ? 'max-w-4xl h-[80vh] max-h-[800px]' : 'max-w-lg'}`}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {importDialog.localTool ? (
@@ -872,10 +872,10 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
           ) : (
             <div className="flex-1 flex flex-col min-h-0">
               {importDialog.localTool && (
-                <div className="mb-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                <div className="mb-3 p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-800">
                   <div className="flex items-center gap-2 text-sm">
-                    <Folder className="w-4 h-4 text-purple-600" />
-                    <code className="text-purple-700">{importDialog.localTool.path}</code>
+                    <Folder className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    <code className="text-purple-700 dark:text-purple-300">{importDialog.localTool.path}</code>
                   </div>
                 </div>
               )}
@@ -889,7 +889,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
               </div>
 
               {/* Config paste area */}
-              <div className="mt-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200">
+              <div className="mt-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
                 <label className="text-sm font-medium text-gray-700 dark:text-slate-300 flex items-center gap-2">
                   <Clipboard className="w-4 h-4" />
                   Paste MCP Config JSON
@@ -901,7 +901,7 @@ export default function RegistryView({ registry, searchQuery, setSearchQuery, on
                   value={importDialog.pastedConfig}
                   onChange={(e) => setImportDialog({ ...importDialog, pastedConfig: e.target.value })}
                   placeholder={'{\n  "mcpServers": {\n    "example": {\n      "command": "npx",\n      "args": ["-y", "@example/mcp-server"]\n    }\n  }\n}'}
-                  className="font-mono text-sm bg-white"
+                  className="font-mono text-sm bg-white dark:bg-slate-900"
                   rows={6}
                 />
               </div>
