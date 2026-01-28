@@ -251,9 +251,6 @@ coder-config loop config
 # Set max iterations (default: 50)
 coder-config loop config --max-iterations 100
 
-# Set max cost budget (default: $10)
-coder-config loop config --max-cost 25.00
-
 # Enable auto-approve for plans
 coder-config loop config --auto-approve-plan
 

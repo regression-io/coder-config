@@ -233,7 +233,6 @@ coder-config loop active                    # Show current active loop
 coder-config loop history                   # Show completed loops
 coder-config loop config                    # Show loop configuration
 coder-config loop config --max-iterations 50    # Set max iterations
-coder-config loop config --max-cost 10.00       # Set max cost budget
 coder-config loop config --auto-approve-plan    # Skip manual plan approval
 ```
 
