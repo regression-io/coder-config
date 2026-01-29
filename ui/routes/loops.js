@@ -355,6 +355,7 @@ async function installRalphLoopPlugin() {
 /**
  * Fix the ralph-loop plugin structure by converting commands to skills format
  * Claude Code expects skills/<name>/SKILL.md, but the plugin has commands/<name>.md
+ * Also fixes frontmatter issues (hide-from-slash-command-tool -> name)
  */
 function fixRalphLoopPluginStructure() {
   const pluginCacheDir = path.join(os.homedir(), '.claude', 'plugins', 'cache', 'claude-plugins-official', 'ralph-loop');
@@ -378,6 +379,11 @@ function fixRalphLoopPluginStructure() {
       continue;
     }
 
+    // Remove old symlink if it exists
+    if (fs.existsSync(skillsDir) && fs.lstatSync(skillsDir).isSymbolicLink()) {
+      fs.unlinkSync(skillsDir);
+    }
+
     // Create skills directory if it doesn't exist
     if (!fs.existsSync(skillsDir)) {
       fs.mkdirSync(skillsDir, { recursive: true });
@@ -391,19 +397,23 @@ function fixRalphLoopPluginStructure() {
       const skillDir = path.join(skillsDir, skillName);
       const skillFile = path.join(skillDir, 'SKILL.md');
 
-      // Skip if skill already exists
-      if (fs.existsSync(skillFile)) {
-        continue;
-      }
-
       // Create skill directory
       if (!fs.existsSync(skillDir)) {
         fs.mkdirSync(skillDir, { recursive: true });
       }
 
-      // Copy command file to SKILL.md
+      // Read command file content
       const cmdPath = path.join(commandsDir, cmdFile);
-      fs.copyFileSync(cmdPath, skillFile);
+      let content = fs.readFileSync(cmdPath, 'utf8');
+
+      // Fix frontmatter: replace hide-from-slash-command-tool with name
+      content = content.replace(
+        /hide-from-slash-command-tool:\s*["']true["']/g,
+        `name: ${skillName}`
+      );
+
+      // Write skill file (always overwrite to ensure fix is applied)
+      fs.writeFileSync(skillFile, content, 'utf8');
     }
   }
 }
