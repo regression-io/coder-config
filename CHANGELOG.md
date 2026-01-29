@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.44.13] - 2026-01-29
+
+### Added
+
+- **Complete constants.js and workstreams.js test coverage** - Added 52 more tests (358 total, up from 306)
+  - `test/constants.test.js` - 9 tests for VERSION and TOOL_PATHS validation
+  - `test/workstreams.test.js` - 40 tests for workstreams core CRUD operations
+  - Constants validation (VERSION semver, package.json sync)
+  - Multi-tool path configurations validation
+  - Workstream CRUD operations (create, update, delete)
+  - Project association management
+  - Path resolution and tilde expansion
+  - Environment variable activation
+  - All 358 tests passing (100% pass rate)
+- **Updated test documentation**
+  - TEST_COVERAGE.md now reflects 358 tests across 14 test files
+  - Updated growth history showing 1605% increase from baseline
+  - Coverage now at 87.5% of lib modules (14/16)
+  - Only 2 modules remain untested (cli.js, loops.js)
+
 ## [0.44.12] - 2026-01-29
 
 ### Added

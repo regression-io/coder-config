@@ -1,25 +1,25 @@
 # Test Coverage Summary
 
 **Last Updated**: 2026-01-29
-**Total Tests**: 306
-**Test Suites**: 69
+**Total Tests**: 358
+**Test Suites**: 85
 **Pass Rate**: 100%
-**Coverage**: 75% of lib modules (12/16)
+**Coverage**: 87.5% of lib modules (14/16)
 
 ## Overview
 
-This document provides a comprehensive overview of the test coverage for the coder-config project. Starting from a baseline of 21 tests, the test suite has grown to 306 tests through six iterations of systematic expansion, representing a **1357% increase** in test coverage.
+This document provides a comprehensive overview of the test coverage for the coder-config project. Starting from a baseline of 21 tests, the test suite has grown to 358 tests through seven iterations of systematic expansion, representing a **1605% increase** in test coverage.
 
 ## Test Statistics
 
 | Metric | Value |
 |--------|-------|
-| Total Tests | 306 |
-| Test Suites | 69 |
+| Total Tests | 358 |
+| Test Suites | 85 |
 | Pass Rate | 100% |
-| Test Files | 12 |
+| Test Files | 14 |
 | Lib Modules | 16 |
-| Coverage | 75% |
+| Coverage | 87.5% |
 | Core Coverage | ~95% |
 
 ## Test Files
@@ -183,9 +183,50 @@ This document provides a comprehensive overview of the test coverage for the cod
 - Activity data pruning and cleanup
 - Path expansion (tilde, absolute)
 
+### 13. test/constants.test.js (9 tests)
+**Module**: lib/constants.js
+
+**Coverage**:
+- VERSION (2 tests) - Semver validation, package.json sync
+- TOOL_PATHS (7 tests) - Tool configurations, structure consistency, validation
+
+**Features Tested**:
+- Version constant validation
+- Multi-tool path configurations (Claude, Gemini, Antigravity, Codex)
+- Configuration structure consistency
+- Icon and color value validation
+
+### 14. test/workstreams.test.js (40 tests)
+**Module**: lib/workstreams.js (partial - core CRUD operations)
+
+**Coverage**:
+- getWorkstreamsPath (1 test) - Path resolution
+- loadWorkstreams (3 tests) - File loading, default structure, invalid JSON
+- saveWorkstreams (3 tests) - File writing, directory creation, formatting
+- workstreamList (4 tests) - Display, empty state, project listing, return value
+- workstreamCreate (11 tests) - Creation, validation, duplicates, timestamps, tilde expansion
+- workstreamUpdate (5 tests) - Name/rules/projects updates, timestamps, non-existent handling
+- workstreamDelete (2 tests) - Deletion, non-existent handling
+- workstreamAddProject (4 tests) - Adding projects, duplicates, tilde expansion
+- workstreamRemoveProject (3 tests) - Removing projects, non-existent handling
+- workstreamGet (2 tests) - Retrieval by ID, null handling
+- getActiveWorkstream (2 tests) - Null state, env var activation
+- countWorkstreamsForProject (2 tests) - Counting, zero handling
+
+**Features Tested**:
+- Workstream CRUD operations
+- Project association management
+- Path resolution and tilde expansion
+- Duplicate prevention
+- Timestamp tracking
+- Case-insensitive name matching
+- Environment variable activation
+
+**Note**: This module has 30+ exported functions. Tests cover the core CRUD operations. Advanced features like hook installation, rules generation, auto-activation triggers, and detection logic remain untested.
+
 ## Untested Modules
 
-The following modules remain untested (4 modules):
+The following modules remain untested (2 modules):
 
 
 ### cli.js
@@ -199,15 +240,6 @@ The following modules remain untested (4 modules):
 - Priority: Medium (complex test setup required)
 
 
-### workstreams.js
-- Multi-project context management
-- Complexity: High (cross-project interactions)
-- Priority: Medium (integration tests preferred)
-
-### constants.js
-- Simple constant definitions
-- Complexity: Trivial
-- Priority: Very Low (no logic to test)
 
 ## Test Quality Standards
 
@@ -256,6 +288,7 @@ All tests follow these standards:
 | 2026-01-29 | v0.44.8 | 230 | +20 (+10%) | Added apply tests |
 | 2026-01-29 | v0.44.11 | 263 | +33 (+14%) | Added sessions tests |
 | 2026-01-29 | v0.44.12 | 306 | +43 (+16%) | Added activity tests |
+| 2026-01-29 | v0.44.13 | 358 | +52 (+17%) | Added constants, workstreams tests |
 
 ## Running Tests
 

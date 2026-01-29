@@ -237,7 +237,18 @@ The project has comprehensive test coverage for core modules:
 - Workstream suggestion based on patterns
 - Activity data pruning and cleanup
 
-**Total:** 306 tests across 12 test files, all passing ✅
+**test/constants.test.js** (9 tests)
+- VERSION constant validation (semver, package.json sync)
+- TOOL_PATHS validation for all tools
+- Configuration structure consistency
+
+**test/workstreams.test.js** (40 tests)
+- Workstream CRUD operations
+- Project association management
+- Path resolution and tilde expansion
+- Environment variable activation
+
+**Total:** 358 tests across 14 test files, all passing ✅
 
 ### Writing Tests
 
