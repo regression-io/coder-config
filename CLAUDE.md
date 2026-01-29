@@ -230,7 +230,14 @@ The project has comprehensive test coverage for core modules:
 - /flush command installation
 - Path resolution with macOS symlink handling
 
-**Total:** 263 tests across 11 test files, all passing ✅
+**test/activity.test.js** (43 tests)
+- Activity logging and session management
+- Project root detection (.git, .claude)
+- Project statistics and co-activity tracking
+- Workstream suggestion based on patterns
+- Activity data pruning and cleanup
+
+**Total:** 306 tests across 12 test files, all passing ✅
 
 ### Writing Tests
 

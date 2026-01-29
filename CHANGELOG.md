@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.44.12] - 2026-01-29
+
+### Added
+
+- **Complete activity.js test coverage** - Added 43 more tests (306 total, up from 263)
+  - `test/activity.test.js` - 43 tests for activity tracking
+  - Activity logging and session management
+  - Project root detection (.git, .claude)
+  - Project statistics and co-activity tracking
+  - Workstream suggestion based on patterns
+  - Activity data pruning and cleanup
+  - Path expansion (tilde, absolute)
+  - All 306 tests passing (100% pass rate)
+- **Updated test documentation**
+  - TEST_COVERAGE.md now reflects 306 tests across 12 test files
+  - Updated growth history showing 1357% increase from baseline
+  - Coverage now at 75% of lib modules (12/16)
+
 ## [0.44.11] - 2026-01-29
 
 ### Added

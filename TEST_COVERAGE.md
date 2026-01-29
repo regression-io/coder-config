@@ -1,25 +1,25 @@
 # Test Coverage Summary
 
 **Last Updated**: 2026-01-29
-**Total Tests**: 263
-**Test Suites**: 58
+**Total Tests**: 306
+**Test Suites**: 69
 **Pass Rate**: 100%
-**Coverage**: 68.75% of lib modules (11/16)
+**Coverage**: 75% of lib modules (12/16)
 
 ## Overview
 
-This document provides a comprehensive overview of the test coverage for the coder-config project. Starting from a baseline of 21 tests, the test suite has grown to 263 tests through five iterations of systematic expansion, representing a **1152% increase** in test coverage.
+This document provides a comprehensive overview of the test coverage for the coder-config project. Starting from a baseline of 21 tests, the test suite has grown to 306 tests through six iterations of systematic expansion, representing a **1357% increase** in test coverage.
 
 ## Test Statistics
 
 | Metric | Value |
 |--------|-------|
-| Total Tests | 263 |
-| Test Suites | 58 |
+| Total Tests | 306 |
+| Test Suites | 69 |
 | Pass Rate | 100% |
-| Test Files | 11 |
+| Test Files | 12 |
 | Lib Modules | 16 |
-| Coverage | 68.75% |
+| Coverage | 75% |
 | Core Coverage | ~95% |
 
 ## Test Files
@@ -158,14 +158,35 @@ This document provides a comprehensive overview of the test coverage for the cod
 - /flush command template installation
 - Path resolution and macOS symlink handling
 
+### 12. test/activity.test.js (43 tests)
+**Module**: lib/activity.js
+
+**Coverage**:
+- getActivityPath (1 test) - Path resolution
+- getDefaultActivity (1 test) - Default structure validation
+- loadActivity (3 tests) - File loading, default handling, invalid JSON
+- saveActivity (4 tests) - File writing, timestamps, directory creation, formatting
+- detectProjectRoot (4 tests) - .git detection, .claude detection, HOME boundary, null handling
+- activityLog (13 tests) - Session creation, file tracking, project detection, co-activity, tilde expansion
+- activitySummary (8 tests) - Statistics, recent sessions, project activity, co-activity listing
+- generateWorkstreamName (2 tests) - Two-project format, multi-project format
+- activitySuggestWorkstreams (5 tests) - Threshold logic, existing workstream filtering, scoring
+- activityClear (4 tests) - Session pruning, stats rebuilding, co-activity rebuilding
+
+**Features Tested**:
+- Activity tracking for file access patterns
+- Project root detection (.git, .claude)
+- Session management with 100-session limit
+- Project statistics (file count, last active)
+- Co-activity tracking between projects
+- Workstream suggestion based on patterns
+- Activity data pruning and cleanup
+- Path expansion (tilde, absolute)
+
 ## Untested Modules
 
-The following modules remain untested (5 modules):
+The following modules remain untested (4 modules):
 
-### activity.js
-- Activity tracking for workstream suggestions
-- Complexity: Medium
-- Priority: Low (feature-specific)
 
 ### cli.js
 - CLI command routing and help
@@ -234,6 +255,7 @@ All tests follow these standards:
 | 2026-01-29 | v0.44.7 | 210 | +53 (+34%) | Added init, registry, projects tests |
 | 2026-01-29 | v0.44.8 | 230 | +20 (+10%) | Added apply tests |
 | 2026-01-29 | v0.44.11 | 263 | +33 (+14%) | Added sessions tests |
+| 2026-01-29 | v0.44.12 | 306 | +43 (+16%) | Added activity tests |
 
 ## Running Tests
 
