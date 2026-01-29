@@ -646,6 +646,18 @@ export default function LoopsView({ activeProject = null }) {
                           </Tooltip>
                         </TooltipProvider>
                       )}
+                      {(loop.status === 'cancelled' || loop.status === 'failed') && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="ghost" size="sm" onClick={() => handleStart(loop.id)}>
+                                <RotateCcw className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Restart loop</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                       {loop.phase === 'plan' && loop.status === 'running' && (
                         <TooltipProvider>
                           <Tooltip>
