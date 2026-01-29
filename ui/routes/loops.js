@@ -301,6 +301,8 @@ function getRalphLoopPluginStatus() {
     // Check if any installation is at user scope
     const userScopeInstall = ralphLoop.find(p => p.scope === 'user');
     if (userScopeInstall) {
+      // Fix plugin structure in case it's using old commands/ format
+      fixRalphLoopPluginStructure();
       return { installed: true, scope: 'user', needsInstall: false };
     }
 
@@ -333,6 +335,10 @@ async function installRalphLoopPlugin() {
       stdio: ['pipe', 'pipe', 'pipe']
     });
 
+    // Fix the plugin structure - create skills symlink if needed
+    // The official plugin uses commands/ but Claude Code expects skills/
+    fixRalphLoopPluginStructure();
+
     return {
       success: true,
       message: 'ralph-loop plugin installed successfully at user scope'
@@ -343,6 +349,62 @@ async function installRalphLoopPlugin() {
       error: e.message,
       suggestion: 'Try running manually: claude plugin install ralph-loop@claude-plugins-official --scope user'
     };
+  }
+}
+
+/**
+ * Fix the ralph-loop plugin structure by converting commands to skills format
+ * Claude Code expects skills/<name>/SKILL.md, but the plugin has commands/<name>.md
+ */
+function fixRalphLoopPluginStructure() {
+  const pluginCacheDir = path.join(os.homedir(), '.claude', 'plugins', 'cache', 'claude-plugins-official', 'ralph-loop');
+
+  if (!fs.existsSync(pluginCacheDir)) {
+    return;
+  }
+
+  // Find all version directories
+  const versions = fs.readdirSync(pluginCacheDir).filter(f => {
+    const fullPath = path.join(pluginCacheDir, f);
+    return fs.statSync(fullPath).isDirectory();
+  });
+
+  for (const version of versions) {
+    const versionDir = path.join(pluginCacheDir, version);
+    const commandsDir = path.join(versionDir, 'commands');
+    const skillsDir = path.join(versionDir, 'skills');
+
+    if (!fs.existsSync(commandsDir)) {
+      continue;
+    }
+
+    // Create skills directory if it doesn't exist
+    if (!fs.existsSync(skillsDir)) {
+      fs.mkdirSync(skillsDir, { recursive: true });
+    }
+
+    // Convert each command to skill format
+    // commands/ralph-loop.md -> skills/ralph-loop/SKILL.md
+    const commands = fs.readdirSync(commandsDir).filter(f => f.endsWith('.md'));
+    for (const cmdFile of commands) {
+      const skillName = cmdFile.replace('.md', '');
+      const skillDir = path.join(skillsDir, skillName);
+      const skillFile = path.join(skillDir, 'SKILL.md');
+
+      // Skip if skill already exists
+      if (fs.existsSync(skillFile)) {
+        continue;
+      }
+
+      // Create skill directory
+      if (!fs.existsSync(skillDir)) {
+        fs.mkdirSync(skillDir, { recursive: true });
+      }
+
+      // Copy command file to SKILL.md
+      const cmdPath = path.join(commandsDir, cmdFile);
+      fs.copyFileSync(cmdPath, skillFile);
+    }
   }
 }
 
@@ -398,4 +460,5 @@ module.exports = {
   installLoopHooks,
   getRalphLoopPluginStatus,
   installRalphLoopPlugin,
+  fixRalphLoopPluginStructure,
 };
