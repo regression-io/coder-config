@@ -100,7 +100,7 @@ export default function LoopWidget({ onNavigate }) {
 
   const StatusIcon = STATUS_CONFIG[activeLoop.status]?.icon || Clock;
   const statusColor = STATUS_CONFIG[activeLoop.status]?.color || 'text-gray-500';
-  const statusBg = STATUS_CONFIG[activeLoop.status]?.bg || 'bg-gray-100';
+  const statusBg = STATUS_CONFIG[activeLoop.status]?.bg || 'bg-gray-100 dark:bg-gray-800';
 
   const progressPercent = Math.min(100, ((activeLoop.iterations?.current || 0) / (activeLoop.iterations?.max || 50)) * 100);
   const costPercent = Math.min(100, ((activeLoop.budget?.currentCost || 0) / (activeLoop.budget?.maxCost || 10)) * 100);

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import Editor, { useMonaco } from '@monaco-editor/react';
+import { useTheme } from '@/components/ThemeProvider';
 
 /**
  * Monaco-based JSON editor with MCP intellisense
@@ -13,6 +14,7 @@ export default function ConfigEditor({
 }) {
   const monaco = useMonaco();
   const editorRef = useRef(null);
+  const { resolvedTheme } = useTheme();
 
   // Configure Monaco with MCP schema when registry is available
   useEffect(() => {
@@ -151,14 +153,14 @@ export default function ConfigEditor({
   };
 
   return (
-    <div className="border border-gray-300 rounded-lg overflow-hidden">
+    <div className="border border-gray-300 dark:border-slate-700 rounded-lg overflow-hidden">
       <Editor
         height={height}
         defaultLanguage="json"
         value={value}
         onChange={handleChange}
         onMount={handleEditorDidMount}
-        theme="vs-light"
+        theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs-light'}
         options={{
           readOnly,
           minimap: { enabled: false },
@@ -195,6 +197,8 @@ export function MarkdownEditor({
   height = "400px",
   readOnly = false
 }) {
+  const { resolvedTheme } = useTheme();
+
   const handleEditorDidMount = (editor) => {
     editor.updateOptions({
       minimap: { enabled: false },
@@ -207,14 +211,14 @@ export function MarkdownEditor({
   };
 
   return (
-    <div className="border border-gray-300 rounded-lg overflow-hidden">
+    <div className="border border-gray-300 dark:border-slate-700 rounded-lg overflow-hidden">
       <Editor
         height={height}
         defaultLanguage="markdown"
         value={value}
         onChange={onChange}
         onMount={handleEditorDidMount}
-        theme="vs-light"
+        theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs-light'}
         options={{
           readOnly,
           minimap: { enabled: false },

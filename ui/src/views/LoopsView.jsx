@@ -524,7 +524,7 @@ export default function LoopsView({ activeProject = null }) {
                       </span>
                     )}
                     {/* Phase badge */}
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${PHASE_COLORS[loop.phase] || 'bg-gray-100'}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${PHASE_COLORS[loop.phase] || 'bg-gray-100 dark:bg-gray-800'}`}>
                       {loop.phase}
                     </span>
                     {/* Iteration counter */}

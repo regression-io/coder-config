@@ -143,7 +143,7 @@ export default function PathPicker({
                     <button
                       key={i}
                       onClick={() => handleItemClick(item)}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 rounded transition-colors text-left"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition-colors text-left"
                     >
                       {item.type === 'directory' ? (
                         <Folder className="w-4 h-4 text-blue-500 flex-shrink-0" />
