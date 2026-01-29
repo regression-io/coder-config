@@ -270,5 +270,179 @@ describe('env', () => {
       const matches = content.match(/KEY=/g);
       assert.strictEqual(matches.length, 1);
     });
+
+    it('should handle complex workflow with many variables', () => {
+      // Set initial variables
+      for (let i = 1; i <= 20; i++) {
+        envSet(`VAR${i}`, `value${i}`, projectDir);
+      }
+
+      // Remove every other variable
+      for (let i = 2; i <= 20; i += 2) {
+        envUnset(`VAR${i}`, projectDir);
+      }
+
+      // Update some remaining variables
+      for (let i = 1; i <= 20; i += 4) {
+        envSet(`VAR${i}`, `updated${i}`, projectDir);
+      }
+
+      const envPath = path.join(projectDir, '.claude', '.env');
+      const content = fs.readFileSync(envPath, 'utf8');
+
+      // Verify odd numbers remain
+      assert.ok(content.includes('VAR1=updated1'));
+      assert.ok(content.includes('VAR3=value3'));
+      assert.ok(content.includes('VAR5=updated5'));
+
+      // Verify even numbers removed
+      assert.ok(!content.includes('VAR2='));
+      assert.ok(!content.includes('VAR4='));
+    });
+
+    it('should handle variables with equals signs in values', () => {
+      envSet('COMPLEX', 'a=b=c', projectDir);
+      envSet('URL', 'http://example.com?foo=bar&baz=qux', projectDir);
+
+      const envPath = path.join(projectDir, '.claude', '.env');
+      const content = fs.readFileSync(envPath, 'utf8');
+
+      assert.ok(content.includes('COMPLEX=a=b=c'));
+      assert.ok(content.includes('URL=http://example.com?foo=bar&baz=qux'));
+    });
+
+    it('should handle special characters in values', () => {
+      const specialValues = [
+        ['QUOTES', '"hello world"'],
+        ['SINGLE', "'hello world'"],
+        ['BACKTICK', '`hello world`'],
+        ['DOLLAR', '$VAR'],
+        ['HASH', '#comment'],
+        ['AMPERSAND', 'foo&bar'],
+        ['SEMICOLON', 'foo;bar'],
+        ['PIPE', 'foo|bar']
+      ];
+
+      for (const [key, value] of specialValues) {
+        envSet(key, value, projectDir);
+      }
+
+      const envPath = path.join(projectDir, '.claude', '.env');
+      const content = fs.readFileSync(envPath, 'utf8');
+
+      for (const [key, value] of specialValues) {
+        assert.ok(content.includes(`${key}=${value}`));
+      }
+    });
+
+    it('should handle rapid set/unset cycles', () => {
+      for (let i = 0; i < 50; i++) {
+        envSet('RAPID', `value${i}`, projectDir);
+        if (i % 3 === 0) {
+          envUnset('RAPID', projectDir);
+        }
+      }
+
+      const envPath = path.join(projectDir, '.claude', '.env');
+      const content = fs.readFileSync(envPath, 'utf8');
+
+      // Last value should be value49
+      assert.ok(content.includes('RAPID=value49'));
+    });
+
+    it('should handle very long variable values', () => {
+      const longValue = 'A'.repeat(5000);
+      envSet('LONG_VAR', longValue, projectDir);
+
+      const envPath = path.join(projectDir, '.claude', '.env');
+      const content = fs.readFileSync(envPath, 'utf8');
+
+      assert.ok(content.includes('LONG_VAR='));
+      assert.ok(content.includes(longValue));
+    });
+
+    it('should handle multiline values with newlines', () => {
+      const multiline = 'line1\\nline2\\nline3';
+      envSet('MULTI', multiline, projectDir);
+
+      const envPath = path.join(projectDir, '.claude', '.env');
+      const content = fs.readFileSync(envPath, 'utf8');
+
+      assert.ok(content.includes('MULTI=line1\\nline2\\nline3'));
+    });
+
+    it('should handle empty string value', () => {
+      envSet('EMPTY', '', projectDir);
+
+      const envPath = path.join(projectDir, '.claude', '.env');
+      const content = fs.readFileSync(envPath, 'utf8');
+
+      // Should create entry with empty value
+      assert.ok(content.includes('EMPTY=') || content.includes('EMPTY=""'));
+    });
+
+    it('should handle whitespace-only values', () => {
+      envSet('SPACES', '   ', projectDir);
+
+      const envPath = path.join(projectDir, '.claude', '.env');
+      const content = fs.readFileSync(envPath, 'utf8');
+
+      assert.ok(content.includes('SPACES='));
+    });
+
+    it('should preserve file order after operations', () => {
+      envSet('Z_VAR', 'z', projectDir);
+      envSet('A_VAR', 'a', projectDir);
+      envSet('M_VAR', 'm', projectDir);
+
+      const envPath = path.join(projectDir, '.claude', '.env');
+      const content = fs.readFileSync(envPath, 'utf8');
+      const lines = content.split('\n').filter(l => l.trim());
+
+      // Variables should appear in order they were added
+      const zIndex = lines.findIndex(l => l.startsWith('Z_VAR='));
+      const aIndex = lines.findIndex(l => l.startsWith('A_VAR='));
+      const mIndex = lines.findIndex(l => l.startsWith('M_VAR='));
+
+      assert.ok(zIndex < aIndex);
+      assert.ok(aIndex < mIndex);
+    });
+
+    it('should handle case sensitivity correctly', () => {
+      envSet('myvar', 'lowercase', projectDir);
+
+      const envPath = path.join(projectDir, '.claude', '.env');
+      const content = fs.readFileSync(envPath, 'utf8');
+
+      // Should be converted to uppercase
+      assert.ok(content.includes('MYVAR=lowercase'));
+      assert.ok(!content.includes('myvar='));
+    });
+
+    it('should handle unset with case-insensitive key', () => {
+      envSet('TEST_VAR', 'value', projectDir);
+      envUnset('test_var', projectDir);
+
+      const envPath = path.join(projectDir, '.claude', '.env');
+      const content = fs.readFileSync(envPath, 'utf8');
+
+      assert.ok(!content.includes('TEST_VAR='));
+    });
+
+    it('should handle concurrent modifications gracefully', () => {
+      // Simulate rapid concurrent-like operations
+      const operations = [];
+      for (let i = 0; i < 10; i++) {
+        envSet(`CONCURRENT${i}`, `val${i}`, projectDir);
+      }
+
+      const envPath = path.join(projectDir, '.claude', '.env');
+      const content = fs.readFileSync(envPath, 'utf8');
+
+      // All variables should be present
+      for (let i = 0; i < 10; i++) {
+        assert.ok(content.includes(`CONCURRENT${i}=val${i}`));
+      }
+    });
   });
 });

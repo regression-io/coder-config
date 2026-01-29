@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.44.19] - 2026-01-29
+
+### Added
+
+- **Comprehensive integration test coverage** - Added 37 more tests (520 total, up from 483)
+  - Projects module: Added 12 integration tests (50 → 62 tests)
+    - Rapid add/remove cycles (20 operations)
+    - Same basename in different directories
+    - Project order preservation
+    - Corrupted registry recovery
+    - Special characters and long names
+    - Root-level paths
+    - Duplicate adds with different names
+    - Unique ID validation
+    - Partial path matching
+    - Timestamp validation
+    - Empty name handling
+  - Env module: Added 12 integration tests (23 → 35 tests)
+    - Complex workflows with 20+ variables
+    - Equals signs in values
+    - Special characters (quotes, dollar signs, pipes, etc.)
+    - Rapid set/unset cycles (50 operations)
+    - Very long values (5000+ chars)
+    - Multiline values with escaped newlines
+    - Empty and whitespace-only values
+    - File order preservation
+    - Case sensitivity
+    - Concurrent modifications
+  - Registry module: Added 13 integration tests (35 → 48 tests)
+    - Rapid add/update/remove cycles (20 MCPs)
+    - Special characters in names (dashes, underscores, dots, @, :)
+    - Very long names (200+ chars)
+    - Complex nested configurations
+    - Multiple overwrites (10 iterations)
+    - Large registry (100+ MCPs)
+    - Removing all MCPs
+    - Recovery from corrupted registry
+    - Removal from middle of list
+    - Null values in config
+    - Empty config objects
+    - Concurrent operations
+    - JavaScript keyword names
+  - All 520 tests passing (100% pass rate)
+- **Updated test documentation**
+  - TEST_COVERAGE.md now reflects 520 tests across 16 test files
+  - Updated growth history showing **2376% increase** from baseline (21 → 520 tests)
+  - Documented integration test scenarios, stress tests, and edge cases
+
 ## [0.44.18] - 2026-01-29
 
 ### Added

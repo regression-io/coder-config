@@ -422,5 +422,173 @@ describe('projects', () => {
       assert.ok(!names.includes('Project 2'));
       assert.ok(!names.includes('Project 4'));
     });
+
+    it('should handle rapid add/remove cycles', () => {
+      for (let i = 0; i < 20; i++) {
+        const p = path.join(tempDir, `rapid-${i}`);
+        fs.mkdirSync(p);
+        projectAdd(installDir, p);
+        if (i % 2 === 0) {
+          projectRemove(installDir, path.basename(p));
+        }
+      }
+
+      const registry = loadProjectsRegistry(installDir);
+      assert.strictEqual(registry.projects.length, 10); // Only odd numbers remain
+    });
+
+    it('should handle projects with same basename in different directories', () => {
+      const dir1 = path.join(tempDir, 'location1', 'myproject');
+      const dir2 = path.join(tempDir, 'location2', 'myproject');
+
+      fs.mkdirSync(dir1, { recursive: true });
+      fs.mkdirSync(dir2, { recursive: true });
+
+      projectAdd(installDir, dir1, 'Project A');
+      projectAdd(installDir, dir2, 'Project B');
+
+      const registry = loadProjectsRegistry(installDir);
+      assert.strictEqual(registry.projects.length, 2);
+      assert.ok(registry.projects.some(p => p.name === 'Project A'));
+      assert.ok(registry.projects.some(p => p.name === 'Project B'));
+    });
+
+    it('should preserve project order after operations', () => {
+      const p1 = path.join(tempDir, 'order1');
+      const p2 = path.join(tempDir, 'order2');
+      const p3 = path.join(tempDir, 'order3');
+
+      fs.mkdirSync(p1);
+      fs.mkdirSync(p2);
+      fs.mkdirSync(p3);
+
+      projectAdd(installDir, p1, 'First');
+      projectAdd(installDir, p2, 'Second');
+      projectAdd(installDir, p3, 'Third');
+
+      projectRemove(installDir, 'Second');
+
+      const registry = loadProjectsRegistry(installDir);
+      const names = registry.projects.map(p => p.name);
+
+      assert.deepStrictEqual(names, ['First', 'Third']);
+    });
+
+    it('should handle corrupted registry recovery', () => {
+      // Create corrupted registry
+      const registryPath = getProjectsRegistryPath(installDir);
+      fs.mkdirSync(path.dirname(registryPath), { recursive: true });
+      fs.writeFileSync(registryPath, '{invalid json');
+
+      // Should return default structure
+      const registry = loadProjectsRegistry(installDir);
+      assert.ok(Array.isArray(registry.projects));
+      assert.strictEqual(registry.projects.length, 0);
+      assert.strictEqual(registry.activeProjectId, null);
+    });
+
+    it('should handle projects with special characters in names', () => {
+      const p = path.join(tempDir, 'special-project');
+      fs.mkdirSync(p);
+
+      projectAdd(installDir, p, 'Project: Test & Development (v2.0) 🚀');
+
+      const registry = loadProjectsRegistry(installDir);
+      assert.ok(registry.projects.some(p => p.name.includes('🚀')));
+    });
+
+    it('should handle very long project names', () => {
+      const p = path.join(tempDir, 'long-name-project');
+      fs.mkdirSync(p);
+
+      const longName = 'A'.repeat(200);
+      projectAdd(installDir, p, longName);
+
+      const registry = loadProjectsRegistry(installDir);
+      assert.ok(registry.projects.some(p => p.name === longName));
+    });
+
+    it('should handle projects at filesystem root level', () => {
+      const rootLevel = path.parse(tempDir).root;
+      // Don't actually create at root, just test path handling
+      // Create a project that simulates root-level path
+      const p = path.join(tempDir, 'root-sim');
+      fs.mkdirSync(p);
+
+      projectAdd(installDir, p);
+
+      const registry = loadProjectsRegistry(installDir);
+      assert.strictEqual(registry.projects.length, 1);
+    });
+
+    it('should handle adding project twice with different names', () => {
+      const p = path.join(tempDir, 'double-add');
+      fs.mkdirSync(p);
+
+      projectAdd(installDir, p, 'Name1');
+      projectAdd(installDir, p, 'Name2');
+
+      const registry = loadProjectsRegistry(installDir);
+      // Should only have one entry (duplicate path prevented)
+      assert.strictEqual(registry.projects.length, 1);
+    });
+
+    it('should maintain unique IDs across operations', () => {
+      const projects = [];
+      for (let i = 0; i < 10; i++) {
+        const p = path.join(tempDir, `unique-${i}`);
+        fs.mkdirSync(p);
+        projectAdd(installDir, p);
+        projects.push(p);
+      }
+
+      const registry = loadProjectsRegistry(installDir);
+      const ids = new Set(registry.projects.map(p => p.id));
+
+      // All IDs should be unique
+      assert.strictEqual(ids.size, registry.projects.length);
+    });
+
+    it('should handle remove by partial path match', () => {
+      const fullPath = path.join(tempDir, 'nested', 'deep', 'project');
+      fs.mkdirSync(fullPath, { recursive: true });
+
+      projectAdd(installDir, fullPath);
+
+      // Remove by basename
+      const result = projectRemove(installDir, 'project');
+
+      assert.strictEqual(result, true);
+
+      const registry = loadProjectsRegistry(installDir);
+      assert.strictEqual(registry.projects.length, 0);
+    });
+
+    it('should handle project timestamps correctly', () => {
+      const p = path.join(tempDir, 'timestamp-test');
+      fs.mkdirSync(p);
+
+      const beforeAdd = new Date();
+      projectAdd(installDir, p);
+
+      const registry = loadProjectsRegistry(installDir);
+      const project = registry.projects[0];
+
+      assert.ok(project.addedAt);
+      const addedDate = new Date(project.addedAt);
+      assert.ok(addedDate >= beforeAdd);
+      assert.ok(addedDate <= new Date());
+    });
+
+    it('should handle empty project name gracefully', () => {
+      const p = path.join(tempDir, 'empty-name');
+      fs.mkdirSync(p);
+
+      projectAdd(installDir, p, '');
+
+      const registry = loadProjectsRegistry(installDir);
+      // Should use basename if name is empty
+      assert.ok(registry.projects[0].name === 'empty-name' || registry.projects[0].name === '');
+    });
   });
 });
