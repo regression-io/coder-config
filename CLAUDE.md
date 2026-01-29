@@ -215,7 +215,15 @@ The project has comprehensive test coverage for core modules:
 - Active project tracking
 - Path resolution and tilde expansion
 
-**Total:** 210 tests across 9 test files, all passing ✅
+**test/apply.test.js** (20 tests)
+- MCP config generation (.mcp.json)
+- Environment variable interpolation
+- Config hierarchy merging
+- Plugin settings generation
+- Registry MCP inclusion
+- Custom MCP server configuration
+
+**Total:** 230 tests across 10 test files, all passing ✅
 
 ### Writing Tests
 

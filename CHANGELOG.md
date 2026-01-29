@@ -9,14 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Extensive test coverage expansion** - Added 53 more tests (210 total, up from 157)
-  - `test/init.test.js` - 18 tests for project initialization
-  - `test/registry.test.js` - 35 tests for global MCP registry operations
-  - `test/projects.test.js` - 50 tests for project registry management
-  - Complete coverage of init workflow (config, .env, .gitignore)
-  - Full testing of registry add/remove/list with JSON validation
-  - Comprehensive project registry tests with path resolution
-  - Updated CLAUDE.md with all test counts (210 tests across 9 files)
+- **Complete apply.js test coverage** - Added 20 more tests (230 total, up from 210)
+  - `test/apply.test.js` - 20 tests for config generation
+  - MCP config generation with .mcp.json output
+  - Environment variable interpolation in hierarchy
+  - Plugin settings.json generation and merging
+  - Registry MCP inclusion and warnings
+  - Custom MCP server configuration
+  - Config hierarchy merging from parent dirs
+  - Updated CLAUDE.md with complete test counts (230 tests across 10 files)
 
 ## [0.44.5] - 2026-01-29
 
