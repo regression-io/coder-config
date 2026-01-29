@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.44.14] - 2026-01-29
+
+### Added
+
+- **Complete cli.js test coverage** - Added 27 more tests (385 total, up from 358)
+  - `test/cli.test.js` - 27 tests for CLI command routing
+  - Help text generation and display
+  - Version display with flags
+  - Command routing to manager methods
+  - Argument passing and command aliases
+  - Subcommand handling (registry, memory)
+  - Unknown command handling
+  - All 385 tests passing (100% pass rate)
+- **Updated test documentation**
+  - TEST_COVERAGE.md now reflects 385 tests across 15 test files
+  - Updated growth history showing 1733% increase from baseline
+  - Coverage now at 93.75% of lib modules (15/16)
+  - Only 1 module remains untested (loops.js)
+
 ## [0.44.13] - 2026-01-29
 
 ### Added

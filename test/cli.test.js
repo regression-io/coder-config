@@ -110,21 +110,27 @@ describe('cli', () => {
     });
 
     it('should show version with --version flag', () => {
-      const mockManager = {};
+      let versionCalled = false;
+      const mockManager = {
+        version: () => { versionCalled = true; }
+      };
       process.argv = ['node', 'cli.js', '--version'];
 
       runCli(mockManager);
 
-      assert.ok(logs.some(log => /\d+\.\d+\.\d+/.test(log)));
+      assert.strictEqual(versionCalled, true);
     });
 
     it('should show version with -v flag', () => {
-      const mockManager = {};
+      let versionCalled = false;
+      const mockManager = {
+        version: () => { versionCalled = true; }
+      };
       process.argv = ['node', 'cli.js', '-v'];
 
       runCli(mockManager);
 
-      assert.ok(logs.some(log => /\d+\.\d+\.\d+/.test(log)));
+      assert.strictEqual(versionCalled, true);
     });
   });
 
@@ -328,16 +334,16 @@ describe('cli', () => {
       assert.strictEqual(query, 'test query');
     });
 
-    it('should call memoryShow with no subcommand', () => {
-      let showCalled = false;
+    it('should call memoryList with no subcommand', () => {
+      let listCalled = false;
       const mockManager = {
-        memoryShow: () => { showCalled = true; }
+        memoryList: () => { listCalled = true; }
       };
       process.argv = ['node', 'cli.js', 'memory'];
 
       runCli(mockManager);
 
-      assert.strictEqual(showCalled, true);
+      assert.strictEqual(listCalled, true);
     });
   });
 });

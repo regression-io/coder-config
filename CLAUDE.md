@@ -248,7 +248,13 @@ The project has comprehensive test coverage for core modules:
 - Path resolution and tilde expansion
 - Environment variable activation
 
-**Total:** 358 tests across 14 test files, all passing ✅
+**test/cli.test.js** (27 tests)
+- CLI command routing to manager methods
+- Help text and version display
+- Command aliases and argument passing
+- Subcommand handling
+
+**Total:** 385 tests across 15 test files, all passing ✅
 
 ### Writing Tests
 

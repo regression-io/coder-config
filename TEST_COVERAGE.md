@@ -1,25 +1,25 @@
 # Test Coverage Summary
 
 **Last Updated**: 2026-01-29
-**Total Tests**: 358
-**Test Suites**: 85
+**Total Tests**: 385
+**Test Suites**: 91
 **Pass Rate**: 100%
-**Coverage**: 87.5% of lib modules (14/16)
+**Coverage**: 93.75% of lib modules (15/16)
 
 ## Overview
 
-This document provides a comprehensive overview of the test coverage for the coder-config project. Starting from a baseline of 21 tests, the test suite has grown to 358 tests through seven iterations of systematic expansion, representing a **1605% increase** in test coverage.
+This document provides a comprehensive overview of the test coverage for the coder-config project. Starting from a baseline of 21 tests, the test suite has grown to 385 tests through eight iterations of systematic expansion, representing a **1733% increase** in test coverage.
 
 ## Test Statistics
 
 | Metric | Value |
 |--------|-------|
-| Total Tests | 358 |
-| Test Suites | 85 |
+| Total Tests | 385 |
+| Test Suites | 91 |
 | Pass Rate | 100% |
-| Test Files | 14 |
+| Test Files | 15 |
 | Lib Modules | 16 |
-| Coverage | 87.5% |
+| Coverage | 93.75% |
 | Core Coverage | ~95% |
 
 ## Test Files
@@ -224,15 +224,32 @@ This document provides a comprehensive overview of the test coverage for the cod
 
 **Note**: This module has 30+ exported functions. Tests cover the core CRUD operations. Advanced features like hook installation, rules generation, auto-activation triggers, and detection logic remain untested.
 
+### 15. test/cli.test.js (27 tests)
+**Module**: lib/cli.js (CLI command routing)
+
+**Coverage**:
+- printHelp (4 tests) - Help text, command listing, version info, examples
+- runCli - help/version (6 tests) - Help flags, version flags, no args
+- runCli - command routing (9 tests) - Core commands, aliases, argument passing
+- runCli - registry commands (4 tests) - List, add, remove operations
+- runCli - memory commands (4 tests) - Init, add, search, list operations
+
+**Features Tested**:
+- Help text generation and display
+- Version display with flags
+- Command routing to manager methods
+- Argument passing to commands
+- Command aliases (mcps/list, rm/remove)
+- Subcommand handling (registry add/remove, memory add/search)
+- Unknown command handling
+
+**Note**: This module is primarily an integration layer that routes CLI arguments to manager methods. Tests use mocked manager objects to verify correct routing. End-to-end integration tests would provide more comprehensive coverage of actual command execution.
+
 ## Untested Modules
 
-The following modules remain untested (2 modules):
+The following module remains untested (1 module):
 
 
-### cli.js
-- CLI command routing and help
-- Complexity: High (integration layer)
-- Priority: Medium (E2E tests preferred)
 
 ### loops.js
 - Ralph Loop autonomous development system
@@ -289,6 +306,7 @@ All tests follow these standards:
 | 2026-01-29 | v0.44.11 | 263 | +33 (+14%) | Added sessions tests |
 | 2026-01-29 | v0.44.12 | 306 | +43 (+16%) | Added activity tests |
 | 2026-01-29 | v0.44.13 | 358 | +52 (+17%) | Added constants, workstreams tests |
+| 2026-01-29 | v0.44.14 | 385 | +27 (+8%) | Added cli tests |
 
 ## Running Tests
 
