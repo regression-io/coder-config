@@ -223,7 +223,14 @@ The project has comprehensive test coverage for core modules:
 - Registry MCP inclusion
 - Custom MCP server configuration
 
-**Total:** 230 tests across 10 test files, all passing ✅
+**test/sessions.test.js** (33 tests)
+- Session status detection and age calculation
+- Context file management and clearing
+- Hook installation and migration
+- /flush command installation
+- Path resolution with macOS symlink handling
+
+**Total:** 263 tests across 11 test files, all passing ✅
 
 ### Writing Tests
 

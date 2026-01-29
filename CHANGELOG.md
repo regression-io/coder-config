@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.44.11] - 2026-01-29
+
+### Added
+
+- **Complete sessions.js test coverage** - Added 33 more tests (263 total, up from 230)
+  - `test/sessions.test.js` - 33 tests for session persistence
+  - Session status detection and age calculation
+  - Context file management and clearing
+  - Hook installation and migration
+  - /flush command installation
+  - Path resolution with macOS symlink handling
+  - All 263 tests passing (100% pass rate)
+- **Updated test documentation**
+  - TEST_COVERAGE.md now reflects 263 tests across 11 test files
+  - Updated growth history showing 1152% increase from baseline
+  - Coverage now at 68.75% of lib modules (11/16)
+
 ## [0.44.9] - 2026-01-29
 
 ### Added

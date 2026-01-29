@@ -1,25 +1,25 @@
 # Test Coverage Summary
 
 **Last Updated**: 2026-01-29
-**Total Tests**: 230
-**Test Suites**: 49
+**Total Tests**: 263
+**Test Suites**: 58
 **Pass Rate**: 100%
-**Coverage**: 62.5% of lib modules (10/16)
+**Coverage**: 68.75% of lib modules (11/16)
 
 ## Overview
 
-This document provides a comprehensive overview of the test coverage for the coder-config project. Starting from a baseline of 21 tests, the test suite has grown to 230 tests through four iterations of systematic expansion, representing a **995% increase** in test coverage.
+This document provides a comprehensive overview of the test coverage for the coder-config project. Starting from a baseline of 21 tests, the test suite has grown to 263 tests through five iterations of systematic expansion, representing a **1152% increase** in test coverage.
 
 ## Test Statistics
 
 | Metric | Value |
 |--------|-------|
-| Total Tests | 230 |
-| Test Suites | 49 |
+| Total Tests | 263 |
+| Test Suites | 58 |
 | Pass Rate | 100% |
-| Test Files | 10 |
+| Test Files | 11 |
 | Lib Modules | 16 |
-| Coverage | 62.5% |
+| Coverage | 68.75% |
 | Core Coverage | ~95% |
 
 ## Test Files
@@ -137,9 +137,30 @@ This document provides a comprehensive overview of the test coverage for the cod
 - Plugin settings.json generation
 - Config hierarchy merging from parent directories
 
+### 11. test/sessions.test.js (33 tests)
+**Module**: lib/sessions.js
+
+**Coverage**:
+- getSessionStatus (4 tests) - Status detection, age calculation, path resolution
+- showSessionStatus (7 tests) - Display formatting, age units (minutes/hours/days), instructions
+- flushContext (1 test) - Instruction display
+- clearContext (3 tests) - File deletion, missing file handling, cwd support
+- getFlushedContext (3 tests) - Content reading, null handling, cwd support
+- installHooks (8 tests) - Settings.json management, hook migration, permissions
+- installFlushCommand (6 tests) - Command installation, template handling, duplicate detection
+- installAll (2 tests) - Complete installation workflow
+
+**Features Tested**:
+- Session context file management (.claude/session-context.md)
+- Context age tracking and formatting
+- Settings.json hook installation and migration
+- Permission management for session persistence
+- /flush command template installation
+- Path resolution and macOS symlink handling
+
 ## Untested Modules
 
-The following modules remain untested (6 modules):
+The following modules remain untested (5 modules):
 
 ### activity.js
 - Activity tracking for workstream suggestions
@@ -156,10 +177,6 @@ The following modules remain untested (6 modules):
 - Complexity: Very High (stateful, multi-phase)
 - Priority: Medium (complex test setup required)
 
-### sessions.js
-- Session management
-- Complexity: Medium
-- Priority: Low
 
 ### workstreams.js
 - Multi-project context management
@@ -216,6 +233,7 @@ All tests follow these standards:
 | 2026-01-29 | v0.44.6 | 157 | +72 (+85%) | Added memory, env tests |
 | 2026-01-29 | v0.44.7 | 210 | +53 (+34%) | Added init, registry, projects tests |
 | 2026-01-29 | v0.44.8 | 230 | +20 (+10%) | Added apply tests |
+| 2026-01-29 | v0.44.11 | 263 | +33 (+14%) | Added sessions tests |
 
 ## Running Tests
 
