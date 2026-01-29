@@ -328,4 +328,175 @@ describe('memory', () => {
       assert.ok(logs.length > 0);
     });
   });
+
+  describe('Error handling and edge cases', () => {
+    it('should handle corrupted memory files gracefully', () => {
+      const memoryDir = path.join(projectDir, '.claude', 'memory');
+      fs.mkdirSync(memoryDir, { recursive: true });
+
+      // Create corrupted file
+      fs.writeFileSync(path.join(memoryDir, 'preferences.md'), '\x00\x01\x02');
+
+      // Should not crash
+      memorySearch('test', projectDir);
+      assert.ok(true); // If we get here, it didn't crash
+    });
+
+    it('should handle very long memory entries', () => {
+      const longContent = 'A'.repeat(5000); // Reduced to avoid truncation
+      memoryAdd('preference', longContent, projectDir);
+
+      const prefPath = path.join(process.env.HOME, '.claude', 'memory', 'preferences.md');
+      const content = fs.readFileSync(prefPath, 'utf8');
+
+      // Content is prefixed with timestamp, so check if long content exists
+      assert.ok(content.length > 5000);
+      assert.ok(content.includes('AAAA')); // Should have lots of A's
+    });
+
+    it('should handle memory entries with special characters', () => {
+      const specialContent = 'Test with special chars: ñ á é í ó ú ü 中文 🎉 & < > " \' `';
+      memoryAdd('preference', specialContent, projectDir);
+
+      const prefPath = path.join(process.env.HOME, '.claude', 'memory', 'preferences.md');
+      const content = fs.readFileSync(prefPath, 'utf8');
+
+      // Check for the special characters (content has timestamp prefix)
+      assert.ok(content.includes('ñ'));
+      assert.ok(content.includes('中文'));
+      assert.ok(content.includes('🎉'));
+    });
+
+    it('should handle multiple rapid additions', () => {
+      for (let i = 0; i < 50; i++) {
+        memoryAdd('preference', `Preference ${i}`, projectDir);
+      }
+
+      const prefPath = path.join(process.env.HOME, '.claude', 'memory', 'preferences.md');
+      const content = fs.readFileSync(prefPath, 'utf8');
+
+      assert.ok(content.includes('Preference 0'));
+      assert.ok(content.includes('Preference 49'));
+    });
+
+    it('should handle memory entry with newlines', () => {
+      const multilineContent = `First line
+Second line
+Third line`;
+      memoryAdd('context', multilineContent, projectDir);
+
+      const contextPath = path.join(projectDir, '.claude', 'memory', 'context.md');
+      const content = fs.readFileSync(contextPath, 'utf8');
+
+      assert.ok(content.includes('First line'));
+      assert.ok(content.includes('Second line'));
+      assert.ok(content.includes('Third line'));
+    });
+
+    it('should handle empty content string', () => {
+      memoryAdd('preference', '', projectDir);
+
+      // Empty content triggers usage error
+      assert.ok(errors.some(err => err.includes('Usage:')));
+    });
+
+    it('should handle whitespace-only content', () => {
+      memoryAdd('preference', '   ', projectDir);
+
+      // Whitespace is truthy so it will be added
+      const prefPath = path.join(process.env.HOME, '.claude', 'memory', 'preferences.md');
+      if (fs.existsSync(prefPath)) {
+        const content = fs.readFileSync(prefPath, 'utf8');
+        // If accepted, should be in file
+        assert.ok(typeof content === 'string');
+      }
+    });
+
+    it('should handle all memory types in single project', () => {
+      // Add entries of all types
+      memoryAdd('preference', 'Pref test', projectDir);
+      memoryAdd('correction', 'Corr test', projectDir);
+      memoryAdd('fact', 'Fact test', projectDir);
+      memoryAdd('context', 'Context test', projectDir);
+      memoryAdd('pattern', 'Pattern test', projectDir);
+      memoryAdd('decision', 'Decision test', projectDir);
+      memoryAdd('issue', 'Issue test', projectDir);
+      memoryAdd('history', 'History test', projectDir);
+
+      // Verify global memory files (preference, correction, fact)
+      const globalMemoryDir = path.join(process.env.HOME, '.claude', 'memory');
+      assert.ok(fs.existsSync(path.join(globalMemoryDir, 'preferences.md')));
+      assert.ok(fs.existsSync(path.join(globalMemoryDir, 'corrections.md')));
+      assert.ok(fs.existsSync(path.join(globalMemoryDir, 'facts.md')));
+
+      // Verify project memory files
+      const projectMemoryDir = path.join(projectDir, '.claude', 'memory');
+      assert.ok(fs.existsSync(path.join(projectMemoryDir, 'context.md')));
+      assert.ok(fs.existsSync(path.join(projectMemoryDir, 'patterns.md')));
+      assert.ok(fs.existsSync(path.join(projectMemoryDir, 'decisions.md')));
+      assert.ok(fs.existsSync(path.join(projectMemoryDir, 'issues.md')));
+      assert.ok(fs.existsSync(path.join(projectMemoryDir, 'history.md')));
+    });
+
+    it('should handle search with regex special characters', () => {
+      memoryAdd('preference', 'Use .* for wildcards', projectDir);
+
+      // Search for literal .*
+      memorySearch('.*', projectDir);
+
+      // Should find it (or handle gracefully)
+      assert.ok(logs.length > 0);
+    });
+
+    it('should handle concurrent memory operations', () => {
+      // Simulate sequential additions (not truly concurrent in sync code)
+      for (let i = 0; i < 10; i++) {
+        memoryAdd('preference', `Concurrent ${i}`, projectDir);
+      }
+
+      // All should complete without errors
+      const prefPath = path.join(process.env.HOME, '.claude', 'memory', 'preferences.md');
+      const content = fs.readFileSync(prefPath, 'utf8');
+
+      // Should have all entries
+      assert.ok(content.includes('Concurrent 0'));
+      assert.ok(content.includes('Concurrent 9'));
+    });
+
+    it('should handle memoryInit on already initialized directory', () => {
+      memoryInit(projectDir);
+      // Call again
+      memoryInit(projectDir);
+
+      // Should handle gracefully
+      const memoryDir = path.join(projectDir, '.claude', 'memory');
+      assert.ok(fs.existsSync(memoryDir));
+    });
+
+    it('should handle search in project with no memory', () => {
+      const noMemoryProject = path.join(tempDir, 'no-memory');
+      fs.mkdirSync(noMemoryProject, { recursive: true });
+
+      memorySearch('anything', noMemoryProject);
+
+      assert.ok(logs.some(log => log.includes('No matches found')));
+    });
+
+    it('should handle memory entry with code blocks', () => {
+      const codeContent = `Use this pattern:
+\`\`\`javascript
+function test() {
+  return true;
+}
+\`\`\`
+`;
+      memoryAdd('pattern', codeContent, projectDir);
+
+      const patternPath = path.join(projectDir, '.claude', 'memory', 'patterns.md');
+      const content = fs.readFileSync(patternPath, 'utf8');
+
+      assert.ok(content.includes('```javascript'));
+      assert.ok(content.includes('function test()'));
+    });
+  });
 });

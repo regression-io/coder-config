@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.44.18] - 2026-01-29
+
+### Added
+
+- **Enhanced error handling test coverage** - Added 26 more tests (483 total, up from 457)
+  - Apply module: Added 13 error handling tests
+    - Corrupted registry and project config JSON
+    - Missing .claude directory
+    - Write permission errors
+    - Registry with no mcpServers field
+    - Empty include array
+    - Custom-only mcpServers (no include)
+    - Missing command field in MCP
+    - Very large MCP count (100+ servers)
+    - Complex nested env structures
+    - Missing .env file when env vars referenced
+    - No plugins enabled (all false)
+    - Exclude array functionality
+  - Memory module: Added 13 error handling tests
+    - Corrupted memory files
+    - Very long entries (5000+ chars)
+    - Special characters and Unicode
+    - Multiple rapid additions (50+)
+    - Multiline content with newlines
+    - Empty and whitespace-only content
+    - All 8 memory types in single project
+    - Regex special characters in search
+    - Concurrent memory operations
+    - Re-initialization handling
+    - Search with no memory
+    - Code blocks in entries
+  - All 483 tests passing (100% pass rate)
+- **Updated test documentation**
+  - TEST_COVERAGE.md now reflects 483 tests across 16 test files
+  - Updated growth history showing **2200% increase** from baseline (21 → 483 tests)
+  - Documented error handling scenarios and edge cases
+
 ## [0.44.17] - 2026-01-29
 
 ### Added

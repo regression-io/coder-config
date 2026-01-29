@@ -1,21 +1,21 @@
 # Test Coverage Summary
 
 **Last Updated**: 2026-01-29
-**Total Tests**: 457
-**Test Suites**: 118
+**Total Tests**: 483
+**Test Suites**: 120
 **Pass Rate**: 100%
 **Coverage**: 100% of lib modules (16/16) ✅
 
 ## Overview
 
-This document provides a comprehensive overview of the test coverage for the coder-config project. Starting from a baseline of 21 tests, the test suite has grown to 457 tests through ten iterations of systematic expansion, representing a **2076% increase** in test coverage and achieving **100% module coverage**.
+This document provides a comprehensive overview of the test coverage for the coder-config project. Starting from a baseline of 21 tests, the test suite has grown to 483 tests through eleven iterations of systematic expansion, representing a **2200% increase** in test coverage and achieving **100% module coverage**.
 
 ## Test Statistics
 
 | Metric | Value |
 |--------|-------|
-| Total Tests | 457 |
-| Test Suites | 118 |
+| Total Tests | 483 |
+| Test Suites | 120 |
 | Pass Rate | 100% |
 | Test Files | 16 |
 | Lib Modules | 16 |
@@ -65,17 +65,32 @@ This document provides a comprehensive overview of the test coverage for the cod
 - mergeConfigs enabledPlugins (3 tests) - Plugin settings merging
 - mergeConfigs complex integration (7 tests) - mcpServers merging, include deduplication, null handling, shallow merge behavior
 
-### 5. test/memory.test.js (28 tests)
+### 5. test/memory.test.js (41 tests)
 **Module**: lib/memory.js
 
 **Coverage**:
 - memoryInit (4 tests) - Directory creation, file headers, existing detection
 - memoryAdd (15 tests) - Global/project memory types, timestamps, validation
 - memorySearch (9 tests) - Case-insensitive search, file locations, line numbers
+- Error handling (13 tests) - Corrupted files, long entries, special characters, rapid additions, newlines, whitespace, all types, regex chars, concurrent operations, re-initialization, no memory, code blocks
 
 **Memory Types Tested**:
 - Global: preferences, corrections, facts
 - Project: context, patterns, decisions, issues, history
+
+**Error Scenarios Tested**:
+- Corrupted memory files
+- Very long entries (5000+ chars)
+- Special characters and Unicode
+- Multiple rapid additions
+- Multiline content
+- Empty and whitespace-only content
+- All 8 memory types together
+- Regex special characters in search
+- Concurrent memory operations
+- Re-initialization handling
+- Search with no memory
+- Code blocks in entries
 
 ### 6. test/env.test.js (23 tests)
 **Module**: lib/env.js
@@ -123,13 +138,13 @@ This document provides a comprehensive overview of the test coverage for the cod
 - Path resolution (relative, absolute, tilde)
 - macOS symlink handling (/var -> /private/var)
 
-### 10. test/apply.test.js (20 tests)
+### 10. test/apply.test.js (33 tests)
 **Module**: lib/apply.js
 
 **Coverage**:
-- Basic apply (11 tests) - .mcp.json generation, MCP inclusion, env interpolation
+- Basic apply (16 tests) - .mcp.json generation, MCP inclusion, env interpolation, plugins
 - Hierarchy (4 tests) - Parent/child merging, env var overrides
-- Edge cases (5 tests) - Missing configs, registry errors, directory handling
+- Error handling (13 tests) - Corrupted JSON, missing directories, write errors, empty configs, large datasets, complex structures, exclude arrays
 
 **Features Tested**:
 - Registry MCP inclusion via include array
@@ -137,6 +152,22 @@ This document provides a comprehensive overview of the test coverage for the cod
 - Environment variable interpolation (${VAR})
 - Plugin settings.json generation
 - Config hierarchy merging from parent directories
+- Error recovery and graceful degradation
+
+**Error Scenarios Tested**:
+- Corrupted registry JSON
+- Corrupted project config
+- Missing .claude directory
+- Write permission errors
+- Registry with no mcpServers
+- Empty include array
+- Custom-only servers (no include)
+- Missing command field
+- Very large MCP count (100+)
+- Complex nested env structures
+- Missing .env files
+- No plugins enabled
+- Exclude array functionality
 
 ### 11. test/sessions.test.js (33 tests)
 **Module**: lib/sessions.js
@@ -332,6 +363,7 @@ All tests follow these standards:
 | 2026-01-29 | v0.44.14 | 385 | +27 (+8%) | Added cli tests |
 | 2026-01-29 | v0.44.16 | 424 | +39 (+10%) | Added loops tests - 100% module coverage! ✅ |
 | 2026-01-29 | v0.44.17 | 457 | +33 (+8%) | Added edge cases & integration tests for config, workstreams, loops |
+| 2026-01-29 | v0.44.18 | 483 | +26 (+6%) | Added error handling tests for apply and memory modules |
 
 ## Running Tests
 
@@ -359,15 +391,16 @@ npm test
 
 ## Key Achievements
 
-1. **21x Growth**: Expanded from 21 to 457 tests (2076% increase)
+1. **23x Growth**: Expanded from 21 to 483 tests (2200% increase)
 2. **100% Module Coverage**: All 16 lib modules have test coverage ✅
 3. **Professional Quality**: Consistent test structure and quality standards
-4. **Edge Case Handling**: Extensive error condition and boundary testing
-5. **Zero Failures**: All 457 tests pass consistently
+4. **Comprehensive Error Handling**: Extensive error condition, edge case, and boundary testing
+5. **Zero Failures**: All 483 tests pass consistently
 6. **CI/CD Ready**: Test suite ready for continuous integration
 7. **Documentation**: Complete coverage documentation and inline test descriptions
-8. **Systematic Expansion**: Ten iterations of methodical test development
+8. **Systematic Expansion**: Eleven iterations of methodical test development
 9. **Integration Testing**: Complex integration scenarios for config hierarchy, workstreams, and loops
+10. **Error Recovery**: Robust error handling tests for apply and memory modules
 
 ## Impact
 
@@ -400,6 +433,6 @@ The comprehensive test coverage provides:
 
 ## Conclusion
 
-The coder-config project has achieved **100% module coverage** with 457 tests across all 16 lib modules. This represents exceptional test coverage across all core functionality. The codebase is well-protected against regressions and ready for confident development of new features.
+The coder-config project has achieved **100% module coverage** with 483 tests across all 16 lib modules. This represents exceptional test coverage across all core functionality. The codebase is well-protected against regressions and ready for confident development of new features.
 
-The systematic expansion from 21 baseline tests to 457 tests (2076% increase) over ten iterations demonstrates a commitment to code quality and maintainability. Recent additions include comprehensive edge case testing and integration scenarios for config hierarchy merging, workstream operations, and loop data management. Future work should focus on E2E testing for complex multi-phase workflows (Ralph Loop execution engine, workstream auto-activation) and cross-tool configuration validation.
+The systematic expansion from 21 baseline tests to 483 tests (2200% increase) over eleven iterations demonstrates a commitment to code quality and maintainability. Recent additions include comprehensive error handling tests for apply and memory modules, covering corrupted data, edge cases, and error recovery scenarios. The test suite now includes extensive integration testing, edge case coverage, and robust error handling across all critical modules. Future work should focus on E2E testing for complex multi-phase workflows (Ralph Loop execution engine, workstream auto-activation) and cross-tool configuration validation.

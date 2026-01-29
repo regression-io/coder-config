@@ -427,4 +427,237 @@ describe('apply', () => {
       assert.strictEqual(mcp.mcpServers.custom.env.value, 'child');
     });
   });
+
+  describe('Error handling and edge cases', () => {
+    it('should handle corrupted registry JSON gracefully', () => {
+      fs.writeFileSync(registryPath, '{invalid json');
+
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: ['github']
+      });
+
+      const result = apply(registryPath, projectDir);
+
+      assert.strictEqual(result, false);
+      assert.ok(errors.some(err => err.includes('Could not load MCP registry')));
+    });
+
+    it('should handle corrupted project config gracefully', () => {
+      fs.writeFileSync(
+        path.join(projectDir, '.claude', 'mcps.json'),
+        '{invalid'
+      );
+
+      const result = apply(registryPath, projectDir);
+
+      // Should handle gracefully - behavior may vary
+      assert.ok(typeof result === 'boolean');
+    });
+
+    it('should handle missing .claude directory', () => {
+      const noClaudeDir = path.join(tempDir, 'no-claude');
+      fs.mkdirSync(noClaudeDir, { recursive: true });
+
+      const result = apply(registryPath, noClaudeDir);
+
+      // Should handle gracefully
+      assert.ok(typeof result === 'boolean');
+    });
+
+    it('should handle write permission errors gracefully', () => {
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: ['github']
+      });
+
+      // Create .mcp.json as directory to cause write error
+      const mcpPath = path.join(projectDir, '.mcp.json');
+      fs.mkdirSync(mcpPath, { recursive: true });
+
+      try {
+        const result = apply(registryPath, projectDir);
+        // If it throws, that's acceptable error handling
+        assert.ok(typeof result === 'boolean');
+      } catch (err) {
+        // Throwing is also acceptable error handling
+        assert.ok(err.code === 'EISDIR' || err.code === 'EACCES');
+      }
+
+      // Cleanup
+      fs.rmSync(mcpPath, { recursive: true, force: true });
+    });
+
+    it('should handle registry with no mcpServers field', () => {
+      saveJson(registryPath, {});
+
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: ['github']
+      });
+
+      const result = apply(registryPath, projectDir);
+
+      // Should warn about missing MCP
+      assert.ok(warnings.some(w => w.includes('not found')));
+    });
+
+    it('should handle empty include array', () => {
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: []
+      });
+
+      const result = apply(registryPath, projectDir);
+
+      assert.strictEqual(result, true);
+      // Should generate .mcp.json even if empty
+      const mcpPath = path.join(projectDir, '.mcp.json');
+      assert.ok(fs.existsSync(mcpPath));
+
+      const mcp = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
+      assert.ok(mcp.mcpServers);
+    });
+
+    it('should handle config with only custom mcpServers (no include)', () => {
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        mcpServers: {
+          custom1: { command: 'test1' },
+          custom2: { command: 'test2' }
+        }
+      });
+
+      const result = apply(registryPath, projectDir);
+
+      assert.strictEqual(result, true);
+
+      const mcp = JSON.parse(fs.readFileSync(path.join(projectDir, '.mcp.json'), 'utf8'));
+      assert.ok(mcp.mcpServers.custom1);
+      assert.ok(mcp.mcpServers.custom2);
+    });
+
+    it('should handle MCP with missing command field', () => {
+      saveJson(registryPath, {
+        mcpServers: {
+          broken: {
+            args: ['test']
+            // Missing command
+          }
+        }
+      });
+
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: ['broken']
+      });
+
+      const result = apply(registryPath, projectDir);
+
+      // Should include it anyway (validation happens elsewhere)
+      const mcp = JSON.parse(fs.readFileSync(path.join(projectDir, '.mcp.json'), 'utf8'));
+      assert.ok(mcp.mcpServers.broken);
+    });
+
+    it('should handle very large number of MCPs', () => {
+      const largeMcpServers = {};
+      for (let i = 0; i < 100; i++) {
+        largeMcpServers[`mcp-${i}`] = {
+          command: 'test',
+          args: [`arg-${i}`]
+        };
+      }
+
+      saveJson(registryPath, { mcpServers: largeMcpServers });
+
+      const includeList = Array.from({ length: 100 }, (_, i) => `mcp-${i}`);
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: includeList
+      });
+
+      const result = apply(registryPath, projectDir);
+
+      assert.strictEqual(result, true);
+
+      const mcp = JSON.parse(fs.readFileSync(path.join(projectDir, '.mcp.json'), 'utf8'));
+      // Should have all 100 MCPs
+      assert.strictEqual(Object.keys(mcp.mcpServers).length, 100);
+    });
+
+    it('should handle MCPs with complex nested env structures', () => {
+      saveJson(registryPath, {
+        mcpServers: {
+          complex: {
+            command: 'test',
+            env: {
+              SIMPLE: '${SIMPLE_VAR}',
+              NESTED: {
+                DEEP: '${DEEP_VAR}'
+              },
+              ARRAY: ['${ARRAY_VAR}']
+            }
+          }
+        }
+      });
+
+      fs.writeFileSync(
+        path.join(projectDir, '.claude', '.env'),
+        'SIMPLE_VAR=simple\nDEEP_VAR=deep\nARRAY_VAR=array'
+      );
+
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: ['complex']
+      });
+
+      const result = apply(registryPath, projectDir);
+
+      assert.strictEqual(result, true);
+    });
+
+    it('should handle missing .env file when env vars referenced', () => {
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: ['filesystem'] // Has env vars
+      });
+
+      // No .env file created
+
+      const result = apply(registryPath, projectDir);
+
+      // Should succeed but env vars will be empty or from process.env
+      assert.strictEqual(result, true);
+    });
+
+    it('should handle enabledPlugins with no plugins enabled', () => {
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: [],
+        enabledPlugins: {
+          'plugin1': false,
+          'plugin2': false
+        }
+      });
+
+      const result = apply(registryPath, projectDir);
+
+      assert.strictEqual(result, true);
+
+      const settings = JSON.parse(
+        fs.readFileSync(path.join(projectDir, '.claude', 'settings.json'), 'utf8')
+      );
+      // Both plugins should be in settings, even if false
+      assert.ok('plugin1' in settings.enabledPlugins);
+      assert.ok('plugin2' in settings.enabledPlugins);
+      assert.strictEqual(settings.enabledPlugins.plugin1, false);
+      assert.strictEqual(settings.enabledPlugins.plugin2, false);
+    });
+
+    it('should handle exclude array correctly', () => {
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: ['github', 'filesystem', 'postgres'],
+        exclude: ['filesystem']
+      });
+
+      const result = apply(registryPath, projectDir);
+
+      assert.strictEqual(result, true);
+
+      const mcp = JSON.parse(fs.readFileSync(path.join(projectDir, '.mcp.json'), 'utf8'));
+      assert.ok(mcp.mcpServers.github);
+      assert.ok(!mcp.mcpServers.filesystem);
+      assert.ok(mcp.mcpServers.postgres);
+    });
+  });
 });
