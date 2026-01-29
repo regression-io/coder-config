@@ -19,7 +19,8 @@ export default function TerminalDialog({
   env = {},
   onExit,
   autoCloseOnExit = false,
-  autoCloseDelay = 1500
+  autoCloseDelay = 1500,
+  headerExtra = null
 }) {
   const terminalContainerRef = useRef(null);
   const [exited, setExited] = useState(false);
@@ -95,15 +96,18 @@ export default function TerminalDialog({
                   </DialogPrimitive.Description>
                 )}
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0"
-                onClick={() => onOpenChange(false)}
-                tabIndex={-1}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-3">
+                {headerExtra}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => onOpenChange(false)}
+                  tabIndex={-1}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
 

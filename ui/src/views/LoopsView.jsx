@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   RefreshCcw, Plus, Trash2, Play, Pause, XCircle, Check,
   ChevronDown, ChevronRight, Loader2, Clock,
@@ -87,6 +87,11 @@ export default function LoopsView({ activeProject = null }) {
   // Terminal state
   const [terminalOpen, setTerminalOpen] = useState(false);
   const [terminalLoop, setTerminalLoop] = useState(null);
+  const [autoCloseWhenDone, setAutoCloseWhenDone] = useState(true);
+
+  // Completion summary state
+  const [completionSummary, setCompletionSummary] = useState(null);
+  const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
 
   useEffect(() => {
     loadLoops();
@@ -95,6 +100,83 @@ export default function LoopsView({ activeProject = null }) {
     loadWorkstreams();
     loadPluginStatus();
   }, []);
+
+  // Track the last known status to detect changes
+  const lastKnownStatus = useRef(null);
+
+  // Poll loop status while terminal is open to detect state changes
+  useEffect(() => {
+    if (!terminalOpen || !terminalLoop) {
+      lastKnownStatus.current = null;
+      return;
+    }
+
+    // Initialize with current status
+    lastKnownStatus.current = terminalLoop.status;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const data = await api.getLoop(terminalLoop.id);
+        const loop = data.loop;
+
+        // Detect any status change (not just to completed)
+        const statusChanged = lastKnownStatus.current !== loop.status;
+        const isTerminalState = ['completed', 'paused', 'failed', 'cancelled'].includes(loop.status);
+
+        if (statusChanged && isTerminalState) {
+          clearInterval(pollInterval);
+
+          // Build summary for any terminal state
+          const summary = {
+            name: loop.name,
+            task: loop.task?.original,
+            status: loop.status,
+            pauseReason: loop.pauseReason,
+            iterations: loop.iterations?.current || 0,
+            maxIterations: loop.iterations?.max || 50,
+            phase: loop.phase,
+            startedAt: loop.startedAt,
+            completedAt: loop.completedAt || new Date().toISOString(),
+            duration: loop.startedAt
+              ? Math.round((Date.now() - new Date(loop.startedAt).getTime()) / 1000)
+              : null,
+          };
+          setCompletionSummary(summary);
+
+          // Show appropriate toast
+          if (loop.status === 'completed') {
+            toast.success('Loop completed successfully!');
+          } else if (loop.status === 'paused') {
+            toast.info(`Loop paused: ${loop.pauseReason || 'unknown reason'}`);
+          } else if (loop.status === 'failed') {
+            toast.error('Loop failed');
+          } else if (loop.status === 'cancelled') {
+            toast.warning('Loop cancelled');
+          }
+
+          loadLoops();
+
+          // Auto-close terminal if enabled and completed
+          if (autoCloseWhenDone && loop.status === 'completed') {
+            setTimeout(() => {
+              setTerminalOpen(false);
+              setTerminalLoop(null);
+              setSummaryDialogOpen(true);
+            }, 1500);
+          } else {
+            // Always show summary dialog for any terminal state
+            setSummaryDialogOpen(true);
+          }
+        }
+
+        lastKnownStatus.current = loop.status;
+      } catch (error) {
+        console.error('Failed to poll loop status:', error);
+      }
+    }, 3000); // Poll every 3 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [terminalOpen, terminalLoop, autoCloseWhenDone]);
 
   const loadPluginStatus = async () => {
     try {
@@ -1097,7 +1179,115 @@ export default function LoopsView({ activeProject = null }) {
           ...(terminalLoop.workstreamId && { CODER_WORKSTREAM: terminalLoop.workstreamId })
         } : {}}
         onExit={handleTerminalExit}
+        headerExtra={
+          <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={autoCloseWhenDone}
+              onChange={(e) => setAutoCloseWhenDone(e.target.checked)}
+              className="rounded"
+            />
+            Auto-close when done
+          </label>
+        }
       />
+
+      {/* Loop Summary Dialog */}
+      <Dialog open={summaryDialogOpen} onOpenChange={setSummaryDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {completionSummary?.status === 'completed' && (
+                <><CheckCircle2 className="w-5 h-5 text-green-600" /> Loop Completed</>
+              )}
+              {completionSummary?.status === 'paused' && (
+                <><Pause className="w-5 h-5 text-yellow-500" /> Loop Paused</>
+              )}
+              {completionSummary?.status === 'failed' && (
+                <><XCircle className="w-5 h-5 text-red-500" /> Loop Failed</>
+              )}
+              {completionSummary?.status === 'cancelled' && (
+                <><XCircle className="w-5 h-5 text-gray-500" /> Loop Cancelled</>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          {completionSummary && (
+            <div className="space-y-4 py-4">
+              <div>
+                <h4 className="text-sm font-medium mb-1">Task</h4>
+                <p className="text-sm text-muted-foreground bg-muted p-2 rounded">
+                  {completionSummary.task}
+                </p>
+              </div>
+
+              {completionSummary.pauseReason && (
+                <div>
+                  <h4 className="text-sm font-medium mb-1">Reason</h4>
+                  <p className="text-sm text-muted-foreground bg-muted p-2 rounded">
+                    {completionSummary.pauseReason}
+                  </p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-3 text-sm">
+                <div className="border rounded p-3">
+                  <div className="text-muted-foreground text-xs mb-1">Status</div>
+                  <div className="font-medium flex items-center gap-1">
+                    {STATUS_ICONS[completionSummary.status]}
+                    <span className="capitalize">{completionSummary.status}</span>
+                  </div>
+                </div>
+                <div className="border rounded p-3">
+                  <div className="text-muted-foreground text-xs mb-1">Iterations</div>
+                  <div className="font-medium">
+                    {completionSummary.iterations} / {completionSummary.maxIterations}
+                  </div>
+                </div>
+                <div className="border rounded p-3">
+                  <div className="text-muted-foreground text-xs mb-1">Duration</div>
+                  <div className="font-medium">
+                    {completionSummary.duration != null
+                      ? completionSummary.duration < 60
+                        ? `${completionSummary.duration}s`
+                        : completionSummary.duration < 3600
+                          ? `${Math.floor(completionSummary.duration / 60)}m ${completionSummary.duration % 60}s`
+                          : `${Math.floor(completionSummary.duration / 3600)}h ${Math.floor((completionSummary.duration % 3600) / 60)}m`
+                      : '-'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-xs text-muted-foreground">
+                {completionSummary.status === 'completed' ? 'Completed' : 'Stopped'} at {formatDate(completionSummary.completedAt)}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSummaryDialogOpen(false)}>
+              Close
+            </Button>
+            {completionSummary?.status === 'paused' && (
+              <Button onClick={() => {
+                setSummaryDialogOpen(false);
+                const loop = loops.find(l => l.name === completionSummary.name);
+                if (loop) handleResume(loop.id);
+              }}>
+                <RotateCcw className="w-4 h-4 mr-1" />
+                Resume
+              </Button>
+            )}
+            <Button variant="secondary" onClick={() => {
+              setSummaryDialogOpen(false);
+              if (completionSummary) {
+                const loop = loops.find(l => l.name === completionSummary.name);
+                if (loop) handleViewDetail(loop);
+              }
+            }}>
+              View Details
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
