@@ -3,7 +3,8 @@ import {
   RefreshCcw, Plus, Trash2, Play, Pause, XCircle, Check,
   ChevronDown, ChevronRight, Loader2, Clock,
   AlertCircle, CheckCircle2, FileText, Settings, History,
-  RotateCcw, Eye, Copy, Terminal as TerminalIcon, Layers, Filter, Download
+  RotateCcw, Eye, Copy, Terminal as TerminalIcon, Layers, Filter, Download,
+  Pencil
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +58,8 @@ export default function LoopsView({ activeProject = null }) {
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedLoop, setSelectedLoop] = useState(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingLoop, setEditingLoop] = useState(null);
 
   // Form states
   const [newTask, setNewTask] = useState('');
@@ -64,6 +67,13 @@ export default function LoopsView({ activeProject = null }) {
   const [newMaxIterations, setNewMaxIterations] = useState(50);
   const [newCompletionPromise, setNewCompletionPromise] = useState('DONE');
   const [saving, setSaving] = useState(false);
+
+  // Edit form states
+  const [editName, setEditName] = useState('');
+  const [editTask, setEditTask] = useState('');
+  const [editMaxIterations, setEditMaxIterations] = useState(50);
+  const [editCompletionPromise, setEditCompletionPromise] = useState('DONE');
+  const [editWorkstreamId, setEditWorkstreamId] = useState('');
 
   // Config form states
   const [maxIterations, setMaxIterations] = useState(50);
@@ -446,6 +456,69 @@ export default function LoopsView({ activeProject = null }) {
     }
   };
 
+  const handleEdit = (loop) => {
+    setEditingLoop(loop);
+    setEditName(loop.name || '');
+    setEditTask(loop.task?.original || '');
+    setEditMaxIterations(loop.iterations?.max || 50);
+    setEditCompletionPromise(loop.completionPromise || 'DONE');
+    setEditWorkstreamId(loop.workstreamId || '');
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingLoop) return;
+
+    try {
+      setSaving(true);
+      const updates = {
+        name: editName,
+        task: { original: editTask },
+        iterations: { max: parseInt(editMaxIterations, 10) },
+        completionPromise: editCompletionPromise,
+        workstreamId: editWorkstreamId || null,
+      };
+
+      const result = await api.updateLoop(editingLoop.id, updates);
+      if (result.success) {
+        toast.success('Loop updated');
+        setEditDialogOpen(false);
+        setEditingLoop(null);
+        loadLoops();
+      } else {
+        toast.error(result.error || 'Failed to update loop');
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCopy = async (loop) => {
+    try {
+      setSaving(true);
+      const result = await api.createLoop(loop.task?.original || '', {
+        name: `${loop.name} (copy)`,
+        workstreamId: loop.workstreamId || null,
+        projectPath: loop.projectPath || activeProject?.path || activeProject?.dir || null,
+        maxIterations: loop.iterations?.max || 50,
+        completionPromise: loop.completionPromise || 'DONE',
+      });
+
+      if (result.success) {
+        toast.success('Loop copied');
+        loadLoops();
+      } else {
+        toast.error(result.error || 'Failed to copy loop');
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleApprove = async (loopId) => {
     try {
       const result = await api.approveLoop(loopId);
@@ -755,6 +828,26 @@ export default function LoopsView({ activeProject = null }) {
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm" onClick={() => handleEdit(loop)}>
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Edit loop</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm" onClick={() => handleCopy(loop)}>
+                              <Copy className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Duplicate loop</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
                             <Button variant="ghost" size="sm" onClick={() => handleViewDetail(loop)}>
                               <Eye className="w-4 h-4" />
                             </Button>
@@ -934,6 +1027,87 @@ export default function LoopsView({ activeProject = null }) {
             <Button onClick={handleCreate} disabled={saving || !newTask.trim()}>
               {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
               Create Loop
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Loop</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Name</label>
+              <Input
+                placeholder="Loop name"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Task Description</label>
+              <Textarea
+                placeholder="Describe what you want Claude to accomplish..."
+                value={editTask}
+                onChange={(e) => setEditTask(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Max Iterations</label>
+                <Input
+                  type="number"
+                  value={editMaxIterations}
+                  onChange={(e) => setEditMaxIterations(e.target.value)}
+                  min={1}
+                  max={1000}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Completion Promise</label>
+                <Input
+                  value={editCompletionPromise}
+                  onChange={(e) => setEditCompletionPromise(e.target.value)}
+                  placeholder="DONE"
+                />
+              </div>
+            </div>
+            {workstreams.length > 0 && (
+              <div>
+                <label className="text-sm font-medium mb-1 block">Workstream</label>
+                <select
+                  className="w-full border rounded-md p-2 bg-background"
+                  value={editWorkstreamId}
+                  onChange={(e) => setEditWorkstreamId(e.target.value)}
+                >
+                  <option value="">No workstream</option>
+                  {workstreams.map((ws) => (
+                    <option key={ws.id} value={ws.id}>{ws.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {editingLoop && (
+              <div className="text-xs text-muted-foreground">
+                <span>ID: {editingLoop.id}</span>
+                <span className="mx-2">|</span>
+                <span>Status: {editingLoop.status}</span>
+                <span className="mx-2">|</span>
+                <span>Phase: {editingLoop.phase}</span>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={saving || !editTask.trim()}>
+              {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>
