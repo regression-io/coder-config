@@ -185,7 +185,19 @@ The project has comprehensive test coverage for core modules:
 - Config merging with exclude functionality
 - Plugin settings merging
 
-**Total:** 106 tests across 4 test files, all passing ✅
+**test/memory.test.js** (28 tests)
+- Memory initialization and file creation
+- Adding entries to global/project memory
+- Memory search across all locations
+- Timestamp tracking and error handling
+
+**test/env.test.js** (23 tests)
+- Environment variable set/unset operations
+- Variable updates and preservation
+- Special characters and edge cases
+- Integration tests for multiple operations
+
+**Total:** 157 tests across 6 test files, all passing ✅
 
 ### Writing Tests
 
