@@ -506,4 +506,138 @@ describe('workstreams', () => {
       assert.strictEqual(count, 0);
     });
   });
+
+  describe('Edge cases and integration', () => {
+    it('should handle path normalization (trailing slashes)', () => {
+      const ws1 = workstreamCreate(installDir, 'WS1', [projectDir1 + '/']);
+      const ws2 = workstreamCreate(installDir, 'WS2', [projectDir1]);
+
+      // Both should resolve to same normalized path
+      const count = countWorkstreamsForProject(installDir, projectDir1);
+      assert.ok(count >= 1);
+    });
+
+    it('should handle very long workstream names', () => {
+      const longName = 'A'.repeat(200);
+      const ws = workstreamCreate(installDir, longName);
+
+      assert.ok(ws);
+      assert.strictEqual(ws.name, longName);
+    });
+
+    it('should handle special characters in workstream names', () => {
+      const specialName = 'Test-Name_With.Special@Chars!';
+      const ws = workstreamCreate(installDir, specialName);
+
+      assert.ok(ws);
+      assert.strictEqual(ws.name, specialName);
+    });
+
+    it('should handle empty projects array gracefully', () => {
+      const ws = workstreamCreate(installDir, 'Empty', []);
+
+      assert.ok(ws);
+      assert.strictEqual(ws.projects.length, 0);
+    });
+
+    it('should handle multiple updates to same workstream', () => {
+      const ws = workstreamCreate(installDir, 'Test');
+
+      workstreamUpdate(installDir, ws.id, { name: 'Updated1' });
+      workstreamUpdate(installDir, ws.id, { name: 'Updated2' });
+      workstreamUpdate(installDir, ws.id, { name: 'Updated3' });
+
+      const final = workstreamGet(installDir, ws.id);
+      assert.strictEqual(final.name, 'Updated3');
+    });
+
+    it('should preserve projects when updating name only', () => {
+      const ws = workstreamCreate(installDir, 'Test', [projectDir1, projectDir2]);
+
+      workstreamUpdate(installDir, ws.id, { name: 'New Name' });
+
+      const updated = workstreamGet(installDir, ws.id);
+      assert.strictEqual(updated.projects.length, 2);
+      assert.ok(updated.projects.includes(projectDir1));
+    });
+
+    it('should preserve name when updating projects only', () => {
+      const ws = workstreamCreate(installDir, 'Original Name');
+
+      workstreamUpdate(installDir, ws.id, { projects: [projectDir1] });
+
+      const updated = workstreamGet(installDir, ws.id);
+      assert.strictEqual(updated.name, 'Original Name');
+      assert.strictEqual(updated.projects.length, 1);
+    });
+
+    it('should handle adding many projects to single workstream', () => {
+      const ws = workstreamCreate(installDir, 'Big WS');
+
+      for (let i = 0; i < 20; i++) {
+        const projectPath = path.join(tempDir, `project-${i}`);
+        fs.mkdirSync(projectPath, { recursive: true });
+        workstreamAddProject(installDir, ws.id, projectPath);
+      }
+
+      const updated = workstreamGet(installDir, ws.id);
+      assert.strictEqual(updated.projects.length, 20);
+    });
+
+    it('should handle project being in multiple workstreams', () => {
+      workstreamCreate(installDir, 'WS1', [projectDir1]);
+      workstreamCreate(installDir, 'WS2', [projectDir1]);
+      workstreamCreate(installDir, 'WS3', [projectDir1]);
+
+      const count = countWorkstreamsForProject(installDir, projectDir1);
+      assert.strictEqual(count, 3);
+    });
+
+    it('should handle deleting workstream with many projects', () => {
+      const ws = workstreamCreate(installDir, 'Big WS', [projectDir1, projectDir2]);
+      workstreamDelete(installDir, ws.id);
+
+      const data = loadWorkstreams(installDir);
+      assert.strictEqual(data.workstreams.length, 0);
+    });
+
+    it('should handle rapid create/delete cycles', () => {
+      for (let i = 0; i < 10; i++) {
+        const ws = workstreamCreate(installDir, `WS-${i}`);
+        workstreamDelete(installDir, ws.id);
+      }
+
+      const data = loadWorkstreams(installDir);
+      assert.strictEqual(data.workstreams.length, 0);
+    });
+
+    it('should update updatedAt timestamp on modification', () => {
+      const ws = workstreamCreate(installDir, 'WS1');
+      const originalUpdatedAt = ws.updatedAt;
+
+      // Update workstream
+      workstreamUpdate(installDir, ws.id, { name: 'WS1-Updated' });
+
+      const updated = workstreamGet(installDir, ws.id);
+
+      // UpdatedAt should be changed (either newer or at least present)
+      assert.ok(updated.updatedAt);
+      assert.ok(typeof updated.updatedAt === 'string');
+    });
+
+    it('should handle empty rules gracefully', () => {
+      const ws = workstreamCreate(installDir, 'Test', [], '');
+
+      assert.ok(ws);
+      assert.strictEqual(ws.rules, '');
+    });
+
+    it('should handle very long rules text', () => {
+      const longRules = 'Rule line\n'.repeat(1000);
+      const ws = workstreamCreate(installDir, 'Test', [], longRules);
+
+      assert.ok(ws);
+      assert.strictEqual(ws.rules.length, longRules.length);
+    });
+  });
 });

@@ -507,4 +507,169 @@ describe('loops', () => {
       });
     });
   });
+
+  describe('Edge cases and integration', () => {
+    it('should handle multiple loops simultaneously', () => {
+      const loop1 = loopCreate(installDir, 'Task 1');
+      const loop2 = loopCreate(installDir, 'Task 2');
+      const loop3 = loopCreate(installDir, 'Task 3');
+
+      assert.notStrictEqual(loop1.id, loop2.id);
+      assert.notStrictEqual(loop2.id, loop3.id);
+
+      const data = loadLoops(installDir);
+      assert.strictEqual(data.loops.length, 3);
+    });
+
+    it('should handle very long task descriptions', () => {
+      const longTask = 'A'.repeat(1000);
+      const loop = loopCreate(installDir, longTask);
+
+      assert.ok(loop);
+      assert.strictEqual(loop.task.original, longTask);
+    });
+
+    it('should handle task with special characters', () => {
+      const specialTask = 'Fix bug: @user/repo#123 (urgent!) & test';
+      const loop = loopCreate(installDir, specialTask);
+
+      assert.ok(loop);
+      assert.strictEqual(loop.task.original, specialTask);
+    });
+
+    it('should preserve loop state across save/load cycles', () => {
+      const loop = loopCreate(installDir, 'Test task');
+      const state = {
+        id: loop.id,
+        task: loop.task,
+        status: 'in-progress',
+        iteration: 5,
+        cost: 1.25
+      };
+
+      saveLoopState(installDir, loop.id, state);
+      const loaded = loadLoopState(installDir, loop.id);
+
+      assert.deepStrictEqual(loaded, state);
+    });
+
+    it('should handle concurrent loop creation', () => {
+      const loops = [];
+      for (let i = 0; i < 10; i++) {
+        loops.push(loopCreate(installDir, `Task ${i}`));
+      }
+
+      assert.strictEqual(loops.length, 10);
+      const ids = new Set(loops.map(l => l.id));
+      assert.strictEqual(ids.size, 10); // All IDs unique
+    });
+
+    it('should handle loop deletion and recreation with same task', () => {
+      const loop1 = loopCreate(installDir, 'Same task');
+      loopDelete(installDir, loop1.id);
+
+      const loop2 = loopCreate(installDir, 'Same task');
+
+      assert.notStrictEqual(loop1.id, loop2.id);
+      assert.ok(loopGet(installDir, loop2.id));
+      assert.strictEqual(loopGet(installDir, loop1.id), null);
+    });
+
+    it('should handle large history files', () => {
+      const history = {
+        completed: []
+      };
+
+      for (let i = 0; i < 100; i++) {
+        history.completed.push({
+          id: `loop-${i}`,
+          name: `Task ${i}`,
+          completedAt: new Date().toISOString()
+        });
+      }
+
+      saveHistory(installDir, history);
+      const loaded = loadHistory(installDir);
+
+      assert.strictEqual(loaded.completed.length, 100);
+    });
+
+    it('should handle plans with markdown formatting', () => {
+      const loop = loopCreate(installDir, 'Test');
+      const plan = `# Implementation Plan
+
+## Phase 1
+- [ ] Task 1
+- [ ] Task 2
+
+## Phase 2
+\`\`\`javascript
+const code = "example";
+\`\`\`
+
+## Phase 3
+> Important note here
+`;
+
+      savePlan(installDir, loop.id, plan);
+      const loaded = loadPlan(installDir, loop.id);
+
+      assert.strictEqual(loaded, plan);
+    });
+
+    it('should handle clarifications with complex content', () => {
+      const loop = loopCreate(installDir, 'Test');
+      const clarifications = `# Clarifications
+
+## Q: What framework?
+A: React with TypeScript
+
+## Q: Database?
+A: PostgreSQL with Prisma ORM
+
+## Q: Authentication?
+A: JWT tokens with refresh
+`;
+
+      saveClarifications(installDir, loop.id, clarifications);
+      const loaded = loadClarifications(installDir, loop.id);
+
+      assert.strictEqual(loaded, clarifications);
+    });
+
+    it('should handle config with all optional fields', () => {
+      const loop = loopCreate(installDir, 'Test', {
+        maxIterations: 50,
+        autoApprovePlan: false,
+        maxClarifyIterations: 5,
+        completionPromise: 'When all tests pass',
+        name: 'Custom Loop Name'
+      });
+
+      assert.ok(loop);
+      assert.strictEqual(loop.name, 'Custom Loop Name');
+    });
+
+    it('should handle rapid create/delete cycles', () => {
+      for (let i = 0; i < 20; i++) {
+        const loop = loopCreate(installDir, `Task ${i}`);
+        loopDelete(installDir, loop.id);
+      }
+
+      const data = loadLoops(installDir);
+      assert.strictEqual(data.loops.length, 0);
+    });
+
+    it('should preserve registry consistency after errors', () => {
+      const loop1 = loopCreate(installDir, 'Task 1');
+      const loop2 = loopCreate(installDir, 'Task 2');
+
+      // Try to load non-existent loop
+      loadLoopState(installDir, 'nonexistent');
+
+      // Registry should still be valid
+      const data = loadLoops(installDir);
+      assert.strictEqual(data.loops.length, 2);
+    });
+  });
 });

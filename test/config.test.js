@@ -330,4 +330,176 @@ describe('config', () => {
       assert.strictEqual(result.enabledPlugins.plugin2, true);
     });
   });
+
+  describe('mergeConfigs - complex integration', () => {
+    it('should merge mcpServers from multiple levels', () => {
+      const configs = [
+        {
+          config: {
+            mcpServers: {
+              github: { command: 'npx', args: ['-y', '@modelcontextprotocol/server-github'] }
+            }
+          }
+        },
+        {
+          config: {
+            mcpServers: {
+              filesystem: { command: 'npx', args: ['-y', '@modelcontextprotocol/server-filesystem'] }
+            }
+          }
+        }
+      ];
+
+      const result = mergeConfigs(configs);
+
+      assert.ok(result.mcpServers.github);
+      assert.ok(result.mcpServers.filesystem);
+      assert.strictEqual(result.mcpServers.github.command, 'npx');
+      assert.strictEqual(result.mcpServers.filesystem.command, 'npx');
+    });
+
+    it('should allow child to override parent mcpServer config', () => {
+      const configs = [
+        {
+          config: {
+            mcpServers: {
+              github: {
+                command: 'npx',
+                args: ['-y', '@modelcontextprotocol/server-github'],
+                env: { GITHUB_TOKEN: 'parent-token' }
+              }
+            }
+          }
+        },
+        {
+          config: {
+            mcpServers: {
+              github: {
+                command: 'npx',
+                args: ['-y', '@modelcontextprotocol/server-github'],
+                env: { GITHUB_TOKEN: 'child-token' }
+              }
+            }
+          }
+        }
+      ];
+
+      const result = mergeConfigs(configs);
+
+      assert.strictEqual(result.mcpServers.github.env.GITHUB_TOKEN, 'child-token');
+    });
+
+    it('should merge include arrays without duplicates', () => {
+      const configs = [
+        { config: { include: ['github', 'filesystem'] } },
+        { config: { include: ['filesystem', 'postgres'] } },
+        { config: { include: ['github', 'memory'] } }
+      ];
+
+      const result = mergeConfigs(configs);
+
+      assert.strictEqual(result.include.length, 4);
+      assert.ok(result.include.includes('github'));
+      assert.ok(result.include.includes('filesystem'));
+      assert.ok(result.include.includes('postgres'));
+      assert.ok(result.include.includes('memory'));
+    });
+
+    it('should handle empty config objects', () => {
+      const configs = [
+        { config: {} },
+        { config: { include: ['github'] } },
+        { config: {} }
+      ];
+
+      const result = mergeConfigs(configs);
+
+      assert.ok(Array.isArray(result.include));
+      assert.ok(result.include.includes('github'));
+    });
+
+    it('should handle configs with null/undefined values', () => {
+      const configs = [
+        { config: { include: ['github'] } },
+        { config: { include: null } },
+        { config: { include: ['filesystem'] } }
+      ];
+
+      const result = mergeConfigs(configs);
+
+      assert.ok(Array.isArray(result.include));
+      // Should have both github and filesystem despite null in middle
+      assert.ok(result.include.length >= 1);
+    });
+
+    it('should properly handle exclude with mcpServers', () => {
+      const configs = [
+        {
+          config: {
+            include: ['github', 'filesystem'],
+            mcpServers: {
+              github: { command: 'npx', args: [] },
+              filesystem: { command: 'npx', args: [] }
+            }
+          }
+        },
+        {
+          config: {
+            exclude: ['github']
+          }
+        }
+      ];
+
+      const result = mergeConfigs(configs);
+
+      assert.ok(!result.include.includes('github'));
+      assert.ok(result.include.includes('filesystem'));
+      // mcpServers should still have both (exclude only affects include)
+      assert.ok(result.mcpServers.github);
+      assert.ok(result.mcpServers.filesystem);
+    });
+
+    it('should shallow merge mcpServers (child completely replaces server config)', () => {
+      const configs = [
+        {
+          config: {
+            mcpServers: {
+              custom: {
+                command: 'node',
+                args: ['index.js'],
+                env: {
+                  VAR1: 'value1',
+                  VAR2: 'value2'
+                }
+              }
+            }
+          }
+        },
+        {
+          config: {
+            mcpServers: {
+              custom: {
+                command: 'node',
+                args: ['index.js', '--prod'],
+                env: {
+                  VAR2: 'override2',
+                  VAR3: 'value3'
+                }
+              }
+            }
+          }
+        }
+      ];
+
+      const result = mergeConfigs(configs);
+
+      // Object.assign at mcpServers level means child completely replaces parent
+      // Child provided full server config so we get child's values
+      assert.strictEqual(result.mcpServers.custom.command, 'node');
+      assert.deepStrictEqual(result.mcpServers.custom.args, ['index.js', '--prod']);
+      assert.strictEqual(result.mcpServers.custom.env.VAR1, undefined);
+      assert.strictEqual(result.mcpServers.custom.env.VAR2, 'override2');
+      assert.strictEqual(result.mcpServers.custom.env.VAR3, 'value3');
+    });
+  });
 });

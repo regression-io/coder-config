@@ -1,21 +1,21 @@
 # Test Coverage Summary
 
 **Last Updated**: 2026-01-29
-**Total Tests**: 424
-**Test Suites**: 114
+**Total Tests**: 457
+**Test Suites**: 118
 **Pass Rate**: 100%
 **Coverage**: 100% of lib modules (16/16) ✅
 
 ## Overview
 
-This document provides a comprehensive overview of the test coverage for the coder-config project. Starting from a baseline of 21 tests, the test suite has grown to 424 tests through nine iterations of systematic expansion, representing a **1919% increase** in test coverage and achieving **100% module coverage**.
+This document provides a comprehensive overview of the test coverage for the coder-config project. Starting from a baseline of 21 tests, the test suite has grown to 457 tests through ten iterations of systematic expansion, representing a **2076% increase** in test coverage and achieving **100% module coverage**.
 
 ## Test Statistics
 
 | Metric | Value |
 |--------|-------|
-| Total Tests | 424 |
-| Test Suites | 114 |
+| Total Tests | 457 |
+| Test Suites | 118 |
 | Pass Rate | 100% |
 | Test Files | 16 |
 | Lib Modules | 16 |
@@ -54,7 +54,7 @@ This document provides a comprehensive overview of the test coverage for the cod
 - remove (7 tests) - Single/multiple MCPs, mixed valid/invalid, config validation
 - Integration scenarios
 
-### 4. test/config.test.js (20 tests)
+### 4. test/config.test.js (27 tests)
 **Module**: lib/config.js
 
 **Coverage**:
@@ -63,6 +63,7 @@ This document provides a comprehensive overview of the test coverage for the cod
 - collectFilesFromHierarchy (6 tests) - Rules/commands collection, .md filtering
 - mergeConfigs exclude (4 tests) - Exclusion arrays, filtering
 - mergeConfigs enabledPlugins (3 tests) - Plugin settings merging
+- mergeConfigs complex integration (7 tests) - mcpServers merging, include deduplication, null handling, shallow merge behavior
 
 ### 5. test/memory.test.js (28 tests)
 **Module**: lib/memory.js
@@ -196,8 +197,8 @@ This document provides a comprehensive overview of the test coverage for the cod
 - Configuration structure consistency
 - Icon and color value validation
 
-### 14. test/workstreams.test.js (40 tests)
-**Module**: lib/workstreams.js (partial - core CRUD operations)
+### 14. test/workstreams.test.js (55 tests)
+**Module**: lib/workstreams.js (partial - core CRUD operations + edge cases)
 
 **Coverage**:
 - getWorkstreamsPath (1 test) - Path resolution
@@ -212,6 +213,7 @@ This document provides a comprehensive overview of the test coverage for the cod
 - workstreamGet (2 tests) - Retrieval by ID, null handling
 - getActiveWorkstream (2 tests) - Null state, env var activation
 - countWorkstreamsForProject (2 tests) - Counting, zero handling
+- Edge cases (15 tests) - Path normalization, long names, special characters, empty arrays, multiple updates, concurrent operations, rapid cycles, large datasets, complex rules
 
 **Features Tested**:
 - Workstream CRUD operations
@@ -221,8 +223,10 @@ This document provides a comprehensive overview of the test coverage for the cod
 - Timestamp tracking
 - Case-insensitive name matching
 - Environment variable activation
+- Stress testing (many projects, rapid operations)
+- Data integrity across operations
 
-**Note**: This module has 30+ exported functions. Tests cover the core CRUD operations. Advanced features like hook installation, rules generation, auto-activation triggers, and detection logic remain untested.
+**Note**: This module has 30+ exported functions. Tests cover the core CRUD operations and common edge cases. Advanced features like hook installation, rules generation, auto-activation triggers, and detection logic remain untested.
 
 ### 15. test/cli.test.js (27 tests)
 **Module**: lib/cli.js (CLI command routing)
@@ -245,8 +249,8 @@ This document provides a comprehensive overview of the test coverage for the cod
 
 **Note**: This module is primarily an integration layer that routes CLI arguments to manager methods. Tests use mocked manager objects to verify correct routing. End-to-end integration tests would provide more comprehensive coverage of actual command execution.
 
-### 16. test/loops.test.js (39 tests)
-**Module**: lib/loops.js (partial - core data operations and CRUD)
+### 16. test/loops.test.js (51 tests)
+**Module**: lib/loops.js (partial - core data operations and CRUD + edge cases)
 
 **Coverage**:
 - Path helpers (5 tests) - getLoopsPath, getLoopsRegistryPath, getLoopsHistoryPath, getLoopDir
@@ -254,6 +258,7 @@ This document provides a comprehensive overview of the test coverage for the cod
 - getDefaultConfig (2 tests) - Default structure, required fields validation
 - File operations (8 tests) - saveClarifications, loadClarifications, savePlan, loadPlan
 - CRUD operations (14 tests) - loopCreate, loopGet, loopDelete with validation
+- Edge cases (12 tests) - Multiple loops, long tasks, special characters, state persistence, concurrent creation, deletion/recreation, large history, markdown formatting, complex clarifications, optional config fields, rapid cycles, consistency
 
 **Features Tested**:
 - Loop registry management (loops.json)
@@ -264,8 +269,11 @@ This document provides a comprehensive overview of the test coverage for the cod
 - Unique ID generation
 - Timestamp tracking
 - Directory structure creation
+- Stress testing (concurrent loops, rapid cycles)
+- Data integrity and consistency
+- Complex content handling (markdown, special chars)
 
-**Note**: This module is 835 lines with complex multi-phase lifecycle (clarify → plan → execute). Tests focus on data I/O and basic CRUD operations. The stateful execution engine, phase transitions, iteration management, and Claude API integration are better suited for integration/E2E testing.
+**Note**: This module is 835 lines with complex multi-phase lifecycle (clarify → plan → execute). Tests focus on data I/O, basic CRUD operations, and edge cases. The stateful execution engine, phase transitions, iteration management, and Claude API integration are better suited for integration/E2E testing.
 
 ## Untested Modules
 
@@ -323,6 +331,7 @@ All tests follow these standards:
 | 2026-01-29 | v0.44.13 | 358 | +52 (+17%) | Added constants, workstreams tests |
 | 2026-01-29 | v0.44.14 | 385 | +27 (+8%) | Added cli tests |
 | 2026-01-29 | v0.44.16 | 424 | +39 (+10%) | Added loops tests - 100% module coverage! ✅ |
+| 2026-01-29 | v0.44.17 | 457 | +33 (+8%) | Added edge cases & integration tests for config, workstreams, loops |
 
 ## Running Tests
 
@@ -350,14 +359,15 @@ npm test
 
 ## Key Achievements
 
-1. **20x Growth**: Expanded from 21 to 424 tests (1919% increase)
+1. **21x Growth**: Expanded from 21 to 457 tests (2076% increase)
 2. **100% Module Coverage**: All 16 lib modules have test coverage ✅
 3. **Professional Quality**: Consistent test structure and quality standards
 4. **Edge Case Handling**: Extensive error condition and boundary testing
-5. **Zero Failures**: All 424 tests pass consistently
+5. **Zero Failures**: All 457 tests pass consistently
 6. **CI/CD Ready**: Test suite ready for continuous integration
 7. **Documentation**: Complete coverage documentation and inline test descriptions
-8. **Systematic Expansion**: Nine iterations of methodical test development
+8. **Systematic Expansion**: Ten iterations of methodical test development
+9. **Integration Testing**: Complex integration scenarios for config hierarchy, workstreams, and loops
 
 ## Impact
 
@@ -390,6 +400,6 @@ The comprehensive test coverage provides:
 
 ## Conclusion
 
-The coder-config project has achieved **100% module coverage** with 424 tests across all 16 lib modules. This represents exceptional test coverage across all core functionality. The codebase is well-protected against regressions and ready for confident development of new features.
+The coder-config project has achieved **100% module coverage** with 457 tests across all 16 lib modules. This represents exceptional test coverage across all core functionality. The codebase is well-protected against regressions and ready for confident development of new features.
 
-The systematic expansion from 21 baseline tests to 424 tests (1919% increase) over nine iterations demonstrates a commitment to code quality and maintainability. Future work should focus on integration/E2E testing for complex multi-phase workflows (Ralph Loops, workstreams) and cross-tool configuration validation.
+The systematic expansion from 21 baseline tests to 457 tests (2076% increase) over ten iterations demonstrates a commitment to code quality and maintainability. Recent additions include comprehensive edge case testing and integration scenarios for config hierarchy merging, workstream operations, and loop data management. Future work should focus on E2E testing for complex multi-phase workflows (Ralph Loop execution engine, workstream auto-activation) and cross-tool configuration validation.

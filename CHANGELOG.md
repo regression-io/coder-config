@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.44.17] - 2026-01-29
+
+### Added
+
+- **Enhanced test coverage with edge cases and integration tests** - Added 33 more tests (457 total, up from 424)
+  - Config module: Added 7 integration tests for complex config merging scenarios
+    - mcpServers merging from multiple levels
+    - Child overriding parent configurations
+    - Include array deduplication
+    - Null/undefined value handling
+    - Exclude behavior with mcpServers
+    - Shallow merge behavior documentation
+  - Workstreams module: Added 15 edge case tests
+    - Path normalization with trailing slashes
+    - Very long names (200+ chars) and special characters
+    - Empty projects arrays
+    - Multiple rapid updates to same workstream
+    - Concurrent operations and rapid create/delete cycles
+    - Many projects in single workstream (20+)
+    - Project appearing in multiple workstreams
+    - Complex rules with long text (1000+ lines)
+  - Loops module: Added 12 edge case tests
+    - Multiple simultaneous loops
+    - Very long task descriptions (1000+ chars)
+    - Special characters in tasks
+    - State persistence across save/load cycles
+    - Concurrent loop creation (10+ loops)
+    - Loop deletion and recreation with same task
+    - Large history files (100+ entries)
+    - Markdown formatting in plans
+    - Complex clarifications content
+    - All optional config fields
+    - Rapid create/delete cycles
+  - All 457 tests passing (100% pass rate)
+- **Updated test documentation**
+  - TEST_COVERAGE.md now reflects 457 tests across 16 test files
+  - Updated growth history showing **2076% increase** from baseline (21 → 457 tests)
+  - Documented integration test scenarios and edge case coverage
+
 ## [0.44.16] - 2026-01-29
 
 ### Added
