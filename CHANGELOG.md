@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.44.5] - 2026-01-29
+
+### Added
+
+- **Comprehensive test coverage** - Added 85 new tests (106 total)
+  - `test/utils.test.js` - 44 tests for all utility functions
+  - `test/mcps.test.js` - 21 tests for MCP add/remove operations
+  - `test/config.test.js` - 20 tests for config hierarchy and merging
+  - All edge cases covered: empty files, invalid JSON, error handling
+  - Updated CLAUDE.md with detailed test documentation
+
 ## [0.44.0] - 2026-01-29
 
 ### Added

@@ -156,6 +156,47 @@ npm test
 # Uses Node.js built-in test runner (--test flag)
 ```
 
+### Test Coverage
+
+The project has comprehensive test coverage for core modules:
+
+**test/config-loader.test.js** (21 tests)
+- ClaudeConfigManager class methods
+- loadJson, saveJson, loadEnvFile, interpolate
+- findProjectRoot, mergeConfigs
+- Integration test for project initialization
+
+**test/utils.test.js** (44 tests)
+- All utility functions from lib/utils.js
+- JSON loading/saving with edge cases
+- Environment file parsing
+- Variable interpolation and resolution
+- Directory copying operations
+
+**test/mcps.test.js** (21 tests)
+- MCP add/remove functionality
+- Error handling for invalid inputs
+- Config file validation
+- Multiple MCP operations
+
+**test/config.test.js** (20 tests)
+- Configuration hierarchy (findAllConfigs)
+- File collection from hierarchy
+- Config merging with exclude functionality
+- Plugin settings merging
+
+**Total:** 106 tests across 4 test files, all passing ✅
+
+### Writing Tests
+
+Tests use Node.js built-in test runner:
+- `describe()` for test suites
+- `it()` for individual tests
+- `before()`/`after()` for setup/teardown
+- `beforeEach()` for per-test setup
+- Temporary directories for isolation
+- Console mocking for output validation
+
 ## Version Management
 
 Version synced across:
