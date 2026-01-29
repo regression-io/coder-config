@@ -235,4 +235,243 @@ describe('mcps', () => {
       assert.ok(logs.some(log => log.includes('Not in project: github')));
     });
   });
+
+  describe('Integration tests', () => {
+    it('should handle rapid add/remove cycles', () => {
+      const mcps = ['github', 'filesystem', 'postgres'];
+
+      // Add all
+      for (let i = 0; i < 10; i++) {
+        add(registryPath, tempDir, mcps);
+        remove(tempDir, [mcps[i % mcps.length]]);
+      }
+
+      const config = JSON.parse(
+        fs.readFileSync(path.join(projectDir, '.claude', 'mcps.json'), 'utf8')
+      );
+
+      // At least one MCP should remain
+      assert.ok(config.include.length >= 1);
+    });
+
+    it('should handle adding all registry MCPs', () => {
+      const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+      const allMcps = Object.keys(registry.mcpServers);
+
+      const result = add(registryPath, tempDir, allMcps);
+
+      assert.strictEqual(result, true);
+      const config = JSON.parse(
+        fs.readFileSync(path.join(projectDir, '.claude', 'mcps.json'), 'utf8')
+      );
+      assert.strictEqual(config.include.length, allMcps.length);
+    });
+
+    it('should handle removing all MCPs', () => {
+      // Add all first
+      add(registryPath, tempDir, ['github', 'filesystem', 'postgres']);
+
+      // Remove all
+      const result = remove(tempDir, ['github', 'filesystem', 'postgres']);
+
+      assert.strictEqual(result, true);
+      const config = JSON.parse(
+        fs.readFileSync(path.join(projectDir, '.claude', 'mcps.json'), 'utf8')
+      );
+      assert.strictEqual(config.include.length, 0);
+    });
+
+    it('should preserve custom mcpServers when adding/removing', () => {
+      // Add custom MCP server
+      const configPath = path.join(projectDir, '.claude', 'mcps.json');
+      saveJson(configPath, {
+        include: [],
+        mcpServers: {
+          custom: { command: 'node', args: ['server.js'] }
+        }
+      });
+
+      // Add from registry
+      add(registryPath, tempDir, ['github']);
+
+      // Remove from registry
+      remove(tempDir, ['github']);
+
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+      // Custom MCP should still be there
+      assert.ok(config.mcpServers);
+      assert.ok(config.mcpServers.custom);
+    });
+
+    it('should handle complex add/remove workflow', () => {
+      // Step 1: Add github and filesystem
+      add(registryPath, tempDir, ['github', 'filesystem']);
+
+      // Step 2: Remove github
+      remove(tempDir, ['github']);
+
+      // Step 3: Add postgres
+      add(registryPath, tempDir, ['postgres']);
+
+      // Step 4: Try to add github again
+      add(registryPath, tempDir, ['github']);
+
+      const config = JSON.parse(
+        fs.readFileSync(path.join(projectDir, '.claude', 'mcps.json'), 'utf8')
+      );
+
+      // Should have filesystem, postgres, and github
+      assert.ok(config.include.includes('filesystem'));
+      assert.ok(config.include.includes('postgres'));
+      assert.ok(config.include.includes('github'));
+      assert.strictEqual(config.include.length, 3);
+    });
+
+    it('should handle adding MCPs with registry not found', () => {
+      const badRegistry = path.join(tempDir, 'nonexistent-registry.json');
+
+      const result = add(badRegistry, tempDir, ['github']);
+
+      assert.strictEqual(result, false);
+    });
+
+    it('should handle corrupted registry', () => {
+      // Create corrupted registry
+      const badRegistry = path.join(tempDir, 'bad-registry.json');
+      fs.writeFileSync(badRegistry, '{invalid json');
+
+      const result = add(badRegistry, tempDir, ['github']);
+
+      assert.strictEqual(result, false);
+    });
+
+    it('should handle MCP names with special characters', () => {
+      // Add special MCP to registry
+      const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+      registry.mcpServers['my-special-mcp'] = { command: 'node' };
+      registry.mcpServers['mcp_with_underscores'] = { command: 'node' };
+      registry.mcpServers['mcp.with.dots'] = { command: 'node' };
+      saveJson(registryPath, registry);
+
+      const result = add(registryPath, tempDir, [
+        'my-special-mcp',
+        'mcp_with_underscores',
+        'mcp.with.dots'
+      ]);
+
+      assert.strictEqual(result, true);
+      const config = JSON.parse(
+        fs.readFileSync(path.join(projectDir, '.claude', 'mcps.json'), 'utf8')
+      );
+      assert.ok(config.include.includes('my-special-mcp'));
+      assert.ok(config.include.includes('mcp_with_underscores'));
+      assert.ok(config.include.includes('mcp.with.dots'));
+    });
+
+    it('should handle very long MCP names', () => {
+      const longName = 'a'.repeat(200);
+      const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+      registry.mcpServers[longName] = { command: 'node' };
+      saveJson(registryPath, registry);
+
+      const result = add(registryPath, tempDir, [longName]);
+
+      assert.strictEqual(result, true);
+      const config = JSON.parse(
+        fs.readFileSync(path.join(projectDir, '.claude', 'mcps.json'), 'utf8')
+      );
+      assert.ok(config.include.includes(longName));
+    });
+
+    it('should handle concurrent add/remove operations', () => {
+      // Simulate concurrent operations
+      for (let i = 0; i < 20; i++) {
+        if (i % 2 === 0) {
+          add(registryPath, tempDir, ['github']);
+        } else {
+          remove(tempDir, ['github']);
+        }
+      }
+
+      const config = JSON.parse(
+        fs.readFileSync(path.join(projectDir, '.claude', 'mcps.json'), 'utf8')
+      );
+
+      // Config should still be valid
+      assert.ok(Array.isArray(config.include));
+    });
+
+    it('should maintain include array order', () => {
+      add(registryPath, tempDir, ['github']);
+      add(registryPath, tempDir, ['filesystem']);
+      add(registryPath, tempDir, ['postgres']);
+
+      const config = JSON.parse(
+        fs.readFileSync(path.join(projectDir, '.claude', 'mcps.json'), 'utf8')
+      );
+
+      const idx1 = config.include.indexOf('github');
+      const idx2 = config.include.indexOf('filesystem');
+      const idx3 = config.include.indexOf('postgres');
+
+      // Should be in order of addition
+      assert.ok(idx1 < idx2);
+      assert.ok(idx2 < idx3);
+    });
+
+    it('should handle large registry with many MCPs', () => {
+      // Create registry with 100 MCPs
+      const registry = { mcpServers: {} };
+      for (let i = 0; i < 100; i++) {
+        registry.mcpServers[`mcp${i}`] = { command: 'node' };
+      }
+      const largeRegistry = path.join(tempDir, 'large-registry.json');
+      saveJson(largeRegistry, registry);
+
+      // Add first 50
+      const mcpsToAdd = [];
+      for (let i = 0; i < 50; i++) {
+        mcpsToAdd.push(`mcp${i}`);
+      }
+
+      const result = add(largeRegistry, tempDir, mcpsToAdd);
+
+      assert.strictEqual(result, true);
+      const config = JSON.parse(
+        fs.readFileSync(path.join(projectDir, '.claude', 'mcps.json'), 'utf8')
+      );
+      assert.strictEqual(config.include.length, 50);
+    });
+
+    it('should handle empty registry', () => {
+      const emptyRegistry = path.join(tempDir, 'empty-registry.json');
+      saveJson(emptyRegistry, { mcpServers: {} });
+
+      const result = add(emptyRegistry, tempDir, ['github']);
+
+      assert.strictEqual(result, false);
+      assert.ok(logs.some(log => log.includes('Not in registry: github')));
+    });
+
+    it('should preserve other config fields', () => {
+      // Add extra config fields
+      const configPath = path.join(projectDir, '.claude', 'mcps.json');
+      saveJson(configPath, {
+        include: [],
+        env: { API_KEY: 'secret' },
+        permissions: { allowedCommands: ['git'] }
+      });
+
+      add(registryPath, tempDir, ['github']);
+
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+      // Extra fields should be preserved
+      assert.ok(config.env);
+      assert.strictEqual(config.env.API_KEY, 'secret');
+      assert.ok(config.permissions);
+      assert.ok(config.permissions.allowedCommands);
+    });
+  });
 });

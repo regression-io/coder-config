@@ -20,12 +20,12 @@ describe('config', () => {
   before(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'config-test-'));
     originalCwd = process.cwd();
-    originalHome = process.env.HOME;
+    originalHome = process.env.tempDir;
   });
 
   after(() => {
     process.chdir(originalCwd);
-    process.env.HOME = originalHome;
+    process.env.tempDir = originalHome;
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
@@ -500,6 +500,68 @@ describe('config', () => {
       assert.strictEqual(result.mcpServers.custom.env.VAR1, undefined);
       assert.strictEqual(result.mcpServers.custom.env.VAR2, 'override2');
       assert.strictEqual(result.mcpServers.custom.env.VAR3, 'value3');
+    });
+  });
+
+  describe('Integration tests', () => {
+    it('should merge configs with multiple levels of include arrays', () => {
+      // Use direct mergeConfigs testing instead of findAllConfigs
+      const configs = [
+        { dir: 'parent', config: { include: ['a', 'b'] } },
+        { dir: 'child', config: { include: ['c'], exclude: ['b'] } }
+      ];
+
+      const merged = mergeConfigs(configs);
+
+      assert.ok(merged.include.includes('a'));
+      assert.ok(!merged.include.includes('b'));
+      assert.ok(merged.include.includes('c'));
+    });
+
+    it('should handle enabledPlugins merging across levels', () => {
+      const configs = [
+        {
+          dir: 'parent',
+          config: {
+            enabledPlugins: {
+              plugin1: true,
+              plugin2: true
+            }
+          }
+        },
+        {
+          dir: 'child',
+          config: {
+            enabledPlugins: {
+              plugin2: false,
+              plugin3: true
+            }
+          }
+        }
+      ];
+
+      const merged = mergeConfigs(configs);
+
+      assert.strictEqual(merged.enabledPlugins.plugin1, true);
+      assert.strictEqual(merged.enabledPlugins.plugin2, false);
+      assert.strictEqual(merged.enabledPlugins.plugin3, true);
+    });
+
+    it('should deduplicate includes from multiple configs', () => {
+      const configs = [
+        { dir: '1', config: { include: ['github', 'filesystem'] } },
+        { dir: '2', config: { include: ['github', 'postgres'] } },
+        { dir: '3', config: { include: ['filesystem', 'postgres'] } }
+      ];
+
+      const merged = mergeConfigs(configs);
+
+      // Should have unique MCPs
+      const uniqueIncludes = [...new Set(merged.include)];
+      assert.strictEqual(merged.include.length, uniqueIncludes.length);
+      assert.ok(merged.include.includes('github'));
+      assert.ok(merged.include.includes('filesystem'));
+      assert.ok(merged.include.includes('postgres'));
     });
   });
 });

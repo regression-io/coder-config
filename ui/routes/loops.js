@@ -241,37 +241,55 @@ function recordIteration(manager, id, iteration) {
 }
 
 /**
- * Check if loop hooks are installed (official ralph-loop plugin)
+ * Check if loop hooks are installed and registered in Claude Code settings
  */
 function getLoopHookStatus() {
-  // Check for official ralph-loop plugin
-  const pluginsDir = path.join(os.homedir(), '.claude', 'plugins', 'marketplaces');
-  const officialPluginPath = path.join(pluginsDir, 'claude-plugins-official', 'plugins', 'ralph-loop');
-  const stopHookPath = path.join(officialPluginPath, 'hooks', 'stop-hook.sh');
+  const claudeSettingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+  const claudeHooksDir = path.join(os.homedir(), '.claude', 'hooks');
+  const stopHookPath = path.join(claudeHooksDir, 'ralph-loop-stop.sh');
+  const prepromptHookPath = path.join(claudeHooksDir, 'ralph-loop-preprompt.sh');
 
-  // Also check custom hooks dir for backwards compatibility
-  const customHooksDir = path.join(os.homedir(), '.claude', 'hooks');
-  const customStopHookPath = path.join(customHooksDir, 'ralph-loop-stop.sh');
-  const customPrepromptHookPath = path.join(customHooksDir, 'ralph-loop-preprompt.sh');
+  // Check if hook files exist
+  const stopHookFileExists = fs.existsSync(stopHookPath);
+  const prepromptHookFileExists = fs.existsSync(prepromptHookPath);
 
-  const officialPluginExists = fs.existsSync(officialPluginPath);
-  const officialHookExists = fs.existsSync(stopHookPath);
+  // Check if hooks are registered in settings.json
+  let stopHookRegistered = false;
+  let prepromptHookRegistered = false;
+
+  if (fs.existsSync(claudeSettingsPath)) {
+    try {
+      const settings = JSON.parse(fs.readFileSync(claudeSettingsPath, 'utf8'));
+      const hooks = settings.hooks || {};
+
+      // Check Stop hook registration
+      if (hooks.Stop) {
+        stopHookRegistered = hooks.Stop.some(entry =>
+          entry.hooks?.some(h => h.command?.includes('ralph-loop-stop.sh'))
+        );
+      }
+
+      // Check PreToolUse hook registration
+      if (hooks.PreToolUse) {
+        prepromptHookRegistered = hooks.PreToolUse.some(entry =>
+          entry.hooks?.some(h => h.command?.includes('ralph-loop-preprompt.sh'))
+        );
+      }
+    } catch (e) {
+      // Ignore parse errors
+    }
+  }
 
   const status = {
-    // Official plugin is preferred
-    usingOfficialPlugin: officialPluginExists,
-    officialPlugin: {
-      path: officialPluginPath,
-      exists: officialPluginExists
-    },
     stopHook: {
-      path: officialHookExists ? stopHookPath : customStopHookPath,
-      exists: officialHookExists || fs.existsSync(customStopHookPath)
+      path: stopHookPath,
+      exists: stopHookFileExists,
+      registered: stopHookRegistered
     },
     prepromptHook: {
-      // Official plugin doesn't need preprompt hook
-      path: customPrepromptHookPath,
-      exists: officialPluginExists || fs.existsSync(customPrepromptHookPath)
+      path: prepromptHookPath,
+      exists: prepromptHookFileExists,
+      registered: prepromptHookRegistered
     }
   };
 
@@ -419,32 +437,105 @@ function fixRalphLoopPluginStructure() {
 }
 
 /**
- * Install loop hooks (or verify official plugin is installed)
+ * Install loop hooks into Claude Code's settings.json
+ * Registers Stop hook that increments iteration count after each response
  */
 function installLoopHooks(manager) {
-  const pluginsDir = path.join(os.homedir(), '.claude', 'plugins', 'marketplaces');
-  const officialPluginPath = path.join(pluginsDir, 'claude-plugins-official', 'plugins', 'ralph-loop');
+  const claudeSettingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+  const claudeHooksDir = path.join(os.homedir(), '.claude', 'hooks');
 
-  // Check if official plugin is already installed
-  if (fs.existsSync(officialPluginPath)) {
-    return {
-      success: true,
-      message: 'Official ralph-loop plugin is already installed',
-      usingOfficialPlugin: true,
-      pluginPath: officialPluginPath,
-      note: 'Loops use the /ralph-loop command from the official claude-plugins-official marketplace'
-    };
+  // Ensure hooks directory exists
+  if (!fs.existsSync(claudeHooksDir)) {
+    fs.mkdirSync(claudeHooksDir, { recursive: true });
   }
 
-  // Suggest installing the official plugin
-  return {
-    success: false,
-    error: 'Official ralph-loop plugin not found',
-    suggestion: 'Install the claude-plugins-official marketplace to get the ralph-loop plugin:\n' +
-      '  1. Add marketplace: coder-config marketplace add https://github.com/anthropics/claude-plugins-official\n' +
-      '  2. Or manually clone: git clone https://github.com/anthropics/claude-plugins-official ~/.claude/plugins/marketplaces/claude-plugins-official',
-    note: 'The official plugin provides /ralph-loop command with stop-hook for autonomous loops'
-  };
+  // Copy the stop hook script to ~/.claude/hooks/
+  const stopHookSource = path.join(__dirname, '..', '..', 'hooks', 'ralph-loop-stop.sh');
+  const stopHookDest = path.join(claudeHooksDir, 'ralph-loop-stop.sh');
+
+  // Also copy preprompt hook
+  const prepromptHookSource = path.join(__dirname, '..', '..', 'hooks', 'ralph-loop-preprompt.sh');
+  const prepromptHookDest = path.join(claudeHooksDir, 'ralph-loop-preprompt.sh');
+
+  try {
+    // Copy hook scripts
+    if (fs.existsSync(stopHookSource)) {
+      fs.copyFileSync(stopHookSource, stopHookDest);
+      fs.chmodSync(stopHookDest, '755');
+    }
+    if (fs.existsSync(prepromptHookSource)) {
+      fs.copyFileSync(prepromptHookSource, prepromptHookDest);
+      fs.chmodSync(prepromptHookDest, '755');
+    }
+
+    // Load existing settings
+    let settings = {};
+    if (fs.existsSync(claudeSettingsPath)) {
+      settings = JSON.parse(fs.readFileSync(claudeSettingsPath, 'utf8'));
+    }
+
+    // Initialize hooks if needed
+    if (!settings.hooks) {
+      settings.hooks = {};
+    }
+
+    // Add Stop hook for iteration tracking
+    const stopHookEntry = {
+      hooks: [{
+        type: 'command',
+        command: stopHookDest
+      }]
+    };
+
+    // Check if Stop hook already exists
+    if (!settings.hooks.Stop) {
+      settings.hooks.Stop = [stopHookEntry];
+    } else {
+      // Check if our hook is already registered
+      const hookExists = settings.hooks.Stop.some(entry =>
+        entry.hooks?.some(h => h.command?.includes('ralph-loop-stop.sh'))
+      );
+      if (!hookExists) {
+        settings.hooks.Stop.push(stopHookEntry);
+      }
+    }
+
+    // Add PreToolUse hook for context injection (optional)
+    const prepromptHookEntry = {
+      hooks: [{
+        type: 'command',
+        command: prepromptHookDest
+      }]
+    };
+
+    if (!settings.hooks.PreToolUse) {
+      settings.hooks.PreToolUse = [prepromptHookEntry];
+    } else {
+      const hookExists = settings.hooks.PreToolUse.some(entry =>
+        entry.hooks?.some(h => h.command?.includes('ralph-loop-preprompt.sh'))
+      );
+      if (!hookExists) {
+        settings.hooks.PreToolUse.push(prepromptHookEntry);
+      }
+    }
+
+    // Save updated settings
+    fs.writeFileSync(claudeSettingsPath, JSON.stringify(settings, null, 2) + '\n');
+
+    return {
+      success: true,
+      message: 'Loop hooks installed successfully',
+      stopHook: stopHookDest,
+      prepromptHook: prepromptHookDest,
+      note: 'Stop hook will increment iteration count after each Claude response when CODER_LOOP_ID is set'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+      suggestion: 'Try manually copying hooks to ~/.claude/hooks/ and adding to ~/.claude/settings.json'
+    };
+  }
 }
 
 module.exports = {

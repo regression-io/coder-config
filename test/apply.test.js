@@ -660,4 +660,144 @@ describe('apply', () => {
       assert.ok(mcp.mcpServers.postgres);
     });
   });
+
+  describe('Integration tests', () => {
+    it('should handle rapid apply calls', () => {
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: ['github']
+      });
+
+      // Call apply multiple times rapidly
+      for (let i = 0; i < 10; i++) {
+        const result = apply(registryPath, projectDir);
+        assert.strictEqual(result, true);
+      }
+
+      // Final state should be valid
+      const mcp = JSON.parse(fs.readFileSync(path.join(projectDir, '.mcp.json'), 'utf8'));
+      assert.ok(mcp.mcpServers.github);
+    });
+
+    it('should update .mcp.json when config changes', () => {
+      // Start with github
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: ['github']
+      });
+      apply(registryPath, projectDir);
+
+      let mcp = JSON.parse(fs.readFileSync(path.join(projectDir, '.mcp.json'), 'utf8'));
+      assert.ok(mcp.mcpServers.github);
+
+      // Add filesystem
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: ['github', 'filesystem']
+      });
+      apply(registryPath, projectDir);
+
+      mcp = JSON.parse(fs.readFileSync(path.join(projectDir, '.mcp.json'), 'utf8'));
+      assert.ok(mcp.mcpServers.github);
+      assert.ok(mcp.mcpServers.filesystem);
+    });
+
+    it('should handle adding and removing custom mcpServers', () => {
+      // Start with custom server
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        mcpServers: {
+          custom: { command: 'test' }
+        }
+      });
+      apply(registryPath, projectDir);
+
+      let mcp = JSON.parse(fs.readFileSync(path.join(projectDir, '.mcp.json'), 'utf8'));
+      assert.ok(mcp.mcpServers.custom);
+
+      // Remove custom server, add registry MCP
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: ['github']
+      });
+      apply(registryPath, projectDir);
+
+      mcp = JSON.parse(fs.readFileSync(path.join(projectDir, '.mcp.json'), 'utf8'));
+      assert.ok(!mcp.mcpServers.custom);
+      assert.ok(mcp.mcpServers.github);
+    });
+
+    it('should preserve settings.json across multiple applies', () => {
+      // Initial apply with plugin settings
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: ['github'],
+        enabledPlugins: { plugin1: true }
+      });
+      apply(registryPath, projectDir);
+
+      // Second apply with different MCPs
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: ['filesystem'],
+        enabledPlugins: { plugin1: true, plugin2: false }
+      });
+      apply(registryPath, projectDir);
+
+      const settings = JSON.parse(
+        fs.readFileSync(path.join(projectDir, '.claude', 'settings.json'), 'utf8')
+      );
+      assert.strictEqual(settings.enabledPlugins.plugin1, true);
+      assert.strictEqual(settings.enabledPlugins.plugin2, false);
+    });
+
+    it('should handle complex workflow of multiple changes', () => {
+      // Step 1: Add github and custom server
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: ['github'],
+        mcpServers: { custom: { command: 'test' } }
+      });
+      apply(registryPath, projectDir);
+
+      // Step 2: Add filesystem, exclude github
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: ['github', 'filesystem'],
+        exclude: ['github'],
+        mcpServers: { custom: { command: 'test' } }
+      });
+      apply(registryPath, projectDir);
+
+      // Step 3: Remove custom, add postgres
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        include: ['filesystem', 'postgres']
+      });
+      apply(registryPath, projectDir);
+
+      const mcp = JSON.parse(fs.readFileSync(path.join(projectDir, '.mcp.json'), 'utf8'));
+      assert.ok(!mcp.mcpServers.github);
+      assert.ok(mcp.mcpServers.filesystem);
+      assert.ok(mcp.mcpServers.postgres);
+      assert.ok(!mcp.mcpServers.custom);
+    });
+
+    it('should handle env var changes across applies', () => {
+      fs.writeFileSync(
+        path.join(projectDir, '.claude', '.env'),
+        'VAR1=value1'
+      );
+
+      saveJson(path.join(projectDir, '.claude', 'mcps.json'), {
+        mcpServers: {
+          test: {
+            command: 'test',
+            env: { KEY: '${VAR1}' }
+          }
+        }
+      });
+      apply(registryPath, projectDir);
+
+      // Change env var
+      fs.writeFileSync(
+        path.join(projectDir, '.claude', '.env'),
+        'VAR1=value2'
+      );
+      apply(registryPath, projectDir);
+
+      const mcp = JSON.parse(fs.readFileSync(path.join(projectDir, '.mcp.json'), 'utf8'));
+      assert.strictEqual(mcp.mcpServers.test.env.KEY, 'value2');
+    });
+  });
 });

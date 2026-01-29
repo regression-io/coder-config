@@ -528,7 +528,7 @@ export default function LoopsView({ activeProject = null }) {
     return Math.min(100, (loop.iterations.current / loop.iterations.max) * 100);
   };
 
-  const hooksInstalled = hookStatus.stopHook?.exists && hookStatus.prepromptHook?.exists;
+  const hooksInstalled = hookStatus.stopHook?.registered && hookStatus.prepromptHook?.registered;
 
   // Helper to get workstream name from ID
   const getWorkstreamName = (wsId) => {
