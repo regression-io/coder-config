@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.44.9] - 2026-01-29
+
+### Added
+
+- **Test coverage documentation** - Added TEST_COVERAGE.md
+  - Comprehensive summary of all 230 tests across 10 test files
+  - Module-by-module coverage breakdown
+  - Test quality standards documentation
+  - Growth history and statistics
+  - Recommendations for future testing
+  - Added testing section to README.md
+
+## [0.44.8] - 2026-01-29
+
 ### Added
 
 - **Complete apply.js test coverage** - Added 20 more tests (230 total, up from 210)
@@ -18,6 +32,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Custom MCP server configuration
   - Config hierarchy merging from parent dirs
   - Updated CLAUDE.md with complete test counts (230 tests across 10 files)
+
+## [0.44.7] - 2026-01-29
+
+### Added
+
+- **Extensive test coverage expansion** - Added 53 more tests (210 total, up from 157)
+  - `test/init.test.js` - 18 tests for project initialization
+  - `test/registry.test.js` - 35 tests for global MCP registry operations
+  - `test/projects.test.js` - 50 tests for project registry management
+  - Complete coverage of init workflow (config, .env, .gitignore)
+  - Full testing of registry add/remove/list with JSON validation
+  - Comprehensive project registry tests with path resolution
+  - Updated CLAUDE.md with all test counts (210 tests across 9 files)
+
+## [0.44.6] - 2026-01-29
+
+### Added
+
+- **Expanded test coverage** - Added 51 more tests (157 total, up from 106)
+  - `test/memory.test.js` - 28 tests for memory system operations
+  - `test/env.test.js` - 23 tests for environment variable management
+  - Comprehensive coverage of memory init/add/search functionality
+  - Full testing of env set/unset operations with edge cases
+  - Updated CLAUDE.md with new test counts
 
 ## [0.44.5] - 2026-01-29
 

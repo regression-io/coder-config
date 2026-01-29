@@ -677,6 +677,24 @@ npm run build
 npm start
 ```
 
+### Testing
+
+The project has comprehensive test coverage with 230 tests across 10 test files:
+
+```bash
+# Run all tests
+npm test
+```
+
+Test coverage includes:
+- Core utilities and configuration management
+- MCP registry operations
+- Memory and environment variable systems
+- Project initialization and registry
+- Config generation and hierarchy
+
+See [TEST_COVERAGE.md](TEST_COVERAGE.md) for detailed coverage information.
+
 ## License
 
 MIT
