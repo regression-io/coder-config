@@ -3,7 +3,7 @@ import {
   RefreshCcw, Plus, Trash2, Play, Pause, XCircle, Check,
   ChevronDown, ChevronRight, Loader2, Clock,
   AlertCircle, CheckCircle2, FileText, Settings, History,
-  RotateCcw, Eye, Copy, Terminal as TerminalIcon, Layers, Filter
+  RotateCcw, Eye, Copy, Terminal as TerminalIcon, Layers, Filter, Download
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,6 +77,13 @@ export default function LoopsView({ activeProject = null }) {
   const [hookStatus, setHookStatus] = useState({ stopHook: {}, prepromptHook: {} });
   const [installingHooks, setInstallingHooks] = useState(false);
 
+  // Plugin status
+  const [pluginStatus, setPluginStatus] = useState({ needsInstall: true });
+  const [installPluginDialogOpen, setInstallPluginDialogOpen] = useState(false);
+  const [pendingLoopId, setPendingLoopId] = useState(null);
+  const [pendingAction, setPendingAction] = useState(null); // 'start' or 'resume'
+  const [installingPlugin, setInstallingPlugin] = useState(false);
+
   // Terminal state
   const [terminalOpen, setTerminalOpen] = useState(false);
   const [terminalLoop, setTerminalLoop] = useState(null);
@@ -86,7 +93,17 @@ export default function LoopsView({ activeProject = null }) {
     loadConfig();
     loadHookStatus();
     loadWorkstreams();
+    loadPluginStatus();
   }, []);
+
+  const loadPluginStatus = async () => {
+    try {
+      const status = await api.getRalphLoopPluginStatus();
+      setPluginStatus(status);
+    } catch (error) {
+      console.error('Failed to load plugin status:', error);
+    }
+  };
 
   const loadWorkstreams = async () => {
     try {
@@ -186,6 +203,18 @@ export default function LoopsView({ activeProject = null }) {
   };
 
   const handleStart = async (loopId) => {
+    // Check if plugin needs to be installed first
+    if (pluginStatus.needsInstall) {
+      setPendingLoopId(loopId);
+      setPendingAction('start');
+      setInstallPluginDialogOpen(true);
+      return;
+    }
+
+    await startLoopInternal(loopId);
+  };
+
+  const startLoopInternal = async (loopId) => {
     try {
       const result = await api.startLoop(loopId);
       if (result.success && result.loop) {
@@ -199,6 +228,40 @@ export default function LoopsView({ activeProject = null }) {
     } catch (error) {
       toast.error(error.message);
     }
+  };
+
+  const handleInstallPlugin = async () => {
+    try {
+      setInstallingPlugin(true);
+      const result = await api.installRalphLoopPlugin();
+      if (result.success) {
+        toast.success('ralph-loop plugin installed');
+        setPluginStatus({ installed: true, scope: 'user', needsInstall: false });
+        setInstallPluginDialogOpen(false);
+        // Now execute the pending action
+        if (pendingLoopId) {
+          if (pendingAction === 'resume') {
+            await resumeLoopInternal(pendingLoopId);
+          } else {
+            await startLoopInternal(pendingLoopId);
+          }
+          setPendingLoopId(null);
+          setPendingAction(null);
+        }
+      } else {
+        toast.error(result.error || 'Failed to install plugin');
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setInstallingPlugin(false);
+    }
+  };
+
+  const handleCancelInstall = () => {
+    setInstallPluginDialogOpen(false);
+    setPendingLoopId(null);
+    setPendingAction(null);
   };
 
   const handleTerminalExit = useCallback(async (exitCode, signal) => {
@@ -244,10 +307,24 @@ export default function LoopsView({ activeProject = null }) {
   };
 
   const handleResume = async (loopId) => {
+    // Check if plugin needs to be installed first
+    if (pluginStatus.needsInstall) {
+      setPendingLoopId(loopId);
+      setPendingAction('resume');
+      setInstallPluginDialogOpen(true);
+      return;
+    }
+
+    await resumeLoopInternal(loopId);
+  };
+
+  const resumeLoopInternal = async (loopId) => {
     try {
       const result = await api.resumeLoop(loopId);
-      if (result.success) {
-        toast.success('Loop resumed');
+      if (result.success && result.loop) {
+        toast.success('Loop resumed - launching Claude Code');
+        setTerminalLoop(result.loop);
+        setTerminalOpen(true);
         loadLoops();
       } else {
         toast.error(result.error || 'Failed to resume loop');
@@ -938,6 +1015,54 @@ export default function LoopsView({ activeProject = null }) {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Install Plugin Dialog */}
+      <Dialog open={installPluginDialogOpen} onOpenChange={setInstallPluginDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Download className="w-5 h-5" />
+              Install ralph-loop Plugin
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              The <code className="bg-muted px-1 rounded">ralph-loop</code> plugin is required to run loops.
+              This plugin provides the <code className="bg-muted px-1 rounded">/ralph-loop</code> command that enables
+              autonomous iteration.
+            </p>
+            {pluginStatus.scope === 'project' && (
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded p-3 mb-4">
+                <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                  Plugin is currently installed only for project: <br />
+                  <code className="text-xs">{pluginStatus.projectPath}</code>
+                </p>
+              </div>
+            )}
+            <p className="text-sm">
+              Install the plugin globally (user scope) to use loops from any project?
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelInstall} disabled={installingPlugin}>
+              Cancel
+            </Button>
+            <Button onClick={handleInstallPlugin} disabled={installingPlugin}>
+              {installingPlugin ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                  Installing...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 mr-1" />
+                  Install Plugin
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

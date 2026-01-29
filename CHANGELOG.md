@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.44.0] - 2026-01-29
+
+### Added
+
+- **Auto-install ralph-loop plugin** - Loops now prompt to install the required plugin
+  - When starting or resuming a loop, checks if `ralph-loop` plugin is installed at user scope
+  - If not installed, prompts with an Install/Cancel dialog before proceeding
+  - Automatically installs via `claude plugin install ralph-loop@claude-plugins-official --scope user`
+  - Works for both new loop starts and resuming paused loops
+  - Resumes the pending action after successful installation
+
+### Fixed
+
+- **Dark mode for remaining components** - Monaco editors and various UI elements
+  - ConfigEditor/MarkdownEditor now use dynamic theme (`vs-dark`/`vs-light`)
+  - Added dark borders to editor containers
+  - PathPicker hover states, LoopWidget/LoopsView fallback backgrounds
+
 ## [0.43.22] - 2026-01-28
 
 ### Changed

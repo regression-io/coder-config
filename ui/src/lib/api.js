@@ -784,6 +784,16 @@ export const api = {
     });
   },
 
+  async getRalphLoopPluginStatus() {
+    return request('/loops/plugin-status');
+  },
+
+  async installRalphLoopPlugin() {
+    return request('/loops/install-plugin', {
+      method: 'POST',
+    });
+  },
+
   // Activity Tracking
   async getActivitySummary() {
     return request('/activity');

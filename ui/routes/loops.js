@@ -279,6 +279,74 @@ function getLoopHookStatus() {
 }
 
 /**
+ * Check if ralph-loop plugin is installed at user scope
+ * Returns { installed: boolean, scope: string|null }
+ */
+function getRalphLoopPluginStatus() {
+  const installedPluginsPath = path.join(os.homedir(), '.claude', 'plugins', 'installed_plugins.json');
+
+  if (!fs.existsSync(installedPluginsPath)) {
+    return { installed: false, scope: null, needsInstall: true };
+  }
+
+  try {
+    const data = JSON.parse(fs.readFileSync(installedPluginsPath, 'utf8'));
+    const plugins = data.plugins || {};
+    const ralphLoop = plugins['ralph-loop@claude-plugins-official'];
+
+    if (!ralphLoop || ralphLoop.length === 0) {
+      return { installed: false, scope: null, needsInstall: true };
+    }
+
+    // Check if any installation is at user scope
+    const userScopeInstall = ralphLoop.find(p => p.scope === 'user');
+    if (userScopeInstall) {
+      return { installed: true, scope: 'user', needsInstall: false };
+    }
+
+    // Plugin is installed but only at project scope
+    return {
+      installed: true,
+      scope: 'project',
+      projectPath: ralphLoop[0].projectPath,
+      needsInstall: true,
+      message: 'Plugin is installed for a specific project only. Install at user scope for global access.'
+    };
+  } catch (e) {
+    return { installed: false, scope: null, needsInstall: true, error: e.message };
+  }
+}
+
+/**
+ * Install ralph-loop plugin at user scope via CLI
+ * Uses execFileSync with fixed args (no shell injection risk)
+ */
+async function installRalphLoopPlugin() {
+  const { execFileSync } = require('child_process');
+
+  try {
+    // Run claude plugin install command with execFileSync (safer than execSync)
+    // All arguments are fixed strings - no user input
+    execFileSync('claude', ['plugin', 'install', 'ralph-loop@claude-plugins-official', '--scope', 'user'], {
+      encoding: 'utf8',
+      timeout: 30000, // 30 second timeout
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
+
+    return {
+      success: true,
+      message: 'ralph-loop plugin installed successfully at user scope'
+    };
+  } catch (e) {
+    return {
+      success: false,
+      error: e.message,
+      suggestion: 'Try running manually: claude plugin install ralph-loop@claude-plugins-official --scope user'
+    };
+  }
+}
+
+/**
  * Install loop hooks (or verify official plugin is installed)
  */
 function installLoopHooks(manager) {
@@ -328,4 +396,6 @@ module.exports = {
   recordIteration,
   getLoopHookStatus,
   installLoopHooks,
+  getRalphLoopPluginStatus,
+  installRalphLoopPlugin,
 };

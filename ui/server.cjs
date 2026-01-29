@@ -788,6 +788,17 @@ class ConfigUIServer {
         if (req.method === 'POST') return this.json(res, routes.loops.installLoopHooks(this.manager));
         break;
 
+      case '/api/loops/plugin-status':
+        if (req.method === 'GET') return this.json(res, routes.loops.getRalphLoopPluginStatus());
+        break;
+
+      case '/api/loops/install-plugin':
+        if (req.method === 'POST') {
+          const result = await routes.loops.installRalphLoopPlugin();
+          return this.json(res, result);
+        }
+        break;
+
       case '/api/activity':
         if (req.method === 'GET') return this.json(res, routes.activity.getActivitySummary(this.manager));
         if (req.method === 'DELETE') return this.json(res, routes.activity.clearActivity(this.manager, body.olderThanDays || 30));
