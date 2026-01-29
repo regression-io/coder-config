@@ -197,7 +197,25 @@ The project has comprehensive test coverage for core modules:
 - Special characters and edge cases
 - Integration tests for multiple operations
 
-**Total:** 157 tests across 6 test files, all passing ✅
+**test/init.test.js** (18 tests)
+- Project initialization with config files
+- .env file creation with templates
+- .gitignore integration
+- Default configuration setup
+
+**test/registry.test.js** (35 tests)
+- Global MCP registry management
+- Adding/removing MCPs from registry
+- JSON config parsing and validation
+- Registry listing and sorting
+
+**test/projects.test.js** (50 tests)
+- Project registry management
+- Adding/removing projects
+- Active project tracking
+- Path resolution and tilde expansion
+
+**Total:** 210 tests across 9 test files, all passing ✅
 
 ### Writing Tests
 
