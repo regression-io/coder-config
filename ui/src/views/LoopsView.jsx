@@ -327,10 +327,10 @@ export default function LoopsView({ activeProject = null }) {
     setTunedPromptDialogOpen(false);
   };
 
-  // Tune prompt for resuming a failed/paused loop
+  // Tune prompt for resuming a failed/paused/cancelled loop
   const handleResumeWithTuneOption = (loop) => {
-    // For failed/paused loops, offer tuning option
-    if (loop.status === 'failed' || loop.status === 'paused') {
+    // For failed/paused/cancelled loops, offer tuning option
+    if (loop.status === 'failed' || loop.status === 'paused' || loop.status === 'cancelled') {
       setLoopToResume(loop);
       setTuneResumeDialogOpen(true);
     } else {
@@ -766,7 +766,8 @@ export default function LoopsView({ activeProject = null }) {
   const buildRalphCommand = (loop) => {
     const task = (loop.task?.original || '').replace(/"/g, '\\"'); // Escape double quotes
     const maxIter = loop.iterations?.max || 50;
-    const completionPromise = loop.completionPromise || 'DONE';
+    // Escape single quotes in completion promise (replace ' with '\'' for shell)
+    const completionPromise = (loop.completionPromise || 'DONE').replace(/'/g, "'\\''");
 
     // Start Claude and immediately send /ralph-loop command
     // Using --dangerously-skip-permissions for unattended loop execution
@@ -1652,7 +1653,7 @@ export default function LoopsView({ activeProject = null }) {
             {loopToResume && (
               <>
                 <p className="text-sm mb-4">
-                  This loop {loopToResume.status === 'failed' ? 'failed' : 'was paused'}
+                  This loop {loopToResume.status === 'failed' ? 'failed' : loopToResume.status === 'cancelled' ? 'was cancelled' : 'was paused'}
                   {loopToResume.pauseReason && `: ${loopToResume.pauseReason}`}
                 </p>
                 <p className="text-sm text-muted-foreground mb-4">
