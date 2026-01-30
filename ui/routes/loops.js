@@ -5,6 +5,31 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { execFileSync } = require('child_process');
+
+/**
+ * Get the full path to the claude binary
+ * Needed because daemon processes may not have full PATH
+ */
+function getClaudePath() {
+  const candidates = [
+    path.join(os.homedir(), '.local', 'bin', 'claude'),
+    '/usr/local/bin/claude',
+    '/opt/homebrew/bin/claude',
+    path.join(os.homedir(), '.npm-global', 'bin', 'claude'),
+  ];
+
+  for (const p of candidates) {
+    if (fs.existsSync(p)) return p;
+  }
+
+  try {
+    const resolved = execFileSync('which', ['claude'], { encoding: 'utf8' }).trim();
+    if (resolved && fs.existsSync(resolved)) return resolved;
+  } catch (e) {}
+
+  return 'claude';
+}
 
 /**
  * Get all loops
@@ -330,12 +355,12 @@ function getRalphLoopPluginStatus() {
  * Uses execFileSync with fixed args (no shell injection risk)
  */
 async function installRalphLoopPlugin() {
-  const { execFileSync } = require('child_process');
+  const claudePath = getClaudePath();
 
   try {
     // Run claude plugin install command with execFileSync (safer than execSync)
     // All arguments are fixed strings - no user input
-    execFileSync('claude', ['plugin', 'install', 'ralph-loop@claude-plugins-official', '--scope', 'user'], {
+    execFileSync(claudePath, ['plugin', 'install', 'ralph-loop@claude-plugins-official', '--scope', 'user'], {
       encoding: 'utf8',
       timeout: 30000, // 30 second timeout
       stdio: ['pipe', 'pipe', 'pipe']
@@ -458,6 +483,8 @@ ${task}
 ## Rewritten Task:`;
 
   return new Promise((resolve) => {
+    const { spawn } = require('child_process');
+    const claudePath = getClaudePath();
     const args = ['-p', metaPrompt];
 
     // Run from project directory if provided
@@ -471,7 +498,7 @@ ${task}
     let resolved = false;
     let timeoutId = null;
 
-    const proc = spawn('claude', args, options);
+    const proc = spawn(claudePath, args, options);
 
     const safeResolve = (result) => {
       if (resolved) return;
