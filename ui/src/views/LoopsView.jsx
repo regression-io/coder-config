@@ -837,9 +837,14 @@ export default function LoopsView({ activeProject = null }) {
     // For execution: return object with startup command and skill command
     // The skill command is sent to claude's stdin after it starts
     const startCmd = 'claude --dangerously-skip-permissions';
-    // Quote the task to handle newlines and special characters
-    // Replace newlines with spaces for single-line command
-    const cleanTask = task.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+    // Clean and escape the task for shell safety
+    // Replace newlines with spaces, collapse whitespace
+    // Escape shell special characters: ? * [ ] ( ) ' " \ $ ` !
+    const cleanTask = task
+      .replace(/\n+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/([?*\[\]()'"\\$`!])/g, '\\$1');
     // Use plugin:skill format - ralph-loop:ralph-loop
     const skillCmd = `/ralph-loop:ralph-loop ${cleanTask} --max-iterations ${maxIter} --completion-promise ${completionPromise}`;
     return { startCmd, skillCmd };
