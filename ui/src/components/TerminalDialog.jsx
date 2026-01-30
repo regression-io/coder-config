@@ -1,13 +1,12 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react';
-import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { X, Minimize2, Maximize2, GripVertical } from 'lucide-react';
 import Terminal from './Terminal';
 import { cn } from '@/lib/utils';
 
 /**
- * Dialog wrapper for the Terminal component
- * Uses custom dialog implementation to prevent keyboard events from closing
+ * Non-modal, resizable terminal panel
+ * Can be dragged, resized, and doesn't block interaction with the rest of the UI
  */
 export default function TerminalDialog({
   open,
@@ -23,7 +22,26 @@ export default function TerminalDialog({
   headerExtra = null
 }) {
   const terminalContainerRef = useRef(null);
+  const panelRef = useRef(null);
   const [exited, setExited] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
+  const [position, setPosition] = useState({ x: null, y: null });
+  const [size, setSize] = useState({ width: 900, height: 500 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const dragOffset = useRef({ x: 0, y: 0 });
+  const resizeStart = useRef({ x: 0, y: 0, width: 0, height: 0 });
+
+  // Initialize position on first open
+  useEffect(() => {
+    if (open && position.x === null) {
+      // Position in bottom-right with some margin
+      setPosition({
+        x: Math.max(20, window.innerWidth - size.width - 40),
+        y: Math.max(20, window.innerHeight - size.height - 40)
+      });
+    }
+  }, [open, position.x, size.width, size.height]);
 
   // Reset state when dialog opens
   useEffect(() => {
@@ -37,7 +55,6 @@ export default function TerminalDialog({
     if (onExit) {
       onExit(exitCode, signal);
     }
-    // Auto-close after delay if enabled
     if (autoCloseOnExit) {
       setTimeout(() => {
         onOpenChange(false);
@@ -45,87 +62,182 @@ export default function TerminalDialog({
     }
   }, [onExit, autoCloseOnExit, autoCloseDelay, onOpenChange]);
 
-  // Focus the terminal container when dialog opens
-  const handleOpenAutoFocus = useCallback((e) => {
+  // Drag handling
+  const handleDragStart = useCallback((e) => {
+    if (isMaximized) return;
     e.preventDefault();
-    // Focus will be handled by the terminal component
+    setIsDragging(true);
+    const rect = panelRef.current.getBoundingClientRect();
+    dragOffset.current = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  }, [isMaximized]);
+
+  const handleDrag = useCallback((e) => {
+    if (!isDragging) return;
+    const newX = Math.max(0, Math.min(window.innerWidth - 100, e.clientX - dragOffset.current.x));
+    const newY = Math.max(0, Math.min(window.innerHeight - 50, e.clientY - dragOffset.current.y));
+    setPosition({ x: newX, y: newY });
+  }, [isDragging]);
+
+  const handleDragEnd = useCallback(() => {
+    setIsDragging(false);
   }, []);
 
-  // Prevent Escape from closing while terminal is active
-  const handleEscapeKeyDown = useCallback((e) => {
-    // Let Escape close the dialog (default behavior)
-    // But prevent other keys from propagating
+  // Resize handling
+  const handleResizeStart = useCallback((e) => {
+    if (isMaximized) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+    resizeStart.current = {
+      x: e.clientX,
+      y: e.clientY,
+      width: size.width,
+      height: size.height
+    };
+  }, [isMaximized, size]);
+
+  const handleResize = useCallback((e) => {
+    if (!isResizing) return;
+    const deltaX = e.clientX - resizeStart.current.x;
+    const deltaY = e.clientY - resizeStart.current.y;
+    setSize({
+      width: Math.max(400, resizeStart.current.width + deltaX),
+      height: Math.max(300, resizeStart.current.height + deltaY)
+    });
+  }, [isResizing]);
+
+  const handleResizeEnd = useCallback(() => {
+    setIsResizing(false);
   }, []);
 
-  // Prevent keyboard events from bubbling to dialog
+  // Global mouse events for drag/resize
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleDrag);
+      window.addEventListener('mouseup', handleDragEnd);
+      return () => {
+        window.removeEventListener('mousemove', handleDrag);
+        window.removeEventListener('mouseup', handleDragEnd);
+      };
+    }
+  }, [isDragging, handleDrag, handleDragEnd]);
+
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener('mousemove', handleResize);
+      window.addEventListener('mouseup', handleResizeEnd);
+      return () => {
+        window.removeEventListener('mousemove', handleResize);
+        window.removeEventListener('mouseup', handleResizeEnd);
+      };
+    }
+  }, [isResizing, handleResize, handleResizeEnd]);
+
+  const handleToggleMaximize = useCallback(() => {
+    setIsMaximized(prev => !prev);
+  }, []);
+
+  // Prevent keyboard events from bubbling
   const handleKeyDown = useCallback((e) => {
-    // Stop all keyboard events from reaching the dialog
-    // except Escape which should close it
     if (e.key !== 'Escape') {
       e.stopPropagation();
     }
   }, []);
 
+  if (!open) return null;
+
+  const panelStyle = isMaximized
+    ? { left: 0, top: 0, width: '100vw', height: '100vh' }
+    : { left: position.x, top: position.y, width: size.width, height: size.height };
+
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <DialogPrimitive.Content
-          className={cn(
-            "fixed left-[50%] top-[50%] z-50 translate-x-[-50%] translate-y-[-50%]",
-            "max-w-4xl w-full h-[600px] flex flex-col p-0 gap-0",
-            "border bg-background shadow-lg sm:rounded-lg",
-            "data-[state=open]:animate-in data-[state=closed]:animate-out",
-            "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-            "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
-          )}
-          onOpenAutoFocus={handleOpenAutoFocus}
-          onEscapeKeyDown={handleEscapeKeyDown}
-          onKeyDown={handleKeyDown}
-        >
-          {/* Header */}
-          <div className="px-4 py-3 border-b flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogPrimitive.Title className="text-lg font-semibold leading-none tracking-tight">
-                  {title}
-                </DialogPrimitive.Title>
-                {description && (
-                  <DialogPrimitive.Description className="text-sm text-muted-foreground mt-1">
-                    {description}
-                  </DialogPrimitive.Description>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                {headerExtra}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => onOpenChange(false)}
-                  tabIndex={-1}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+    <div
+      ref={panelRef}
+      className={cn(
+        "fixed z-50 flex flex-col",
+        "border bg-background shadow-2xl rounded-lg overflow-hidden",
+        isDragging && "cursor-grabbing select-none",
+        isResizing && "select-none"
+      )}
+      style={panelStyle}
+      onKeyDown={handleKeyDown}
+    >
+      {/* Header - draggable */}
+      <div
+        className={cn(
+          "px-4 py-2 border-b flex-shrink-0 bg-muted/50",
+          !isMaximized && "cursor-grab"
+        )}
+        onMouseDown={handleDragStart}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0">
+            <GripVertical className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold leading-none tracking-tight truncate">
+                {title}
+              </h3>
+              {description && (
+                <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                  {description}
+                </p>
+              )}
             </div>
           </div>
-
-          {/* Terminal container */}
-          <div ref={terminalContainerRef} className="flex-1 p-2 min-h-0">
-            {open && (
-              <Terminal
-                cwd={cwd}
-                initialCommand={initialCommand}
-                env={env}
-                onExit={handleExit}
-                height="100%"
-                className="h-full"
-              />
-            )}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {headerExtra}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0"
+              onClick={handleToggleMaximize}
+              tabIndex={-1}
+            >
+              {isMaximized ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0"
+              onClick={() => onOpenChange(false)}
+              tabIndex={-1}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
           </div>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+        </div>
+      </div>
+
+      {/* Terminal container */}
+      <div ref={terminalContainerRef} className="flex-1 p-2 min-h-0 bg-black">
+        <Terminal
+          cwd={cwd}
+          initialCommand={initialCommand}
+          env={env}
+          onExit={handleExit}
+          height="100%"
+          className="h-full"
+        />
+      </div>
+
+      {/* Resize handle - bottom right corner */}
+      {!isMaximized && (
+        <div
+          className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+          onMouseDown={handleResizeStart}
+        >
+          <svg
+            className="w-full h-full text-muted-foreground/50"
+            viewBox="0 0 16 16"
+            fill="currentColor"
+          >
+            <path d="M14 14H10V10H14V14ZM14 6H12V8H14V6ZM6 14H8V12H6V14Z" />
+          </svg>
+        </div>
+      )}
+    </div>
   );
 }
