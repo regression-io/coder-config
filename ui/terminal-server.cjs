@@ -119,19 +119,18 @@ class TerminalServer {
                     lastFewLines.includes('> Try') ||
                     lastFewLines.includes(']133;B')) {  // Terminal prompt marker
                   delayedCmdSent = true;
-                  console.log('[Terminal] Prompt detected, sending command...');
+                  console.log('[Terminal] Prompt detected, waiting 2s before sending...');
                   console.log('[Terminal] Command length:', delayedCmd?.length || 0);
-                  // Small delay after detecting ready state
+                  // Wait for Claude to be fully ready
                   setTimeout(() => {
-                    // Send command first, then Enter separately
-                    // Claude Code treats large text as paste and waits for Enter confirmation
+                    console.log('[Terminal] Sending command...');
                     ptyProcess.write(delayedCmd);
-                    console.log('[Terminal] Command sent, sending Enter in 100ms...');
+                    console.log('[Terminal] Command sent, waiting 2s before Enter...');
                     setTimeout(() => {
                       ptyProcess.write('\n');
                       console.log('[Terminal] Enter sent');
-                    }, 500);
-                  }, 200);
+                    }, 2000);
+                  }, 2000);
                 }
               }
             };
@@ -144,11 +143,11 @@ class TerminalServer {
               if (!delayedCmdSent) {
                 console.log('[Terminal] Fallback timeout triggered after', delayedCmdDelay, 'ms');
                 delayedCmdSent = true;
-                // Send command first, then Enter separately
+                // Send command first, then Enter separately with longer delays
                 ptyProcess.write(delayedCmd);
                 setTimeout(() => {
                   ptyProcess.write('\n');
-                }, 500);
+                }, 2000);
               }
             }, delayedCmdDelay);
           }
