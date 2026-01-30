@@ -500,6 +500,9 @@ ${task}
 
     const proc = spawn(claudePath, args, options);
 
+    // Close stdin immediately - claude -p reads from args, not stdin
+    proc.stdin.end();
+
     const safeResolve = (result) => {
       if (resolved) return;
       resolved = true;
