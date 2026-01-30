@@ -592,14 +592,20 @@ function fixRalphLoopPluginStructure() {
       const skillsDir = path.join(versionDir, 'skills');
       const hooksDir = path.join(versionDir, 'hooks');
 
-      // Fix hooks.json - replace ${CLAUDE_PLUGIN_ROOT} with actual path
+      // Disable plugin's hooks.json - we use our own env-var-based hooks
+      // The plugin's hooks use project-local state files which affect ALL terminals
+      // in the same project, causing input freezing in other Claude sessions
       const hooksJsonPath = path.join(hooksDir, 'hooks.json');
       if (fs.existsSync(hooksJsonPath)) {
         try {
-          let hooksContent = fs.readFileSync(hooksJsonPath, 'utf8');
-          if (hooksContent.includes('${CLAUDE_PLUGIN_ROOT}')) {
-            hooksContent = hooksContent.replace(/\$\{CLAUDE_PLUGIN_ROOT\}/g, versionDir);
-            fs.writeFileSync(hooksJsonPath, hooksContent, 'utf8');
+          const hooksContent = fs.readFileSync(hooksJsonPath, 'utf8');
+          const hooks = JSON.parse(hooksContent);
+          // Only disable if it has hooks defined (not already disabled)
+          if (hooks.hooks && Object.keys(hooks.hooks).length > 0) {
+            hooks._disabled_hooks = hooks.hooks;  // Keep for reference
+            hooks.hooks = {};  // Disable all hooks
+            hooks._disabled_reason = 'Disabled by coder-config - using env-var-based hooks instead';
+            fs.writeFileSync(hooksJsonPath, JSON.stringify(hooks, null, 2), 'utf8');
           }
         } catch (e) {
           // Ignore errors fixing hooks
