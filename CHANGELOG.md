@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Ralph Loop plugin hooks** - Fix `${CLAUDE_PLUGIN_ROOT}` variable not being expanded in plugin hooks
+  - Claude Code wasn't expanding the variable, causing hook command errors
+  - Plugin fix now replaces variable with absolute path in hooks.json
+
 ### Added
 
 - **Ralph Loop prompt tuning** - AI-powered prompt optimization for better loop execution

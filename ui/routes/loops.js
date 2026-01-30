@@ -559,6 +559,7 @@ ${task}
  * Fix the ralph-loop plugin structure by converting commands to skills format
  * Claude Code expects skills/<name>/SKILL.md, but the plugin has commands/<name>.md
  * Also fixes frontmatter issues (hide-from-slash-command-tool -> name)
+ * Also fixes hooks.json to use absolute paths instead of ${CLAUDE_PLUGIN_ROOT}
  */
 function fixRalphLoopPluginStructure() {
   const pluginCacheDir = path.join(os.homedir(), '.claude', 'plugins', 'cache', 'claude-plugins-official', 'ralph-loop');
@@ -577,6 +578,21 @@ function fixRalphLoopPluginStructure() {
     const versionDir = path.join(pluginCacheDir, version);
     const commandsDir = path.join(versionDir, 'commands');
     const skillsDir = path.join(versionDir, 'skills');
+    const hooksDir = path.join(versionDir, 'hooks');
+
+    // Fix hooks.json - replace ${CLAUDE_PLUGIN_ROOT} with actual path
+    const hooksJsonPath = path.join(hooksDir, 'hooks.json');
+    if (fs.existsSync(hooksJsonPath)) {
+      try {
+        let hooksContent = fs.readFileSync(hooksJsonPath, 'utf8');
+        if (hooksContent.includes('${CLAUDE_PLUGIN_ROOT}')) {
+          hooksContent = hooksContent.replace(/\$\{CLAUDE_PLUGIN_ROOT\}/g, versionDir);
+          fs.writeFileSync(hooksJsonPath, hooksContent, 'utf8');
+        }
+      } catch (e) {
+        // Ignore errors fixing hooks
+      }
+    }
 
     if (!fs.existsSync(commandsDir)) {
       continue;
