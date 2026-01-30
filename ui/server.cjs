@@ -252,6 +252,9 @@ class ConfigUIServer {
   // ==================== HTTP Server ====================
 
   start() {
+    // Run migrations
+    this.runMigrations();
+
     const server = http.createServer((req, res) => this.handleRequest(req, res));
     this.terminalServer.attach(server);
 
@@ -260,6 +263,19 @@ class ConfigUIServer {
       console.log(`📁 Project: ${this.projectDir}`);
       console.log(`💻 Terminal WebSocket: ws://localhost:${this.port}/ws/terminal\n`);
     });
+  }
+
+  /**
+   * Run migrations on server start
+   */
+  runMigrations() {
+    try {
+      // Migration: Remove global ralph-loop hooks (v0.44.23+)
+      // Hooks are now installed per-project instead of globally
+      routes.loops.removeGlobalHooks();
+    } catch (e) {
+      // Ignore migration errors
+    }
   }
 
   async handleRequest(req, res) {
