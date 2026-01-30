@@ -117,7 +117,12 @@ class TerminalServer {
                   delayedCmdSent = true;
                   // Small delay after detecting ready state
                   setTimeout(() => {
-                    ptyProcess.write(delayedCmd + '\r');
+                    // Send command first, then Enter separately
+                    // Claude Code treats large text as paste and waits for Enter confirmation
+                    ptyProcess.write(delayedCmd);
+                    setTimeout(() => {
+                      ptyProcess.write('\r');
+                    }, 100);
                   }, 200);
                 }
               }
@@ -130,7 +135,11 @@ class TerminalServer {
             setTimeout(() => {
               if (!delayedCmdSent) {
                 delayedCmdSent = true;
-                ptyProcess.write(delayedCmd + '\r');
+                // Send command first, then Enter separately
+                ptyProcess.write(delayedCmd);
+                setTimeout(() => {
+                  ptyProcess.write('\r');
+                }, 100);
               }
             }, delayedCmdDelay);
           }

@@ -9,9 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Ralph Loop plugin hooks** - Fix `${CLAUDE_PLUGIN_ROOT}` variable not being expanded in plugin hooks
-  - Claude Code wasn't expanding the variable, causing hook command errors
-  - Plugin fix now replaces variable with absolute path in hooks.json
+- **Ralph Loop plugin hooks** - Disable plugin's file-based hooks, use env-var-based hooks
+  - Plugin hooks used project-local state files affecting ALL terminals in same project
+  - Now uses coder-config's CODER_LOOP_ID-based hooks that only affect loop terminal
+- **Ralph Loop terminal auto-submit** - Fix command not auto-submitting in Claude Code
+  - Large commands were treated as paste, waiting for Enter confirmation
+  - Now sends command and Enter separately to ensure proper submission
 
 ### Added
 
