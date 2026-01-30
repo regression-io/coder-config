@@ -86,11 +86,43 @@ class TerminalServer {
         setTimeout(() => {
           ptyProcess.write(cmd + '\r');
 
-          // If delayed command provided, send it after the specified delay
-          // This allows the initial command (e.g., claude) to start before sending input
+          // If delayed command provided, send it when claude is ready
+          // Watch for claude's ready indicator in output
           if (delayedCmd) {
+            let delayedCmdSent = false;
+            let outputBuffer = '';
+
+            const checkReady = (data) => {
+              if (delayedCmdSent) return;
+              outputBuffer += data;
+
+              // Claude shows various ready indicators:
+              // - ">" prompt character
+              // - "Claude" in output after startup
+              // - Input area becomes active
+              // Look for the prompt or "Claude" appearing after some output
+              if (outputBuffer.length > 100 &&
+                  (outputBuffer.includes('>') ||
+                   outputBuffer.includes('Claude') ||
+                   outputBuffer.includes('?') ||
+                   outputBuffer.includes('│'))) {
+                delayedCmdSent = true;
+                // Small delay after detecting ready state
+                setTimeout(() => {
+                  ptyProcess.write(delayedCmd + '\r');
+                }, 300);
+              }
+            };
+
+            // Listen for output to detect readiness
+            ptyProcess.onData(checkReady);
+
+            // Fallback timeout in case detection fails
             setTimeout(() => {
-              ptyProcess.write(delayedCmd + '\r');
+              if (!delayedCmdSent) {
+                delayedCmdSent = true;
+                ptyProcess.write(delayedCmd + '\r');
+              }
             }, delayedCmdDelay);
           }
         }, 500);

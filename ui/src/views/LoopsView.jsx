@@ -1646,7 +1646,7 @@ export default function LoopsView({ activeProject = null }) {
         cwd={terminalLoop?.projectPath}
         initialCommand={terminalLoop ? buildRalphCommand(terminalLoop).startCmd : ''}
         delayedCommand={terminalLoop ? buildRalphCommand(terminalLoop).skillCmd : ''}
-        delayedCommandDelay={3000}
+        delayedCommandDelay={5000}  // Fallback only - normally detected via output
         env={terminalLoop ? {
           CODER_LOOP_ID: terminalLoop.id,
           ...(terminalLoop.workstreamId && { CODER_WORKSTREAM: terminalLoop.workstreamId })
