@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - "Tune with AI" button in create dialog rewrites tasks following Ralph Wiggum principles
   - Adds clear completion signals, verification steps, and acceptance criteria
   - When resuming failed/paused loops, offers option to tune prompt before retrying
+  - Resume tuning uses loop history (iterations, plan, clarifications, pause reason) as context
+  - Transcript compaction keeps context under control while preserving key errors/issues
   - Based on principles from awesomeclaude.ai/ralph-wiggum
 
 ## [0.44.19] - 2026-01-29

@@ -817,7 +817,11 @@ class ConfigUIServer {
 
       case '/api/loops/tune-prompt':
         if (req.method === 'POST') {
-          const result = await routes.loops.tunePrompt(body.task, body.projectPath || this.projectDir);
+          const result = await routes.loops.tunePrompt(
+            body.task,
+            body.projectPath || this.projectDir,
+            body.loopContext || null
+          );
           return this.json(res, result);
         }
         break;

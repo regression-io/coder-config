@@ -338,9 +338,44 @@ export default function LoopsView({ activeProject = null }) {
       setTuningInProgress(true);
       const task = loopToResume.task?.original || '';
 
+      // Fetch full loop details including clarifications and plan for context
+      const loopDetails = await api.getLoop(loopToResume.id);
+      const loop = loopDetails.loop || loopToResume;
+
+      // Build context from loop history
+      const loopContext = {
+        status: loop.status,
+        pauseReason: loop.pauseReason,
+        iterations: loop.iterations?.current || 0,
+        maxIterations: loop.iterations?.max || 50,
+        phase: loop.phase,
+        // Include clarifications and plan as context
+        clarifications: loopDetails.clarifications || '',
+        plan: loopDetails.plan || '',
+        // Include iteration history summary
+        iterationHistory: (loop.iterations?.history || [])
+          .slice(-5) // Last 5 iterations
+          .map(i => `Iteration ${i.n}: ${i.summary || 'no summary'}`)
+          .join('\n')
+      };
+
+      // Build a pseudo-transcript from available data
+      let transcript = '';
+      if (loopContext.clarifications) {
+        transcript += `=== Clarifications ===\n${loopContext.clarifications}\n\n`;
+      }
+      if (loopContext.plan) {
+        transcript += `=== Plan ===\n${loopContext.plan}\n\n`;
+      }
+      if (loopContext.iterationHistory) {
+        transcript += `=== Recent Iterations ===\n${loopContext.iterationHistory}\n`;
+      }
+      loopContext.transcript = transcript;
+
       const result = await api.tuneLoopPrompt(
         task,
-        loopToResume.projectPath || activeProject?.path || activeProject?.dir || null
+        loopToResume.projectPath || activeProject?.path || activeProject?.dir || null,
+        loopContext
       );
 
       if (result.success) {

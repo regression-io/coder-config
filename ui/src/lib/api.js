@@ -794,10 +794,10 @@ export const api = {
     });
   },
 
-  async tuneLoopPrompt(task, projectPath = null) {
+  async tuneLoopPrompt(task, projectPath = null, loopContext = null) {
     return request('/loops/tune-prompt', {
       method: 'POST',
-      body: { task, projectPath },
+      body: { task, projectPath, loopContext },
     });
   },
 

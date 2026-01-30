@@ -364,9 +364,63 @@ async function installRalphLoopPlugin() {
  * - Clear completion signals (exact string matching)
  * - Incremental staging with verification steps
  * - Automatic verification (tests, linters, builds)
+ *
+ * @param {string} task - Original task description
+ * @param {string} projectPath - Project directory
+ * @param {object} loopContext - Optional context from previous loop run (for resume tuning)
  */
-async function tunePrompt(task, projectPath = null) {
+async function tunePrompt(task, projectPath = null, loopContext = null) {
   const { spawn } = require('child_process');
+
+  // Build context section if we have loop history
+  let historySection = '';
+  if (loopContext) {
+    // Compact the transcript - take key sections to stay under ~3000 chars
+    let compactedTranscript = '';
+    if (loopContext.transcript) {
+      const transcript = loopContext.transcript;
+      const lines = transcript.split('\n');
+
+      // Get first 500 chars (start context)
+      const start = transcript.slice(0, 500);
+
+      // Get last 1500 chars (most recent and likely failure point)
+      const end = transcript.slice(-1500);
+
+      // Look for error indicators in the middle
+      const errorLines = lines.filter(line =>
+        /error|fail|exception|timeout|stuck|cannot|unable/i.test(line)
+      ).slice(0, 10).join('\n');
+
+      compactedTranscript = `
+### Transcript Summary:
+**Start of session:**
+${start}
+${errorLines ? `
+**Key errors/issues found:**
+${errorLines}
+` : ''}
+**Most recent actions:**
+${end}
+`;
+    }
+
+    historySection = `
+## Previous Attempt Context:
+
+This task was previously attempted but ${loopContext.status === 'failed' ? 'failed' : 'was paused'}.
+${loopContext.pauseReason ? `Reason: ${loopContext.pauseReason}` : ''}
+
+- Iterations completed: ${loopContext.iterations || 0} / ${loopContext.maxIterations || 50}
+- Phase reached: ${loopContext.phase || 'unknown'}
+${compactedTranscript}
+
+Based on this history, add specific guardrails to prevent the same issues. For example:
+- If it failed on tests, add explicit test verification steps
+- If it got stuck in a loop, add checkpoints and progress verification
+- If it hit max iterations, break the task into smaller phases
+`;
+  }
 
   const metaPrompt = `You are a prompt engineer specializing in Ralph Loop autonomous development.
 
@@ -385,7 +439,7 @@ Your task: Rewrite the following task description to be optimal for Ralph Loop e
    - Confirm expected behavior
 
 4. **Start Simple, Add Guardrails on Failure**: Begin with the core task. Only add constraints if things go wrong.
-
+${historySection}
 ## Output Format:
 
 Respond with ONLY the rewritten task description. No explanation, no preamble, no markdown formatting - just the improved task text that will be passed to /ralph-loop.
@@ -394,6 +448,7 @@ The rewritten task should:
 - Be specific about what "done" means
 - Include verification steps (test, lint, build)
 - List clear acceptance criteria
+${loopContext ? '- Add specific guardrails based on the previous attempt\'s issues' : ''}
 - End with: "When all acceptance criteria are met and verified, output DONE."
 
 ## Original Task:
