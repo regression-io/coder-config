@@ -562,77 +562,90 @@ ${task}
  * Also fixes hooks.json to use absolute paths instead of ${CLAUDE_PLUGIN_ROOT}
  */
 function fixRalphLoopPluginStructure() {
-  const pluginCacheDir = path.join(os.homedir(), '.claude', 'plugins', 'cache', 'claude-plugins-official', 'ralph-loop');
+  // Fix both cache and marketplace directories
+  // Claude Code reads hooks from marketplace source, not cache
+  const pluginLocations = [
+    path.join(os.homedir(), '.claude', 'plugins', 'cache', 'claude-plugins-official', 'ralph-loop'),
+    path.join(os.homedir(), '.claude', 'plugins', 'marketplaces', 'claude-plugins-official', 'plugins', 'ralph-loop')
+  ];
 
-  if (!fs.existsSync(pluginCacheDir)) {
-    return;
-  }
-
-  // Find all version directories
-  const versions = fs.readdirSync(pluginCacheDir).filter(f => {
-    const fullPath = path.join(pluginCacheDir, f);
-    return fs.statSync(fullPath).isDirectory();
-  });
-
-  for (const version of versions) {
-    const versionDir = path.join(pluginCacheDir, version);
-    const commandsDir = path.join(versionDir, 'commands');
-    const skillsDir = path.join(versionDir, 'skills');
-    const hooksDir = path.join(versionDir, 'hooks');
-
-    // Fix hooks.json - replace ${CLAUDE_PLUGIN_ROOT} with actual path
-    const hooksJsonPath = path.join(hooksDir, 'hooks.json');
-    if (fs.existsSync(hooksJsonPath)) {
-      try {
-        let hooksContent = fs.readFileSync(hooksJsonPath, 'utf8');
-        if (hooksContent.includes('${CLAUDE_PLUGIN_ROOT}')) {
-          hooksContent = hooksContent.replace(/\$\{CLAUDE_PLUGIN_ROOT\}/g, versionDir);
-          fs.writeFileSync(hooksJsonPath, hooksContent, 'utf8');
-        }
-      } catch (e) {
-        // Ignore errors fixing hooks
-      }
-    }
-
-    if (!fs.existsSync(commandsDir)) {
+  for (const pluginDir of pluginLocations) {
+    if (!fs.existsSync(pluginDir)) {
       continue;
     }
 
-    // Remove old symlink if it exists
-    if (fs.existsSync(skillsDir) && fs.lstatSync(skillsDir).isSymbolicLink()) {
-      fs.unlinkSync(skillsDir);
-    }
+    // Check if this is a versioned cache dir or direct marketplace dir
+    const hasVersionDirs = fs.readdirSync(pluginDir).some(f => {
+      const fullPath = path.join(pluginDir, f);
+      return fs.statSync(fullPath).isDirectory() && !['commands', 'skills', 'hooks', 'scripts', '.claude-plugin'].includes(f);
+    });
 
-    // Create skills directory if it doesn't exist
-    if (!fs.existsSync(skillsDir)) {
-      fs.mkdirSync(skillsDir, { recursive: true });
-    }
+    const dirsToFix = hasVersionDirs
+      ? fs.readdirSync(pluginDir).filter(f => {
+          const fullPath = path.join(pluginDir, f);
+          return fs.statSync(fullPath).isDirectory();
+        }).map(v => path.join(pluginDir, v))
+      : [pluginDir];
 
-    // Convert each command to skill format
-    // commands/ralph-loop.md -> skills/ralph-loop/SKILL.md
-    const commands = fs.readdirSync(commandsDir).filter(f => f.endsWith('.md'));
-    for (const cmdFile of commands) {
-      const skillName = cmdFile.replace('.md', '');
-      const skillDir = path.join(skillsDir, skillName);
-      const skillFile = path.join(skillDir, 'SKILL.md');
+    for (const versionDir of dirsToFix) {
+      const commandsDir = path.join(versionDir, 'commands');
+      const skillsDir = path.join(versionDir, 'skills');
+      const hooksDir = path.join(versionDir, 'hooks');
 
-      // Create skill directory
-      if (!fs.existsSync(skillDir)) {
-        fs.mkdirSync(skillDir, { recursive: true });
+      // Fix hooks.json - replace ${CLAUDE_PLUGIN_ROOT} with actual path
+      const hooksJsonPath = path.join(hooksDir, 'hooks.json');
+      if (fs.existsSync(hooksJsonPath)) {
+        try {
+          let hooksContent = fs.readFileSync(hooksJsonPath, 'utf8');
+          if (hooksContent.includes('${CLAUDE_PLUGIN_ROOT}')) {
+            hooksContent = hooksContent.replace(/\$\{CLAUDE_PLUGIN_ROOT\}/g, versionDir);
+            fs.writeFileSync(hooksJsonPath, hooksContent, 'utf8');
+          }
+        } catch (e) {
+          // Ignore errors fixing hooks
+        }
       }
 
-      // Read command file content
-      const cmdPath = path.join(commandsDir, cmdFile);
-      let content = fs.readFileSync(cmdPath, 'utf8');
+      if (!fs.existsSync(commandsDir)) {
+        continue;
+      }
 
-      // Fix frontmatter: replace hide-from-slash-command-tool with name
-      content = content.replace(
-        /hide-from-slash-command-tool:\s*["']true["']/g,
-        `name: ${skillName}`
-      );
+      // Remove old symlink if it exists
+      if (fs.existsSync(skillsDir) && fs.lstatSync(skillsDir).isSymbolicLink()) {
+        fs.unlinkSync(skillsDir);
+      }
 
-      // Write skill file (always overwrite to ensure fix is applied)
-      fs.writeFileSync(skillFile, content, 'utf8');
+      // Create skills directory if it doesn't exist
+      if (!fs.existsSync(skillsDir)) {
+        fs.mkdirSync(skillsDir, { recursive: true });
+      }
+
+      // Convert each command to skill format
+      // commands/ralph-loop.md -> skills/ralph-loop/SKILL.md
+      const commands = fs.readdirSync(commandsDir).filter(f => f.endsWith('.md'));
+      for (const cmdFile of commands) {
+        const skillName = cmdFile.replace('.md', '');
+        const skillDir = path.join(skillsDir, skillName);
+        const skillFile = path.join(skillDir, 'SKILL.md');
+
+        // Create skill directory
+        if (!fs.existsSync(skillDir)) {
+          fs.mkdirSync(skillDir, { recursive: true });
+        }
+
+        // Read command file content
+        const cmdPath = path.join(commandsDir, cmdFile);
+        let content = fs.readFileSync(cmdPath, 'utf8');
+
+        // Fix frontmatter: replace hide-from-slash-command-tool with name
+        content = content.replace(
+          /hide-from-slash-command-tool:\s*["']true["']/g,
+          `name: ${skillName}`
+        );
+
+        // Write skill file (always overwrite to ensure fix is applied)
+        fs.writeFileSync(skillFile, content, 'utf8');
+      }
     }
   }
 }
