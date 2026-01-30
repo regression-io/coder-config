@@ -87,30 +87,39 @@ class TerminalServer {
           ptyProcess.write(cmd + '\r');
 
           // If delayed command provided, send it when claude is ready
-          // Watch for claude's ready indicator in output
+          // Watch for claude's input prompt in output
           if (delayedCmd) {
             let delayedCmdSent = false;
             let outputBuffer = '';
+            let bannerSeen = false;
 
             const checkReady = (data) => {
               if (delayedCmdSent) return;
               outputBuffer += data;
 
-              // Claude shows various ready indicators:
-              // - ">" prompt character
-              // - "Claude" in output after startup
-              // - Input area becomes active
-              // Look for the prompt or "Claude" appearing after some output
-              if (outputBuffer.length > 100 &&
-                  (outputBuffer.includes('>') ||
-                   outputBuffer.includes('Claude') ||
-                   outputBuffer.includes('?') ||
-                   outputBuffer.includes('│'))) {
-                delayedCmdSent = true;
-                // Small delay after detecting ready state
-                setTimeout(() => {
-                  ptyProcess.write(delayedCmd + '\r');
-                }, 300);
+              // First wait for the Claude Code banner to appear
+              if (!bannerSeen && outputBuffer.includes('Claude Code')) {
+                bannerSeen = true;
+              }
+
+              // After banner, look for the actual input prompt
+              // Claude shows "> " or "❯ " when ready for input
+              // The prompt appears on its own line after the banner
+              if (bannerSeen) {
+                const lines = outputBuffer.split('\n');
+                const lastFewLines = lines.slice(-5).join('\n');
+
+                // Look for prompt indicators at start of line
+                // > Try "..." or just > waiting for input
+                if (lastFewLines.match(/^[>\❯]\s/m) ||
+                    lastFewLines.includes('> Try') ||
+                    lastFewLines.includes('❯ ')) {
+                  delayedCmdSent = true;
+                  // Small delay after detecting ready state
+                  setTimeout(() => {
+                    ptyProcess.write(delayedCmd + '\r');
+                  }, 200);
+                }
               }
             };
 
