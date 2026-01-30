@@ -764,14 +764,20 @@ export default function LoopsView({ activeProject = null }) {
 
   // Build the /ralph-loop command for the official plugin
   const buildRalphCommand = (loop) => {
-    const task = (loop.task?.original || '').replace(/"/g, '\\"'); // Escape double quotes
+    const task = loop.task?.original || '';
     const maxIter = loop.iterations?.max || 50;
-    // Escape single quotes in completion promise (replace ' with '\'' for shell)
-    const completionPromise = (loop.completionPromise || 'DONE').replace(/'/g, "'\\''");
+    const completionPromise = loop.completionPromise || 'DONE';
+
+    // Use $'...' syntax for proper handling of newlines and special characters
+    // Escape backslashes, single quotes, and preserve newlines
+    const escapedTask = task
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'")
+      .replace(/\n/g, '\\n');
 
     // Start Claude and immediately send /ralph-loop command
     // Using --dangerously-skip-permissions for unattended loop execution
-    return `claude --dangerously-skip-permissions "/ralph-loop ${task} --max-iterations ${maxIter} --completion-promise '${completionPromise}'"`;
+    return `claude --dangerously-skip-permissions $'/ralph-loop ${escapedTask} --max-iterations ${maxIter} --completion-promise ${completionPromise}'`;
   };
 
   return (
