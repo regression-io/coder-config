@@ -83,6 +83,8 @@ class TerminalServer {
 
       // If initial command provided, execute it after a short delay
       if (cmd) {
+        console.log('[Terminal] Initial command:', cmd);
+        console.log('[Terminal] Delayed command:', delayedCmd ? `${delayedCmd.substring(0, 50)}...` : 'none');
         setTimeout(() => {
           ptyProcess.write(cmd + '\r');
 
@@ -100,6 +102,7 @@ class TerminalServer {
               // First wait for the Claude Code banner to appear
               if (!bannerSeen && outputBuffer.includes('Claude Code')) {
                 bannerSeen = true;
+                console.log('[Terminal] Banner detected');
               }
 
               // After banner, look for the actual input prompt
@@ -109,20 +112,25 @@ class TerminalServer {
                 const lines = outputBuffer.split('\n');
                 const lastFewLines = lines.slice(-5).join('\n');
 
-                // Look for prompt indicators at start of line
-                // > Try "..." or just > waiting for input
-                if (lastFewLines.match(/^[>\❯]\s/m) ||
+                // Look for prompt indicators
+                // Claude Code prompt can have escape codes between ❯ and text
+                // Also look for the "Try" suggestion or input prompt marker
+                if (lastFewLines.match(/[>\❯][\s\x1b\[\]0-9;]*[a-zA-T]/m) ||
                     lastFewLines.includes('> Try') ||
-                    lastFewLines.includes('❯ ')) {
+                    lastFewLines.includes(']133;B')) {  // Terminal prompt marker
                   delayedCmdSent = true;
+                  console.log('[Terminal] Prompt detected, sending command...');
+                  console.log('[Terminal] Command length:', delayedCmd?.length || 0);
                   // Small delay after detecting ready state
                   setTimeout(() => {
                     // Send command first, then Enter separately
                     // Claude Code treats large text as paste and waits for Enter confirmation
                     ptyProcess.write(delayedCmd);
+                    console.log('[Terminal] Command sent, sending Enter in 100ms...');
                     setTimeout(() => {
-                      ptyProcess.write('\r');
-                    }, 100);
+                      ptyProcess.write('\n');
+                      console.log('[Terminal] Enter sent');
+                    }, 500);
                   }, 200);
                 }
               }
@@ -134,12 +142,13 @@ class TerminalServer {
             // Fallback timeout in case detection fails
             setTimeout(() => {
               if (!delayedCmdSent) {
+                console.log('[Terminal] Fallback timeout triggered after', delayedCmdDelay, 'ms');
                 delayedCmdSent = true;
                 // Send command first, then Enter separately
                 ptyProcess.write(delayedCmd);
                 setTimeout(() => {
-                  ptyProcess.write('\r');
-                }, 100);
+                  ptyProcess.write('\n');
+                }, 500);
               }
             }, delayedCmdDelay);
           }
