@@ -794,6 +794,13 @@ export const api = {
     });
   },
 
+  async tuneLoopPrompt(task, projectPath = null) {
+    return request('/loops/tune-prompt', {
+      method: 'POST',
+      body: { task, projectPath },
+    });
+  },
+
   // Activity Tracking
   async getActivitySummary() {
     return request('/activity');

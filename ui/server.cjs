@@ -815,6 +815,13 @@ class ConfigUIServer {
         }
         break;
 
+      case '/api/loops/tune-prompt':
+        if (req.method === 'POST') {
+          const result = await routes.loops.tunePrompt(body.task, body.projectPath || this.projectDir);
+          return this.json(res, result);
+        }
+        break;
+
       case '/api/activity':
         if (req.method === 'GET') return this.json(res, routes.activity.getActivitySummary(this.manager));
         if (req.method === 'DELETE') return this.json(res, routes.activity.clearActivity(this.manager, body.olderThanDays || 30));

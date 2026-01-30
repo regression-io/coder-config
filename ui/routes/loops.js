@@ -359,6 +359,108 @@ async function installRalphLoopPlugin() {
 }
 
 /**
+ * Tune a prompt for Ralph Loop using Claude Code
+ * Rewrites the task following Ralph Wiggum principles:
+ * - Clear completion signals (exact string matching)
+ * - Incremental staging with verification steps
+ * - Automatic verification (tests, linters, builds)
+ */
+async function tunePrompt(task, projectPath = null) {
+  const { spawn } = require('child_process');
+
+  const metaPrompt = `You are a prompt engineer specializing in Ralph Loop autonomous development.
+
+Your task: Rewrite the following task description to be optimal for Ralph Loop execution.
+
+## Ralph Loop Principles (from awesomeclaude.ai/ralph-wiggum):
+
+1. **Clear Completion Signals**: Use exact string matching. The completion promise will be "DONE" - the loop ends when Claude outputs this exact text.
+
+2. **Incremental Staging**: Break complex work into phases with clear checkpoints. After each phase, verify before moving to the next.
+
+3. **Automatic Verification**: Include self-correcting patterns:
+   - Run tests after changes
+   - Check linter/type errors
+   - Verify builds succeed
+   - Confirm expected behavior
+
+4. **Start Simple, Add Guardrails on Failure**: Begin with the core task. Only add constraints if things go wrong.
+
+## Output Format:
+
+Respond with ONLY the rewritten task description. No explanation, no preamble, no markdown formatting - just the improved task text that will be passed to /ralph-loop.
+
+The rewritten task should:
+- Be specific about what "done" means
+- Include verification steps (test, lint, build)
+- List clear acceptance criteria
+- End with: "When all acceptance criteria are met and verified, output DONE."
+
+## Original Task:
+
+${task}
+
+## Rewritten Task:`;
+
+  return new Promise((resolve) => {
+    const args = ['-p', metaPrompt];
+
+    // Run from project directory if provided
+    const options = {
+      encoding: 'utf8',
+      timeout: 60000, // 60 second timeout
+      cwd: projectPath || process.cwd()
+    };
+
+    let output = '';
+    let errorOutput = '';
+
+    const proc = spawn('claude', args, options);
+
+    proc.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+
+    proc.stderr.on('data', (data) => {
+      errorOutput += data.toString();
+    });
+
+    proc.on('close', (code) => {
+      if (code === 0 && output.trim()) {
+        resolve({
+          success: true,
+          tunedPrompt: output.trim()
+        });
+      } else {
+        resolve({
+          success: false,
+          error: errorOutput || 'Failed to tune prompt',
+          originalPrompt: task
+        });
+      }
+    });
+
+    proc.on('error', (err) => {
+      resolve({
+        success: false,
+        error: err.message,
+        originalPrompt: task
+      });
+    });
+
+    // Handle timeout manually since spawn doesn't have timeout
+    setTimeout(() => {
+      proc.kill();
+      resolve({
+        success: false,
+        error: 'Prompt tuning timed out',
+        originalPrompt: task
+      });
+    }, 60000);
+  });
+}
+
+/**
  * Fix the ralph-loop plugin structure by converting commands to skills format
  * Claude Code expects skills/<name>/SKILL.md, but the plugin has commands/<name>.md
  * Also fixes frontmatter issues (hide-from-slash-command-tool -> name)
@@ -629,4 +731,5 @@ module.exports = {
   getRalphLoopPluginStatus,
   installRalphLoopPlugin,
   fixRalphLoopPluginStructure,
+  tunePrompt,
 };

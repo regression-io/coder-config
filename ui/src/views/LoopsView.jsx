@@ -4,7 +4,7 @@ import {
   ChevronDown, ChevronRight, Loader2, Clock,
   AlertCircle, CheckCircle2, FileText, Settings, History,
   RotateCcw, Eye, Copy, Terminal as TerminalIcon, Layers, Filter, Download,
-  Pencil
+  Pencil, Sparkles, Wand2
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +67,15 @@ export default function LoopsView({ activeProject = null }) {
   const [newMaxIterations, setNewMaxIterations] = useState(50);
   const [newCompletionPromise, setNewCompletionPromise] = useState('DONE');
   const [saving, setSaving] = useState(false);
+
+  // Prompt tuning states
+  const [tuningInProgress, setTuningInProgress] = useState(false);
+  const [tunedPromptDialogOpen, setTunedPromptDialogOpen] = useState(false);
+  const [tunedPrompt, setTunedPrompt] = useState('');
+  const [originalPromptForTuning, setOriginalPromptForTuning] = useState('');
+  const [promptWasTuned, setPromptWasTuned] = useState(false);
+  const [tuneResumeDialogOpen, setTuneResumeDialogOpen] = useState(false);
+  const [loopToResume, setLoopToResume] = useState(null);
 
   // Edit form states
   const [editName, setEditName] = useState('');
@@ -267,9 +276,104 @@ export default function LoopsView({ activeProject = null }) {
       return;
     }
 
+    await createLoopInternal(newTask);
+  };
+
+  // Tune prompt for create dialog
+  const handleTuneNewPrompt = async () => {
+    if (!newTask.trim()) {
+      toast.error('Enter a task description first');
+      return;
+    }
+
+    try {
+      setTuningInProgress(true);
+      setOriginalPromptForTuning(newTask);
+
+      const result = await api.tuneLoopPrompt(
+        newTask,
+        activeProject?.path || activeProject?.dir || null
+      );
+
+      if (result.success) {
+        setTunedPrompt(result.tunedPrompt);
+        setTunedPromptDialogOpen(true);
+      } else {
+        toast.error(result.error || 'Failed to tune prompt');
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setTuningInProgress(false);
+    }
+  };
+
+  // Accept tuned prompt - copy it back to the task field
+  const handleAcceptTunedPrompt = () => {
+    setNewTask(tunedPrompt);
+    setPromptWasTuned(true);
+    setTunedPromptDialogOpen(false);
+    toast.success('Tuned prompt applied');
+  };
+
+  const handleRejectTunedPrompt = () => {
+    setTunedPromptDialogOpen(false);
+  };
+
+  // Tune prompt for resuming a failed/paused loop
+  const handleResumeWithTuneOption = (loop) => {
+    // For failed/paused loops, offer tuning option
+    if (loop.status === 'failed' || loop.status === 'paused') {
+      setLoopToResume(loop);
+      setTuneResumeDialogOpen(true);
+    } else {
+      handleResume(loop.id);
+    }
+  };
+
+  const handleTuneAndResume = async () => {
+    if (!loopToResume) return;
+
+    try {
+      setTuningInProgress(true);
+      const task = loopToResume.task?.original || '';
+
+      const result = await api.tuneLoopPrompt(
+        task,
+        loopToResume.projectPath || activeProject?.path || activeProject?.dir || null
+      );
+
+      if (result.success) {
+        // Update the loop with tuned prompt
+        await api.updateLoop(loopToResume.id, {
+          task: { original: result.tunedPrompt }
+        });
+        toast.success('Prompt tuned and loop updated');
+        setTuneResumeDialogOpen(false);
+        await resumeLoopInternal(loopToResume.id);
+        loadLoops();
+      } else {
+        toast.error(result.error || 'Failed to tune prompt');
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setTuningInProgress(false);
+      setLoopToResume(null);
+    }
+  };
+
+  const handleResumeWithoutTuning = async () => {
+    if (!loopToResume) return;
+    setTuneResumeDialogOpen(false);
+    await handleResume(loopToResume.id);
+    setLoopToResume(null);
+  };
+
+  const createLoopInternal = async (task) => {
     try {
       setSaving(true);
-      const result = await api.createLoop(newTask, {
+      const result = await api.createLoop(task, {
         workstreamId: newWorkstreamId || null,
         projectPath: activeProject?.path || activeProject?.dir || null,
         maxIterations: parseInt(newMaxIterations, 10) || 50,
@@ -283,6 +387,7 @@ export default function LoopsView({ activeProject = null }) {
         setNewWorkstreamId('');
         setNewMaxIterations(maxIterations);
         setNewCompletionPromise(defaultCompletionPromise);
+        setPromptWasTuned(false);
         loadLoops();
       } else {
         toast.error(result.error || 'Failed to create loop');
@@ -793,7 +898,7 @@ export default function LoopsView({ activeProject = null }) {
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button variant="ghost" size="sm" onClick={() => handleResume(loop.id)}>
+                              <Button variant="ghost" size="sm" onClick={() => handleResumeWithTuneOption(loop)}>
                                 <RotateCcw className="w-4 h-4" />
                               </Button>
                             </TooltipTrigger>
@@ -805,7 +910,7 @@ export default function LoopsView({ activeProject = null }) {
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button variant="ghost" size="sm" onClick={() => handleStart(loop.id)}>
+                              <Button variant="ghost" size="sm" onClick={() => handleResumeWithTuneOption(loop)}>
                                 <RotateCcw className="w-4 h-4" />
                               </Button>
                             </TooltipTrigger>
@@ -955,16 +1060,49 @@ export default function LoopsView({ activeProject = null }) {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium mb-1 block">Task Description</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium">Task Description</label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleTuneNewPrompt}
+                        disabled={tuningInProgress || !newTask.trim()}
+                        className="h-7 text-xs"
+                      >
+                        {tuningInProgress ? (
+                          <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                        ) : (
+                          <Wand2 className="w-3 h-3 mr-1" />
+                        )}
+                        Tune with AI
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">Use Claude to optimize your prompt for Ralph Loop execution - adds clear completion signals, verification steps, and acceptance criteria.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Textarea
                 placeholder="Describe what you want Claude to accomplish..."
                 value={newTask}
-                onChange={(e) => setNewTask(e.target.value)}
+                onChange={(e) => { setNewTask(e.target.value); setPromptWasTuned(false); }}
                 rows={4}
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Be specific about the goal. The loop will continue until this task is completed.
-              </p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-muted-foreground">
+                  Be specific about the goal. The loop will continue until this task is completed.
+                </p>
+                {promptWasTuned && (
+                  <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    AI-tuned
+                  </span>
+                )}
+              </div>
             </div>
             {/* Project context */}
             <div>
@@ -1365,6 +1503,94 @@ export default function LoopsView({ activeProject = null }) {
           </label>
         }
       />
+
+      {/* Tuned Prompt Preview Dialog */}
+      <Dialog open={tunedPromptDialogOpen} onOpenChange={setTunedPromptDialogOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wand2 className="w-5 h-5 text-purple-500" />
+              AI-Tuned Prompt
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <h4 className="text-sm font-medium mb-2 text-muted-foreground">Original Prompt</h4>
+              <div className="bg-muted p-3 rounded text-sm whitespace-pre-wrap max-h-32 overflow-y-auto">
+                {originalPromptForTuning}
+              </div>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-purple-500" />
+                Tuned Prompt
+              </h4>
+              <Textarea
+                value={tunedPrompt}
+                onChange={(e) => setTunedPrompt(e.target.value)}
+                rows={10}
+                className="font-mono text-sm"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                You can edit the tuned prompt before accepting it.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleRejectTunedPrompt}>
+              Keep Original
+            </Button>
+            <Button onClick={handleAcceptTunedPrompt}>
+              <Check className="w-4 h-4 mr-1" />
+              Use Tuned Prompt
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Resume with Tune Option Dialog */}
+      <Dialog open={tuneResumeDialogOpen} onOpenChange={setTuneResumeDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RotateCcw className="w-5 h-5" />
+              Resume Loop
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {loopToResume && (
+              <>
+                <p className="text-sm mb-4">
+                  This loop {loopToResume.status === 'failed' ? 'failed' : 'was paused'}
+                  {loopToResume.pauseReason && `: ${loopToResume.pauseReason}`}
+                </p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Would you like to tune the prompt with AI before resuming? This can help add guardrails based on what went wrong.
+                </p>
+                <div className="bg-muted p-3 rounded text-sm max-h-32 overflow-y-auto">
+                  {loopToResume.task?.original}
+                </div>
+              </>
+            )}
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => { setTuneResumeDialogOpen(false); setLoopToResume(null); }}>
+              Cancel
+            </Button>
+            <Button variant="secondary" onClick={handleResumeWithoutTuning}>
+              Resume As-Is
+            </Button>
+            <Button onClick={handleTuneAndResume} disabled={tuningInProgress}>
+              {tuningInProgress ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-1" />
+              ) : (
+                <Wand2 className="w-4 h-4 mr-1" />
+              )}
+              Tune & Resume
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Loop Summary Dialog */}
       <Dialog open={summaryDialogOpen} onOpenChange={setSummaryDialogOpen}>
