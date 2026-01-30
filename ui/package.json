@@ -1,7 +1,7 @@
 {
   "name": "coder-config-ui",
   "private": true,
-  "version": "0.44.34",
+  "version": "0.44.35",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -26,7 +26,7 @@ export default function TerminalDialog({
   const [exited, setExited] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [position, setPosition] = useState({ x: null, y: null });
-  const [size, setSize] = useState({ width: 900, height: 500 });
+  const [size, setSize] = useState({ width: 1100, height: 650 });
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -35,10 +35,10 @@ export default function TerminalDialog({
   // Initialize position on first open
   useEffect(() => {
     if (open && position.x === null) {
-      // Position in bottom-right with some margin
+      // Position in center of screen
       setPosition({
-        x: Math.max(20, window.innerWidth - size.width - 40),
-        y: Math.max(20, window.innerHeight - size.height - 40)
+        x: Math.max(20, (window.innerWidth - size.width) / 2),
+        y: Math.max(20, (window.innerHeight - size.height) / 2)
       });
     }
   }, [open, position.x, size.width, size.height]);

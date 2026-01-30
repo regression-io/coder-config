@@ -821,21 +821,26 @@ export default function LoopsView({ activeProject = null }) {
     : loops;
 
   // Build the /ralph-loop command for the official plugin
-  const buildRalphCommand = (loop) => {
+  const buildRalphCommand = (loop, forDisplay = false) => {
     const task = loop.task?.original || '';
     const maxIter = loop.iterations?.max || 50;
     const completionPromise = loop.completionPromise || 'DONE';
 
-    // Use $'...' syntax for proper handling of newlines and special characters
-    // Escape backslashes, single quotes, and preserve newlines
+    // For display, show truncated version
+    if (forDisplay) {
+      const shortTask = task.replace(/\n+/g, ' ').substring(0, 100);
+      const ellipsis = task.length > 100 ? '...' : '';
+      return `claude --dangerously-skip-permissions "/ralph-loop ${shortTask.replace(/"/g, '\\"')}${ellipsis} --max-iterations ${maxIter} --completion-promise ${completionPromise}"`;
+    }
+
+    // For execution: escape double quotes, replace newlines with literal \n for shell
+    // The shell will pass this to claude which handles it
     const escapedTask = task
       .replace(/\\/g, '\\\\')
-      .replace(/'/g, "\\'")
-      .replace(/\n/g, '\\n');
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, ' ');  // Replace newlines with space for shell safety
 
-    // Start Claude and immediately send /ralph-loop command
-    // Using --dangerously-skip-permissions for unattended loop execution
-    return `claude --dangerously-skip-permissions $'/ralph-loop ${escapedTask} --max-iterations ${maxIter} --completion-promise ${completionPromise}'`;
+    return `claude --dangerously-skip-permissions "/ralph-loop ${escapedTask} --max-iterations ${maxIter} --completion-promise ${completionPromise}"`;
   };
 
   return (
@@ -1149,7 +1154,7 @@ export default function LoopsView({ activeProject = null }) {
                       <span className="text-sm font-medium">Run this loop (uses official ralph-loop plugin):</span>
                     </div>
                     <code className="text-xs bg-background p-2 rounded block whitespace-pre-wrap">
-                      {buildRalphCommand(loop)}
+                      {buildRalphCommand(loop, true)}
                     </code>
                   </div>
                 </div>
@@ -1572,7 +1577,7 @@ export default function LoopsView({ activeProject = null }) {
               <div>
                 <h4 className="text-sm font-medium mb-2">Run Command (uses official ralph-loop plugin)</h4>
                 <code className="text-xs bg-muted p-3 rounded block whitespace-pre-wrap">
-                  {buildRalphCommand(selectedLoop)}
+                  {buildRalphCommand(selectedLoop, true)}
                 </code>
               </div>
             </div>
