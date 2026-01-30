@@ -831,7 +831,7 @@ export default function LoopsView({ activeProject = null }) {
     if (forDisplay) {
       const shortTask = task.replace(/\n+/g, ' ').substring(0, 100);
       const ellipsis = task.length > 100 ? '...' : '';
-      return `claude --dangerously-skip-permissions "/ralph-loop ${shortTask.replace(/"/g, '\\"')}${ellipsis} --max-iterations ${maxIter} --completion-promise ${completionPromise}"`;
+      return `claude --dangerously-skip-permissions "/ralph-loop:ralph-loop ${shortTask.replace(/"/g, '\\"')}${ellipsis} --max-iterations ${maxIter} --completion-promise ${completionPromise}"`;
     }
 
     // For execution: return object with startup command and skill command
@@ -840,7 +840,8 @@ export default function LoopsView({ activeProject = null }) {
     // Quote the task to handle newlines and special characters
     // Replace newlines with spaces for single-line command
     const cleanTask = task.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
-    const skillCmd = `/ralph-loop ${cleanTask} --max-iterations ${maxIter} --completion-promise ${completionPromise}`;
+    // Use plugin:skill format - ralph-loop:ralph-loop
+    const skillCmd = `/ralph-loop:ralph-loop ${cleanTask} --max-iterations ${maxIter} --completion-promise ${completionPromise}`;
     return { startCmd, skillCmd };
   };
 

@@ -127,8 +127,8 @@ class TerminalServer {
                     ptyProcess.write(delayedCmd);
                     console.log('[Terminal] Command sent, waiting 2s before Enter...');
                     setTimeout(() => {
-                      ptyProcess.write('\n');
-                      console.log('[Terminal] Enter sent');
+                      ptyProcess.write('\r\n');
+                      console.log('[Terminal] Enter sent (\\r\\n)');
                     }, 2000);
                   }, 2000);
                 }
@@ -146,7 +146,7 @@ class TerminalServer {
                 // Send command first, then Enter separately with longer delays
                 ptyProcess.write(delayedCmd);
                 setTimeout(() => {
-                  ptyProcess.write('\n');
+                  ptyProcess.write('\r\n');
                 }, 2000);
               }
             }, delayedCmdDelay);
