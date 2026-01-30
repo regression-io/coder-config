@@ -109,7 +109,7 @@ function addProject(manager, projectPath, name, setProjectDir, runClaudeInit = f
   // Run claude /init if requested and CLAUDE.md doesn't exist
   if (runClaudeInit && !fs.existsSync(claudeMd)) {
     try {
-      execFileSync('claude', ['-p', '/init'], {
+      execFileSync(getClaudePath(), ['-p', '/init'], {
         cwd: absPath,
         stdio: 'pipe',
         timeout: 30000
