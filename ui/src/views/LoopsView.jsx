@@ -76,6 +76,7 @@ export default function LoopsView({ activeProject = null }) {
   const [promptWasTuned, setPromptWasTuned] = useState(false);
   const [tuneResumeDialogOpen, setTuneResumeDialogOpen] = useState(false);
   const [loopToResume, setLoopToResume] = useState(null);
+  const [tuningContext, setTuningContext] = useState('create'); // 'create' or 'edit'
 
   // Edit form states
   const [editName, setEditName] = useState('');
@@ -147,6 +148,7 @@ export default function LoopsView({ activeProject = null }) {
 
           // Build summary for any terminal state
           const summary = {
+            id: loop.id,  // Store ID for reliable lookups
             name: loop.name,
             task: loop.task?.original,
             status: loop.status,
@@ -289,6 +291,7 @@ export default function LoopsView({ activeProject = null }) {
     try {
       setTuningInProgress(true);
       setOriginalPromptForTuning(newTask);
+      setTuningContext('create');
 
       const result = await api.tuneLoopPrompt(
         newTask,
@@ -308,10 +311,14 @@ export default function LoopsView({ activeProject = null }) {
     }
   };
 
-  // Accept tuned prompt - copy it back to the task field
+  // Accept tuned prompt - copy it back to the task field (create or edit)
   const handleAcceptTunedPrompt = () => {
-    setNewTask(tunedPrompt);
-    setPromptWasTuned(true);
+    if (tuningContext === 'edit') {
+      setEditTask(tunedPrompt);
+    } else {
+      setNewTask(tunedPrompt);
+      setPromptWasTuned(true);
+    }
     setTunedPromptDialogOpen(false);
     toast.success('Tuned prompt applied');
   };
@@ -1221,7 +1228,56 @@ export default function LoopsView({ activeProject = null }) {
               />
             </div>
             <div>
-              <label className="text-sm font-medium mb-1 block">Task Description</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium">Task Description</label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          if (!editTask.trim()) {
+                            toast.error('Enter a task description first');
+                            return;
+                          }
+                          try {
+                            setTuningInProgress(true);
+                            setOriginalPromptForTuning(editTask);
+                            setTuningContext('edit');
+                            const result = await api.tuneLoopPrompt(
+                              editTask,
+                              editingLoop?.projectPath || activeProject?.path || activeProject?.dir || null
+                            );
+                            if (result.success) {
+                              setTunedPrompt(result.tunedPrompt);
+                              setTunedPromptDialogOpen(true);
+                            } else {
+                              toast.error(result.error || 'Failed to tune prompt');
+                            }
+                          } catch (error) {
+                            toast.error(error.message);
+                          } finally {
+                            setTuningInProgress(false);
+                          }
+                        }}
+                        disabled={tuningInProgress || !editTask.trim()}
+                        className="h-7 text-xs"
+                      >
+                        {tuningInProgress ? (
+                          <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                        ) : (
+                          <Wand2 className="w-3 h-3 mr-1" />
+                        )}
+                        Tune with AI
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">Use Claude to optimize your prompt for Ralph Loop execution.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Textarea
                 placeholder="Describe what you want Claude to accomplish..."
                 value={editTask}
@@ -1701,20 +1757,22 @@ export default function LoopsView({ activeProject = null }) {
             <Button variant="outline" onClick={() => setSummaryDialogOpen(false)}>
               Close
             </Button>
-            {completionSummary?.status === 'paused' && (
+            {(completionSummary?.status === 'paused' || completionSummary?.status === 'failed' || completionSummary?.status === 'cancelled') && (
               <Button onClick={() => {
                 setSummaryDialogOpen(false);
-                const loop = loops.find(l => l.name === completionSummary.name);
-                if (loop) handleResume(loop.id);
+                if (completionSummary?.id) {
+                  const loop = loops.find(l => l.id === completionSummary.id);
+                  if (loop) handleResumeWithTuneOption(loop);
+                }
               }}>
                 <RotateCcw className="w-4 h-4 mr-1" />
-                Resume
+                {completionSummary?.status === 'paused' ? 'Resume' : 'Restart'}
               </Button>
             )}
             <Button variant="secondary" onClick={() => {
               setSummaryDialogOpen(false);
-              if (completionSummary) {
-                const loop = loops.find(l => l.name === completionSummary.name);
+              if (completionSummary?.id) {
+                const loop = loops.find(l => l.id === completionSummary.id);
                 if (loop) handleViewDetail(loop);
               }
             }}>

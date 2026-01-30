@@ -463,14 +463,22 @@ ${task}
     // Run from project directory if provided
     const options = {
       encoding: 'utf8',
-      timeout: 60000, // 60 second timeout
       cwd: projectPath || process.cwd()
     };
 
     let output = '';
     let errorOutput = '';
+    let resolved = false;
+    let timeoutId = null;
 
     const proc = spawn('claude', args, options);
+
+    const safeResolve = (result) => {
+      if (resolved) return;
+      resolved = true;
+      if (timeoutId) clearTimeout(timeoutId);
+      resolve(result);
+    };
 
     proc.stdout.on('data', (data) => {
       output += data.toString();
@@ -482,12 +490,12 @@ ${task}
 
     proc.on('close', (code) => {
       if (code === 0 && output.trim()) {
-        resolve({
+        safeResolve({
           success: true,
           tunedPrompt: output.trim()
         });
       } else {
-        resolve({
+        safeResolve({
           success: false,
           error: errorOutput || 'Failed to tune prompt',
           originalPrompt: task
@@ -496,7 +504,7 @@ ${task}
     });
 
     proc.on('error', (err) => {
-      resolve({
+      safeResolve({
         success: false,
         error: err.message,
         originalPrompt: task
@@ -504,13 +512,15 @@ ${task}
     });
 
     // Handle timeout manually since spawn doesn't have timeout
-    setTimeout(() => {
-      proc.kill();
-      resolve({
-        success: false,
-        error: 'Prompt tuning timed out',
-        originalPrompt: task
-      });
+    timeoutId = setTimeout(() => {
+      if (!resolved) {
+        proc.kill();
+        safeResolve({
+          success: false,
+          error: 'Prompt tuning timed out',
+          originalPrompt: task
+        });
+      }
     }, 60000);
   });
 }

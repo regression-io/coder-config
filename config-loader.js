@@ -30,7 +30,7 @@ const { envList, envSet, envUnset } = require('./lib/env');
 const { getProjectsRegistryPath, loadProjectsRegistry, saveProjectsRegistry, projectList, projectAdd, projectRemove } = require('./lib/projects');
 const { getWorkstreamsPath, loadWorkstreams, saveWorkstreams, workstreamList, workstreamCreate, workstreamUpdate, workstreamDelete, workstreamUse, workstreamActive, workstreamAddProject, workstreamRemoveProject, workstreamInject, workstreamDetect, workstreamGet, getActiveWorkstream, countWorkstreamsForProject, workstreamInstallHook, workstreamInstallHookGemini, workstreamInstallHookCodex, workstreamDeactivate, workstreamCheckPath, getSettingsPath, loadSettings, saveSettings, workstreamAddTrigger, workstreamRemoveTrigger, workstreamSetAutoActivate, setGlobalAutoActivate, shouldAutoActivate, workstreamCheckFolder, workstreamInstallCdHook, workstreamUninstallCdHook, workstreamCdHookStatus } = require('./lib/workstreams');
 const { getActivityPath, getDefaultActivity, loadActivity, saveActivity, detectProjectRoot, activityLog, activitySummary, generateWorkstreamName, activitySuggestWorkstreams, activityClear } = require('./lib/activity');
-const { getLoopsPath, loadLoops, saveLoops, loadLoopState, saveLoopState, loadHistory, saveHistory, loopList, loopCreate, loopGet, loopUpdate, loopDelete, loopStart, loopPause, loopResume, loopCancel, loopApprove, loopComplete, loopStatus, loopHistory, loopConfig, getActiveLoop, recordIteration, saveClarifications, savePlan, loadClarifications, loadPlan, loopInject, archiveLoop } = require('./lib/loops');
+const { getLoopsPath, loadLoops, saveLoops, loadLoopState, saveLoopState, loadHistory, saveHistory, loopList, loopCreate, loopGet, loopUpdate, loopDelete, loopStart, loopPause, loopResume, loopCancel, loopApprove, loopComplete, loopFail, loopStatus, loopHistory, loopConfig, getActiveLoop, recordIteration, saveClarifications, savePlan, loadClarifications, loadPlan, loopInject, archiveLoop } = require('./lib/loops');
 const { getSessionStatus, showSessionStatus, flushContext, clearContext, installHooks: sessionInstallHooks, getFlushedContext, installFlushCommand, installAll: sessionInstallAll, SESSION_DIR, FLUSHED_CONTEXT_FILE } = require('./lib/sessions');
 const { runCli } = require('./lib/cli');
 
@@ -182,6 +182,7 @@ class ClaudeConfigManager {
   loopCancel(idOrName) { return loopCancel(this.installDir, idOrName); }
   loopApprove(idOrName) { return loopApprove(this.installDir, idOrName); }
   loopComplete(idOrName) { return loopComplete(this.installDir, idOrName); }
+  loopFail(idOrName, reason) { return loopFail(this.installDir, idOrName, reason); }
   loopStatus(idOrName) { return loopStatus(this.installDir, idOrName); }
   loopHistory() { return loopHistory(this.installDir); }
   loopConfig(updates) { return loopConfig(this.installDir, updates); }
