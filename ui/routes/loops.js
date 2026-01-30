@@ -115,6 +115,12 @@ function startLoop(manager, id) {
   if (!loop) {
     return { error: 'Loop not found or cannot be started' };
   }
+
+  // Setup hooks for this project
+  if (loop.projectPath) {
+    setupLoopHooks(loop.projectPath);
+  }
+
   return { success: true, loop };
 }
 
@@ -139,6 +145,12 @@ function resumeLoop(manager, id) {
   if (!loop) {
     return { error: 'Loop not found or cannot be resumed' };
   }
+
+  // Setup hooks for this project
+  if (loop.projectPath) {
+    setupLoopHooks(loop.projectPath);
+  }
+
   return { success: true, loop };
 }
 
@@ -241,56 +253,32 @@ function recordIteration(manager, id, iteration) {
 }
 
 /**
- * Check if loop hooks are installed and registered in Claude Code settings
+ * Check if loop hooks are available (scripts exist)
+ * Hooks are now installed per-project, not globally
  */
 function getLoopHookStatus() {
-  const claudeSettingsPath = path.join(os.homedir(), '.claude', 'settings.json');
   const claudeHooksDir = path.join(os.homedir(), '.claude', 'hooks');
   const stopHookPath = path.join(claudeHooksDir, 'ralph-loop-stop.sh');
   const prepromptHookPath = path.join(claudeHooksDir, 'ralph-loop-preprompt.sh');
 
-  // Check if hook files exist
+  // Check if hook script files exist
   const stopHookFileExists = fs.existsSync(stopHookPath);
   const prepromptHookFileExists = fs.existsSync(prepromptHookPath);
 
-  // Check if hooks are registered in settings.json
-  let stopHookRegistered = false;
-  let prepromptHookRegistered = false;
-
-  if (fs.existsSync(claudeSettingsPath)) {
-    try {
-      const settings = JSON.parse(fs.readFileSync(claudeSettingsPath, 'utf8'));
-      const hooks = settings.hooks || {};
-
-      // Check Stop hook registration
-      if (hooks.Stop) {
-        stopHookRegistered = hooks.Stop.some(entry =>
-          entry.hooks?.some(h => h.command?.includes('ralph-loop-stop.sh'))
-        );
-      }
-
-      // Check PreToolUse hook registration
-      if (hooks.PreToolUse) {
-        prepromptHookRegistered = hooks.PreToolUse.some(entry =>
-          entry.hooks?.some(h => h.command?.includes('ralph-loop-preprompt.sh'))
-        );
-      }
-    } catch (e) {
-      // Ignore parse errors
-    }
-  }
-
+  // Hooks are installed per-project now, so "registered" means scripts are available
   const status = {
     stopHook: {
       path: stopHookPath,
       exists: stopHookFileExists,
-      registered: stopHookRegistered
+      registered: stopHookFileExists  // Scripts are ready to be used
     },
     prepromptHook: {
       path: prepromptHookPath,
       exists: prepromptHookFileExists,
-      registered: prepromptHookRegistered
-    }
+      registered: prepromptHookFileExists
+    },
+    mode: 'per-project',
+    note: 'Hooks are installed to project .claude/settings.local.json when loops start'
   };
 
   return status;
@@ -437,11 +425,11 @@ function fixRalphLoopPluginStructure() {
 }
 
 /**
- * Install loop hooks into Claude Code's settings.json
- * Registers Stop hook that increments iteration count after each response
+ * Install loop hooks for a specific project directory
+ * Creates .claude/settings.local.json with hooks (not committed to git)
+ * This avoids the global trust prompt issue
  */
-function installLoopHooks(manager) {
-  const claudeSettingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+function installLoopHooks(manager, projectPath = null) {
   const claudeHooksDir = path.join(os.homedir(), '.claude', 'hooks');
 
   // Ensure hooks directory exists
@@ -458,7 +446,7 @@ function installLoopHooks(manager) {
   const prepromptHookDest = path.join(claudeHooksDir, 'ralph-loop-preprompt.sh');
 
   try {
-    // Copy hook scripts
+    // Copy hook scripts to ~/.claude/hooks/
     if (fs.existsSync(stopHookSource)) {
       fs.copyFileSync(stopHookSource, stopHookDest);
       fs.chmodSync(stopHookDest, '755');
@@ -468,74 +456,151 @@ function installLoopHooks(manager) {
       fs.chmodSync(prepromptHookDest, '755');
     }
 
-    // Load existing settings
-    let settings = {};
-    if (fs.existsSync(claudeSettingsPath)) {
-      settings = JSON.parse(fs.readFileSync(claudeSettingsPath, 'utf8'));
-    }
+    // Remove hooks from global settings.json if they exist
+    removeGlobalHooks();
 
-    // Initialize hooks if needed
-    if (!settings.hooks) {
-      settings.hooks = {};
-    }
+    // If project path provided, install hooks to project's .claude/settings.local.json
+    if (projectPath) {
+      const projectClaudeDir = path.join(projectPath, '.claude');
+      const projectSettingsLocalPath = path.join(projectClaudeDir, 'settings.local.json');
 
-    // Add Stop hook for iteration tracking
-    const stopHookEntry = {
-      hooks: [{
-        type: 'command',
-        command: stopHookDest
-      }]
-    };
-
-    // Check if Stop hook already exists
-    if (!settings.hooks.Stop) {
-      settings.hooks.Stop = [stopHookEntry];
-    } else {
-      // Check if our hook is already registered
-      const hookExists = settings.hooks.Stop.some(entry =>
-        entry.hooks?.some(h => h.command?.includes('ralph-loop-stop.sh'))
-      );
-      if (!hookExists) {
-        settings.hooks.Stop.push(stopHookEntry);
+      // Ensure project .claude directory exists
+      if (!fs.existsSync(projectClaudeDir)) {
+        fs.mkdirSync(projectClaudeDir, { recursive: true });
       }
-    }
 
-    // Add PreToolUse hook for context injection (optional)
-    const prepromptHookEntry = {
-      hooks: [{
-        type: 'command',
-        command: prepromptHookDest
-      }]
-    };
-
-    if (!settings.hooks.PreToolUse) {
-      settings.hooks.PreToolUse = [prepromptHookEntry];
-    } else {
-      const hookExists = settings.hooks.PreToolUse.some(entry =>
-        entry.hooks?.some(h => h.command?.includes('ralph-loop-preprompt.sh'))
-      );
-      if (!hookExists) {
-        settings.hooks.PreToolUse.push(prepromptHookEntry);
+      // Load or create project-local settings
+      let projectSettings = {};
+      if (fs.existsSync(projectSettingsLocalPath)) {
+        try {
+          projectSettings = JSON.parse(fs.readFileSync(projectSettingsLocalPath, 'utf8'));
+        } catch (e) {
+          projectSettings = {};
+        }
       }
-    }
 
-    // Save updated settings
-    fs.writeFileSync(claudeSettingsPath, JSON.stringify(settings, null, 2) + '\n');
+      // Initialize hooks if needed
+      if (!projectSettings.hooks) {
+        projectSettings.hooks = {};
+      }
+
+      // Add Stop hook
+      const stopHookEntry = {
+        hooks: [{
+          type: 'command',
+          command: stopHookDest
+        }]
+      };
+
+      if (!projectSettings.hooks.Stop) {
+        projectSettings.hooks.Stop = [stopHookEntry];
+      } else {
+        const hookExists = projectSettings.hooks.Stop.some(entry =>
+          entry.hooks?.some(h => h.command?.includes('ralph-loop-stop.sh'))
+        );
+        if (!hookExists) {
+          projectSettings.hooks.Stop.push(stopHookEntry);
+        }
+      }
+
+      // Save project-local settings
+      fs.writeFileSync(projectSettingsLocalPath, JSON.stringify(projectSettings, null, 2) + '\n');
+
+      return {
+        success: true,
+        message: 'Loop hooks installed to project',
+        projectPath,
+        settingsFile: projectSettingsLocalPath,
+        stopHook: stopHookDest,
+        note: 'Hooks installed to .claude/settings.local.json (not committed to git)'
+      };
+    }
 
     return {
       success: true,
-      message: 'Loop hooks installed successfully',
+      message: 'Hook scripts copied to ~/.claude/hooks/',
       stopHook: stopHookDest,
       prepromptHook: prepromptHookDest,
-      note: 'Stop hook will increment iteration count after each Claude response when CODER_LOOP_ID is set'
+      note: 'Hooks will be installed to project directories when loops are started'
     };
   } catch (error) {
     return {
       success: false,
-      error: error.message,
-      suggestion: 'Try manually copying hooks to ~/.claude/hooks/ and adding to ~/.claude/settings.json'
+      error: error.message
     };
   }
+}
+
+/**
+ * Remove ralph-loop hooks from global ~/.claude/settings.json
+ */
+function removeGlobalHooks() {
+  const claudeSettingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+
+  if (!fs.existsSync(claudeSettingsPath)) {
+    return;
+  }
+
+  try {
+    const settings = JSON.parse(fs.readFileSync(claudeSettingsPath, 'utf8'));
+
+    if (!settings.hooks) {
+      return;
+    }
+
+    let modified = false;
+
+    // Remove Stop hooks that reference ralph-loop-stop.sh
+    if (settings.hooks.Stop) {
+      const original = settings.hooks.Stop.length;
+      settings.hooks.Stop = settings.hooks.Stop.filter(entry =>
+        !entry.hooks?.some(h => h.command?.includes('ralph-loop-stop.sh'))
+      );
+      if (settings.hooks.Stop.length === 0) {
+        delete settings.hooks.Stop;
+      }
+      if (settings.hooks.Stop?.length !== original) {
+        modified = true;
+      }
+    }
+
+    // Remove PreToolUse hooks that reference ralph-loop-preprompt.sh
+    if (settings.hooks.PreToolUse) {
+      const original = settings.hooks.PreToolUse.length;
+      settings.hooks.PreToolUse = settings.hooks.PreToolUse.filter(entry =>
+        !entry.hooks?.some(h => h.command?.includes('ralph-loop-preprompt.sh'))
+      );
+      if (settings.hooks.PreToolUse.length === 0) {
+        delete settings.hooks.PreToolUse;
+      }
+      if (settings.hooks.PreToolUse?.length !== original) {
+        modified = true;
+      }
+    }
+
+    // Clean up empty hooks object
+    if (Object.keys(settings.hooks).length === 0) {
+      delete settings.hooks;
+    }
+
+    if (modified) {
+      fs.writeFileSync(claudeSettingsPath, JSON.stringify(settings, null, 2) + '\n');
+    }
+  } catch (e) {
+    // Ignore errors
+  }
+}
+
+/**
+ * Setup hooks for a specific loop run
+ * Called when starting/resuming a loop
+ */
+function setupLoopHooks(projectPath) {
+  if (!projectPath) {
+    return { success: false, error: 'No project path provided' };
+  }
+
+  return installLoopHooks(null, projectPath);
 }
 
 module.exports = {
@@ -559,6 +624,8 @@ module.exports = {
   recordIteration,
   getLoopHookStatus,
   installLoopHooks,
+  setupLoopHooks,
+  removeGlobalHooks,
   getRalphLoopPluginStatus,
   installRalphLoopPlugin,
   fixRalphLoopPluginStructure,
