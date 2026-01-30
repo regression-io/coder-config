@@ -821,6 +821,7 @@ export default function LoopsView({ activeProject = null }) {
     : loops;
 
   // Build the /ralph-loop command for the official plugin
+  // Returns { startCmd, skillCmd } - startCmd launches claude, skillCmd is sent after
   const buildRalphCommand = (loop, forDisplay = false) => {
     const task = loop.task?.original || '';
     const maxIter = loop.iterations?.max || 50;
@@ -833,14 +834,11 @@ export default function LoopsView({ activeProject = null }) {
       return `claude --dangerously-skip-permissions "/ralph-loop ${shortTask.replace(/"/g, '\\"')}${ellipsis} --max-iterations ${maxIter} --completion-promise ${completionPromise}"`;
     }
 
-    // For execution: escape double quotes, replace newlines with literal \n for shell
-    // The shell will pass this to claude which handles it
-    const escapedTask = task
-      .replace(/\\/g, '\\\\')
-      .replace(/"/g, '\\"')
-      .replace(/\n/g, ' ');  // Replace newlines with space for shell safety
-
-    return `claude --dangerously-skip-permissions "/ralph-loop ${escapedTask} --max-iterations ${maxIter} --completion-promise ${completionPromise}"`;
+    // For execution: return object with startup command and skill command
+    // The skill command is sent to claude's stdin after it starts
+    const startCmd = 'claude --dangerously-skip-permissions';
+    const skillCmd = `/ralph-loop ${task} --max-iterations ${maxIter} --completion-promise ${completionPromise}`;
+    return { startCmd, skillCmd };
   };
 
   return (
@@ -1644,9 +1642,11 @@ export default function LoopsView({ activeProject = null }) {
           }
         }}
         title={terminalLoop ? `Loop: ${terminalLoop.name}` : 'Running Loop'}
-        description={terminalLoop?.task?.original}
+        description={terminalLoop ? terminalLoop.task?.original?.substring(0, 100) + (terminalLoop.task?.original?.length > 100 ? '...' : '') : ''}
         cwd={terminalLoop?.projectPath}
-        initialCommand={terminalLoop ? buildRalphCommand(terminalLoop) : ''}
+        initialCommand={terminalLoop ? buildRalphCommand(terminalLoop).startCmd : ''}
+        delayedCommand={terminalLoop ? buildRalphCommand(terminalLoop).skillCmd : ''}
+        delayedCommandDelay={3000}
         env={terminalLoop ? {
           CODER_LOOP_ID: terminalLoop.id,
           ...(terminalLoop.workstreamId && { CODER_WORKSTREAM: terminalLoop.workstreamId })

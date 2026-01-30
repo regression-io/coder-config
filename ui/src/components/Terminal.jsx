@@ -11,6 +11,8 @@ import '@xterm/xterm/css/xterm.css';
 export default function Terminal({
   cwd,
   initialCommand,
+  delayedCommand,  // Command to send after initial command starts (for multi-step execution)
+  delayedCommandDelay = 2000,  // ms to wait before sending delayed command
   env = {},
   onExit,
   onReady,
@@ -102,6 +104,10 @@ export default function Terminal({
     const params = new URLSearchParams();
     if (cwd) params.set('cwd', cwd);
     if (initialCommand) params.set('cmd', initialCommand);
+    if (delayedCommand) {
+      params.set('delayedCmd', delayedCommand);
+      params.set('delayedCmdDelay', String(delayedCommandDelay));
+    }
 
     // Add extra env vars with env_ prefix
     if (env && typeof env === 'object') {
@@ -175,7 +181,7 @@ export default function Terminal({
         ws.send(JSON.stringify({ type: 'resize', cols, rows }));
       }
     });
-  }, [cwd, initialCommand, env, onReady, onExit]);
+  }, [cwd, initialCommand, delayedCommand, delayedCommandDelay, env, onReady, onExit]);
 
   // Handle container resize
   useEffect(() => {

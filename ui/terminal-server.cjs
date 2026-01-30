@@ -42,6 +42,8 @@ class TerminalServer {
       const url = new URL(req.url, 'http://localhost');
       const cwd = url.searchParams.get('cwd') || process.cwd();
       const cmd = url.searchParams.get('cmd') || null;
+      const delayedCmd = url.searchParams.get('delayedCmd') || null;
+      const delayedCmdDelay = parseInt(url.searchParams.get('delayedCmdDelay') || '2000', 10);
 
       // Parse additional env vars from query (env_KEY=VALUE format)
       const extraEnv = {};
@@ -83,6 +85,14 @@ class TerminalServer {
       if (cmd) {
         setTimeout(() => {
           ptyProcess.write(cmd + '\r');
+
+          // If delayed command provided, send it after the specified delay
+          // This allows the initial command (e.g., claude) to start before sending input
+          if (delayedCmd) {
+            setTimeout(() => {
+              ptyProcess.write(delayedCmd + '\r');
+            }, delayedCmdDelay);
+          }
         }, 500);
       }
 

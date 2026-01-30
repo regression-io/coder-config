@@ -15,6 +15,8 @@ export default function TerminalDialog({
   description,
   cwd,
   initialCommand,
+  delayedCommand,
+  delayedCommandDelay = 2000,
   env = {},
   onExit,
   autoCloseOnExit = false,
@@ -216,6 +218,8 @@ export default function TerminalDialog({
         <Terminal
           cwd={cwd}
           initialCommand={initialCommand}
+          delayedCommand={delayedCommand}
+          delayedCommandDelay={delayedCommandDelay}
           env={env}
           onExit={handleExit}
           height="100%"
