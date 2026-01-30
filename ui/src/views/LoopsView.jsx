@@ -511,18 +511,76 @@ export default function LoopsView({ activeProject = null }) {
       const data = await api.getLoop(terminalLoop.id);
       const loop = data.loop;
 
+      // Check if already completed by hooks
       if (loop.taskComplete || loop.status === 'completed') {
         toast.success('Loop completed successfully!');
+        setCompletionSummary({
+          id: loop.id,
+          name: loop.name,
+          task: loop.task?.original,
+          status: 'completed',
+          iterations: loop.iterations?.current || 0,
+          maxIterations: loop.iterations?.max || 50,
+          phase: loop.phase,
+          startedAt: loop.startedAt,
+          completedAt: loop.completedAt || new Date().toISOString(),
+        });
+        setSummaryDialogOpen(true);
         setTerminalOpen(false);
         setTerminalLoop(null);
       } else if (loop.status === 'paused') {
         toast.info(`Loop paused: ${loop.pauseReason || 'user requested'}`);
+        setCompletionSummary({
+          id: loop.id,
+          name: loop.name,
+          task: loop.task?.original,
+          status: 'paused',
+          pauseReason: loop.pauseReason,
+          iterations: loop.iterations?.current || 0,
+          maxIterations: loop.iterations?.max || 50,
+          phase: loop.phase,
+          startedAt: loop.startedAt,
+          completedAt: new Date().toISOString(),
+        });
+        setSummaryDialogOpen(true);
+      } else if (exitCode === 0 && !signal) {
+        // Clean exit with code 0 - ralph-loop plugin completed successfully
+        // Mark loop as complete
+        await api.completeLoop(loop.id);
+        toast.success('Loop completed successfully!');
+        setCompletionSummary({
+          id: loop.id,
+          name: loop.name,
+          task: loop.task?.original,
+          status: 'completed',
+          iterations: loop.iterations?.current || 0,
+          maxIterations: loop.iterations?.max || 50,
+          phase: 'execute',
+          startedAt: loop.startedAt,
+          completedAt: new Date().toISOString(),
+        });
+        setSummaryDialogOpen(true);
+        setTerminalOpen(false);
+        setTerminalLoop(null);
       } else if (loop.iterations?.current >= loop.iterations?.max) {
         toast.warning('Loop reached max iterations');
         await api.pauseLoop(loop.id);
       } else {
-        // Claude exited but loop not complete - offer to restart
-        toast.info('Claude exited. Click Start to continue the loop.');
+        // Claude exited abnormally - show summary dialog
+        const exitReason = signal ? `Signal: ${signal}` : `Exit code: ${exitCode}`;
+        setCompletionSummary({
+          id: loop.id,
+          name: loop.name,
+          task: loop.task?.original,
+          status: 'paused',
+          pauseReason: exitReason,
+          iterations: loop.iterations?.current || 0,
+          maxIterations: loop.iterations?.max || 50,
+          phase: loop.phase,
+          startedAt: loop.startedAt,
+          completedAt: new Date().toISOString(),
+        });
+        setSummaryDialogOpen(true);
       }
 
       loadLoops();
