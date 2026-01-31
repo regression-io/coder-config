@@ -31,8 +31,9 @@ import {
 } from "@/components/ui/tooltip";
 import api from "@/lib/api";
 
-export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
+export default function WorkstreamsView({ projects: propProjects = [], onWorkstreamChange }) {
   const [workstreams, setWorkstreams] = useState([]);
+  const [projects, setProjects] = useState(propProjects);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
 
@@ -92,11 +93,30 @@ export default function WorkstreamsView({ projects = [], onWorkstreamChange }) {
 
   useEffect(() => {
     loadWorkstreams();
+    loadProjects();
     loadHookStatus();
     loadActivity();
     loadCdHookStatus();
     loadGlobalSettings();
   }, []);
+
+  // Update local projects when prop changes
+  useEffect(() => {
+    if (propProjects.length > 0) {
+      setProjects(propProjects);
+    }
+  }, [propProjects]);
+
+  // Load projects (in case they were added via CLI)
+  const loadProjects = async () => {
+    try {
+      const data = await api.getProjects();
+      setProjects(data.projects || []);
+    } catch (error) {
+      // Use prop projects as fallback
+      console.log('Failed to load projects, using props');
+    }
+  };
 
   const loadCdHookStatus = async () => {
     try {
