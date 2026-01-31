@@ -831,22 +831,15 @@ export default function LoopsView({ activeProject = null }) {
     if (forDisplay) {
       const shortTask = task.replace(/\n+/g, ' ').substring(0, 100);
       const ellipsis = task.length > 100 ? '...' : '';
-      return `claude --dangerously-skip-permissions "/ralph-loop:ralph-loop ${shortTask.replace(/"/g, '\\"')}${ellipsis} --max-iterations ${maxIter} --completion-promise ${completionPromise}"`;
+      return `claude --dangerously-skip-permissions "${shortTask.replace(/"/g, '\\"')}${ellipsis}"`;
     }
 
     // For execution: return object with startup command and skill command
     // The skill command is sent to claude's stdin after it starts
     const startCmd = 'claude --dangerously-skip-permissions';
-    // Clean and escape the task for shell safety
-    // Replace newlines with spaces, collapse whitespace
-    // Escape shell special characters: ? * [ ] ( ) ' " \ $ ` !
-    const cleanTask = task
-      .replace(/\n+/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .replace(/([?*\[\]()'"\\$`!])/g, '\\$1');
-    // Use plugin:skill format - ralph-loop:ralph-loop
-    const skillCmd = `/ralph-loop:ralph-loop ${cleanTask} --max-iterations ${maxIter} --completion-promise ${completionPromise}`;
+    // Just send the task as a prompt - coder-config hooks handle the loop
+    // No need for /ralph-loop skill, our stop hook uses CODER_LOOP_ID env var
+    const skillCmd = task;
     return { startCmd, skillCmd };
   };
 

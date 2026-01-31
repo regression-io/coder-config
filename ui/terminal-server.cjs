@@ -83,8 +83,6 @@ class TerminalServer {
 
       // If initial command provided, execute it after a short delay
       if (cmd) {
-        console.log('[Terminal] Initial command:', cmd);
-        console.log('[Terminal] Delayed command:', delayedCmd ? `${delayedCmd.substring(0, 50)}...` : 'none');
         setTimeout(() => {
           ptyProcess.write(cmd + '\r');
 
@@ -102,12 +100,9 @@ class TerminalServer {
               // First wait for the Claude Code banner to appear
               if (!bannerSeen && outputBuffer.includes('Claude Code')) {
                 bannerSeen = true;
-                console.log('[Terminal] Banner detected');
               }
 
               // After banner, look for the actual input prompt
-              // Claude shows "> " or "❯ " when ready for input
-              // The prompt appears on its own line after the banner
               if (bannerSeen) {
                 const lines = outputBuffer.split('\n');
                 const lastFewLines = lines.slice(-5).join('\n');
@@ -119,16 +114,11 @@ class TerminalServer {
                     lastFewLines.includes('> Try') ||
                     lastFewLines.includes(']133;B')) {  // Terminal prompt marker
                   delayedCmdSent = true;
-                  console.log('[Terminal] Prompt detected, waiting 2s before sending...');
-                  console.log('[Terminal] Command length:', delayedCmd?.length || 0);
                   // Wait for Claude to be fully ready
                   setTimeout(() => {
-                    console.log('[Terminal] Sending command...');
                     ptyProcess.write(delayedCmd);
-                    console.log('[Terminal] Command sent, waiting 2s before Enter...');
                     setTimeout(() => {
                       ptyProcess.write('\r');
-                      console.log('[Terminal] Enter sent (\\r\\n)');
                     }, 2000);
                   }, 2000);
                 }
@@ -141,9 +131,7 @@ class TerminalServer {
             // Fallback timeout in case detection fails
             setTimeout(() => {
               if (!delayedCmdSent) {
-                console.log('[Terminal] Fallback timeout triggered after', delayedCmdDelay, 'ms');
                 delayedCmdSent = true;
-                // Send command first, then Enter separately with longer delays
                 ptyProcess.write(delayedCmd);
                 setTimeout(() => {
                   ptyProcess.write('\r');
