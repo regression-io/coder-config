@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Ralph Loop stop hook path** - Fix hook not finding state files in legacy directory
+  - Hook was hardcoded to check `~/.coder-config/loops/` only
+  - Manager uses `~/.claude-config/loops/` when legacy `projects.json` exists
+  - Now checks both paths: new first, then legacy fallback
 - **Ralph Loop plugin hooks** - Disable plugin's file-based hooks, use env-var-based hooks
   - Plugin hooks used project-local state files affecting ALL terminals in same project
   - Now uses coder-config's CODER_LOOP_ID-based hooks that only affect loop terminal

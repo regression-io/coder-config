@@ -12,8 +12,15 @@ if [[ -z "$LOOP_ID" ]]; then
   exit 0
 fi
 
-STATE_FILE="$HOME/.coder-config/loops/$LOOP_ID/state.json"
-if [[ ! -f "$STATE_FILE" ]]; then
+# Check both new and legacy paths (manager uses legacy if it has projects.json)
+NEW_STATE_FILE="$HOME/.coder-config/loops/$LOOP_ID/state.json"
+LEGACY_STATE_FILE="$HOME/.claude-config/loops/$LOOP_ID/state.json"
+
+if [[ -f "$NEW_STATE_FILE" ]]; then
+  STATE_FILE="$NEW_STATE_FILE"
+elif [[ -f "$LEGACY_STATE_FILE" ]]; then
+  STATE_FILE="$LEGACY_STATE_FILE"
+else
   exit 0
 fi
 
