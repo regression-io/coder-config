@@ -22,10 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Migrate command** - Move data from legacy `~/.claude-config` to `~/.coder-config`
-  - `coder-config migrate` - Copy data, show what would be removed
-  - `coder-config migrate --force` - Overwrite existing files in new location
-  - `coder-config migrate --remove` - Remove legacy directory after migration
+- **Auto-migration from legacy directory** - Automatically migrates data from `~/.claude-config` to `~/.coder-config` on startup
+  - Recursively merges directory contents (won't overwrite existing files)
+  - Prints message suggesting removal of legacy directory
+  - Manual command also available: `coder-config migrate [--force] [--remove]`
 - **Ralph Loop prompt tuning** - AI-powered prompt optimization for better loop execution
   - "Tune with AI" button in create dialog rewrites tasks following Ralph Wiggum principles
   - Adds clear completion signals, verification steps, and acceptance criteria

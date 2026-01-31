@@ -40,15 +40,16 @@ class ClaudeConfigManager {
     const newDir = path.join(home, '.coder-config');
     const legacyDir = path.join(home, '.claude-config');
 
-    // Use new location, but fall back to legacy if it has data and new doesn't
+    // Use configured location or default to new
     if (process.env.CLAUDE_CONFIG_HOME) {
       this.installDir = process.env.CLAUDE_CONFIG_HOME;
-    } else if (fs.existsSync(path.join(legacyDir, 'projects.json')) &&
-               !fs.existsSync(path.join(newDir, 'projects.json'))) {
-      // Legacy has data, new doesn't - use legacy for backwards compatibility
-      this.installDir = legacyDir;
     } else {
       this.installDir = newDir;
+
+      // Auto-migrate from legacy directory if it exists
+      if (fs.existsSync(legacyDir)) {
+        this._autoMigrate(legacyDir, newDir);
+      }
     }
 
     // Look for registry in multiple places
@@ -58,6 +59,49 @@ class ClaudeConfigManager {
       path.join(this.installDir, 'shared', 'mcp-registry.json')
     ];
     this.registryPath = possiblePaths.find(p => fs.existsSync(p)) || possiblePaths[0];
+  }
+
+  // Auto-migrate from legacy directory (called from constructor)
+  _autoMigrate(legacyDir, newDir) {
+    try {
+      const migrated = this._migrateDir(legacyDir, newDir);
+      if (migrated > 0) {
+        console.log(`\n✓ Auto-migrated ${migrated} item(s) from ~/.claude-config to ~/.coder-config`);
+        console.log('  To complete migration: rm -rf ~/.claude-config\n');
+      }
+    } catch (e) {
+      // Silently ignore migration errors - don't break startup
+    }
+  }
+
+  // Recursively migrate directory contents (merges with existing)
+  _migrateDir(srcDir, destDir) {
+    if (!fs.existsSync(srcDir)) return 0;
+
+    const items = fs.readdirSync(srcDir);
+    if (items.length === 0) return 0;
+
+    // Ensure destination exists
+    if (!fs.existsSync(destDir)) {
+      fs.mkdirSync(destDir, { recursive: true });
+    }
+
+    let migrated = 0;
+    for (const item of items) {
+      const src = path.join(srcDir, item);
+      const dest = path.join(destDir, item);
+      const srcStat = fs.statSync(src);
+
+      if (srcStat.isDirectory()) {
+        // Recursively migrate directory contents
+        migrated += this._migrateDir(src, dest);
+      } else if (!fs.existsSync(dest)) {
+        // Copy file if it doesn't exist in destination
+        fs.copyFileSync(src, dest);
+        migrated++;
+      }
+    }
+    return migrated;
   }
 
   // Utils
