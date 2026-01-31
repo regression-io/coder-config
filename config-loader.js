@@ -346,6 +346,97 @@ class ClaudeConfigManager {
     return updated > 0;
   }
 
+  // Migrate from legacy to new directory
+  migrate(options = {}) {
+    const home = process.env.HOME || '';
+    const legacyDir = path.join(home, '.claude-config');
+    const newDir = path.join(home, '.coder-config');
+
+    // Check if legacy exists
+    if (!fs.existsSync(legacyDir)) {
+      console.log('No legacy directory found (~/.claude-config)');
+      console.log(`Already using: ${this.installDir}`);
+      return false;
+    }
+
+    // Check what's in legacy
+    const legacyFiles = fs.readdirSync(legacyDir);
+    if (legacyFiles.length === 0) {
+      console.log('Legacy directory is empty');
+      if (options.removeEmpty) {
+        fs.rmdirSync(legacyDir);
+        console.log('✓ Removed empty legacy directory');
+      }
+      return false;
+    }
+
+    console.log(`\nMigrating from ~/.claude-config to ~/.coder-config\n`);
+    console.log('Legacy contents:');
+    legacyFiles.forEach(f => console.log(`  - ${f}`));
+    console.log('');
+
+    // Ensure new directory exists
+    if (!fs.existsSync(newDir)) {
+      fs.mkdirSync(newDir, { recursive: true });
+    }
+
+    // Copy each item
+    let migrated = 0;
+    let skipped = 0;
+    for (const item of legacyFiles) {
+      const src = path.join(legacyDir, item);
+      const dest = path.join(newDir, item);
+
+      if (fs.existsSync(dest)) {
+        if (options.force) {
+          // Remove existing and replace
+          if (fs.statSync(dest).isDirectory()) {
+            fs.rmSync(dest, { recursive: true });
+          } else {
+            fs.unlinkSync(dest);
+          }
+        } else {
+          console.log(`  ⊘ Skipped ${item} (already exists in new location)`);
+          skipped++;
+          continue;
+        }
+      }
+
+      // Copy file or directory
+      if (fs.statSync(src).isDirectory()) {
+        copyDirRecursive(src, dest);
+      } else {
+        fs.copyFileSync(src, dest);
+      }
+      console.log(`  ✓ Migrated ${item}`);
+      migrated++;
+    }
+
+    console.log('');
+
+    if (migrated > 0) {
+      console.log(`✅ Migrated ${migrated} item(s)`);
+
+      // Update installDir for this session
+      this.installDir = newDir;
+
+      if (options.removeLegacy) {
+        fs.rmSync(legacyDir, { recursive: true });
+        console.log('✓ Removed legacy directory');
+      } else {
+        console.log('\nTo complete migration, remove the legacy directory:');
+        console.log('  rm -rf ~/.claude-config');
+      }
+    }
+
+    if (skipped > 0) {
+      console.log(`\n⚠️  ${skipped} item(s) skipped (already exist)`);
+      console.log('Use --force to overwrite existing files');
+    }
+
+    return migrated > 0;
+  }
+
   // Version
   version() {
     console.log(`claude-config v${VERSION}`);
