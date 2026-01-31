@@ -30,11 +30,22 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import api from "@/lib/api";
+import { useProjectsStore, useWorkstreamsStore } from "@/stores";
 
-export default function WorkstreamsView({ projects: propProjects = [], onWorkstreamChange }) {
-  const [workstreams, setWorkstreams] = useState([]);
-  const [projects, setProjects] = useState(propProjects);
-  const [loading, setLoading] = useState(true);
+export default function WorkstreamsView({ onWorkstreamChange }) {
+  // Use stores for shared state
+  const { projects, fetch: fetchProjects } = useProjectsStore();
+  const {
+    workstreams,
+    loading,
+    fetch: fetchWorkstreams,
+    create: createWorkstream,
+    update: updateWorkstream,
+    delete: deleteWorkstream,
+    addProject: addProjectToWorkstream,
+    removeProject: removeProjectFromWorkstream,
+    countWorkstreamsForProject
+  } = useWorkstreamsStore();
   const [expandedId, setExpandedId] = useState(null);
 
   // Dialog states
@@ -92,31 +103,13 @@ export default function WorkstreamsView({ projects: propProjects = [], onWorkstr
   const [newTriggerFolder, setNewTriggerFolder] = useState('');
 
   useEffect(() => {
-    loadWorkstreams();
-    loadProjects();
+    fetchWorkstreams();
+    fetchProjects();
     loadHookStatus();
     loadActivity();
     loadCdHookStatus();
     loadGlobalSettings();
-  }, []);
-
-  // Update local projects when prop changes
-  useEffect(() => {
-    if (propProjects.length > 0) {
-      setProjects(propProjects);
-    }
-  }, [propProjects]);
-
-  // Load projects (in case they were added via CLI)
-  const loadProjects = async () => {
-    try {
-      const data = await api.getProjects();
-      setProjects(data.projects || []);
-    } catch (error) {
-      // Use prop projects as fallback
-      console.log('Failed to load projects, using props');
-    }
-  };
+  }, [fetchWorkstreams, fetchProjects]);
 
   const loadCdHookStatus = async () => {
     try {
@@ -318,9 +311,7 @@ export default function WorkstreamsView({ projects: propProjects = [], onWorkstr
     try {
       const result = await api.setWorkstreamAutoActivate(ws.id, value);
       if (result.success) {
-        setWorkstreams(prev => prev.map(w =>
-          w.id === ws.id ? { ...w, autoActivate: value === 'default' ? undefined : value === 'on' } : w
-        ));
+        await fetchWorkstreams(); // Refresh from store
         toast.success(`Auto-activate ${value} for ${ws.name}`);
       }
     } catch (error) {
@@ -333,9 +324,7 @@ export default function WorkstreamsView({ projects: propProjects = [], onWorkstr
     try {
       const result = await api.addTriggerFolder(selectedWorkstreamForTrigger.id, newTriggerFolder.trim());
       if (result.success) {
-        setWorkstreams(prev => prev.map(w =>
-          w.id === selectedWorkstreamForTrigger.id ? result.workstream : w
-        ));
+        await fetchWorkstreams(); // Refresh from store
         toast.success('Trigger folder added');
         setAddTriggerDialogOpen(false);
         setNewTriggerFolder('');
@@ -350,9 +339,7 @@ export default function WorkstreamsView({ projects: propProjects = [], onWorkstr
     try {
       const result = await api.removeTriggerFolder(ws.id, folderPath);
       if (result.success) {
-        setWorkstreams(prev => prev.map(w =>
-          w.id === ws.id ? result.workstream : w
-        ));
+        await fetchWorkstreams(); // Refresh from store
         toast.success('Trigger folder removed');
       }
     } catch (error) {
@@ -360,17 +347,8 @@ export default function WorkstreamsView({ projects: propProjects = [], onWorkstr
     }
   };
 
-  const loadWorkstreams = async () => {
-    try {
-      setLoading(true);
-      const data = await api.getWorkstreams();
-      setWorkstreams(data.workstreams || []);
-    } catch (error) {
-      toast.error('Failed to load workstreams');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // loadWorkstreams now just calls the store fetch
+  const loadWorkstreams = () => fetchWorkstreams();
 
   const handleCreate = async () => {
     if (!newName.trim()) {
@@ -379,25 +357,19 @@ export default function WorkstreamsView({ projects: propProjects = [], onWorkstr
     }
 
     setSaving(true);
-    try {
-      const result = await api.createWorkstream(newName.trim(), newProjects, newRules);
-      if (result.success) {
-        setWorkstreams(prev => [...prev, result.workstream]);
-        toast.success(`Created workstream: ${newName}`);
-        setCreateDialogOpen(false);
-        setNewName('');
-        setNewRules('');
-        setNewProjects([]);
-        // Remove from suggestions if this was from a suggestion
-        setSuggestions(prev => prev.filter(s => s.name !== newName.trim()));
-      } else {
-        toast.error(result.error || 'Failed to create workstream');
-      }
-    } catch (error) {
-      toast.error('Failed to create workstream: ' + error.message);
-    } finally {
-      setSaving(false);
+    const result = await createWorkstream(newName.trim(), newProjects, newRules);
+    if (result.success) {
+      toast.success(`Created workstream: ${newName}`);
+      setCreateDialogOpen(false);
+      setNewName('');
+      setNewRules('');
+      setNewProjects([]);
+      // Remove from suggestions if this was from a suggestion
+      setSuggestions(prev => prev.filter(s => s.name !== newName.trim()));
+    } else {
+      toast.error(result.error || 'Failed to create workstream');
     }
+    setSaving(false);
   };
 
   const handleDelete = async (workstream) => {
@@ -405,16 +377,11 @@ export default function WorkstreamsView({ projects: propProjects = [], onWorkstr
       return;
     }
 
-    try {
-      const result = await api.deleteWorkstream(workstream.id);
-      if (result.success) {
-        setWorkstreams(prev => prev.filter(ws => ws.id !== workstream.id));
-        toast.success(`Deleted workstream: ${workstream.name}`);
-      } else {
-        toast.error(result.error || 'Failed to delete workstream');
-      }
-    } catch (error) {
-      toast.error('Failed to delete workstream: ' + error.message);
+    const result = await deleteWorkstream(workstream.id);
+    if (result.success) {
+      toast.success(`Deleted workstream: ${workstream.name}`);
+    } else {
+      toast.error(result.error || 'Failed to delete workstream');
     }
   };
 
@@ -422,26 +389,18 @@ export default function WorkstreamsView({ projects: propProjects = [], onWorkstr
     if (!editingWorkstream) return;
 
     setSaving(true);
-    try {
-      const result = await api.updateWorkstream(editingWorkstream.id, {
-        name: editingWorkstream.name,
-        rules: editingWorkstream.rules,
-        projects: editingWorkstream.projects || [],
-      });
-      if (result.success) {
-        setWorkstreams(prev => prev.map(ws =>
-          ws.id === editingWorkstream.id ? result.workstream : ws
-        ));
-        toast.success('Workstream updated');
-        setEditingWorkstream(null);
-      } else {
-        toast.error(result.error || 'Failed to update workstream');
-      }
-    } catch (error) {
-      toast.error('Failed to update workstream: ' + error.message);
-    } finally {
-      setSaving(false);
+    const result = await updateWorkstream(editingWorkstream.id, {
+      name: editingWorkstream.name,
+      rules: editingWorkstream.rules,
+      projects: editingWorkstream.projects || [],
+    });
+    if (result.success) {
+      toast.success('Workstream updated');
+      setEditingWorkstream(null);
+    } else {
+      toast.error(result.error || 'Failed to update workstream');
     }
+    setSaving(false);
   };
 
   // Inline rules editing handlers
@@ -464,9 +423,7 @@ export default function WorkstreamsView({ projects: propProjects = [], onWorkstr
         projects: ws.projects || [],
       });
       if (result.success) {
-        setWorkstreams(prev => prev.map(w =>
-          w.id === ws.id ? result.workstream : w
-        ));
+        await fetchWorkstreams(); // Refresh from store
         toast.success('Rules updated');
         setEditingRulesId(null);
         setEditingRulesValue('');
@@ -513,13 +470,8 @@ export default function WorkstreamsView({ projects: propProjects = [], onWorkstr
       }
     }
 
-    if (lastWorkstream) {
-      setWorkstreams(prev => prev.map(ws =>
-        ws.id === selectedWorkstreamForProject.id ? lastWorkstream : ws
-      ));
-    }
-
     if (successCount > 0) {
+      await fetchWorkstreams(); // Refresh from store
       toast.success(`Added ${successCount} project${successCount > 1 ? 's' : ''} to ${selectedWorkstreamForProject.name}`);
     } else {
       toast.error('Failed to add projects');
@@ -532,18 +484,11 @@ export default function WorkstreamsView({ projects: propProjects = [], onWorkstr
   };
 
   const handleRemoveProject = async (workstream, projectPath) => {
-    try {
-      const result = await api.removeProjectFromWorkstream(workstream.id, projectPath);
-      if (result.success) {
-        setWorkstreams(prev => prev.map(ws =>
-          ws.id === workstream.id ? result.workstream : ws
-        ));
-        toast.success(`Removed project from ${workstream.name}`);
-      } else {
-        toast.error(result.error || 'Failed to remove project');
-      }
-    } catch (error) {
-      toast.error('Failed to remove project: ' + error.message);
+    const result = await removeProjectFromWorkstream(workstream.id, projectPath);
+    if (result.success) {
+      toast.success(`Removed project from ${workstream.name}`);
+    } else {
+      toast.error(result.error || 'Failed to remove project');
     }
   };
 
@@ -556,11 +501,6 @@ export default function WorkstreamsView({ projects: propProjects = [], onWorkstr
     return workstreams.find(ws =>
       ws.id !== excludeWorkstreamId && ws.projects?.includes(projectPath)
     );
-  };
-
-  // Count how many workstreams include a project
-  const countWorkstreamsForProject = (projectPath) => {
-    return workstreams.filter(ws => ws.projects?.includes(projectPath)).length;
   };
 
   // Get badge text: "in use" if in 1 workstream, "shared" if in 2+

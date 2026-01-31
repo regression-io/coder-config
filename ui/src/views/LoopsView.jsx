@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/tooltip";
 import api from "@/lib/api";
 import TerminalDialog from "@/components/TerminalDialog";
+import { useWorkstreamsStore } from "@/stores";
 
 const PHASE_COLORS = {
   clarify: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
@@ -47,9 +48,8 @@ export default function LoopsView({ activeProject = null }) {
   const [expandedId, setExpandedId] = useState(null);
   const [config, setConfig] = useState({});
 
-  // Workstreams state (fetched locally)
-  const [workstreams, setWorkstreams] = useState([]);
-  const [activeWorkstreamId, setActiveWorkstreamId] = useState(null);
+  // Workstreams from store
+  const { workstreams, activeId: activeWorkstreamId, fetch: fetchWorkstreams } = useWorkstreamsStore();
   const [filterWorkstreamId, setFilterWorkstreamId] = useState(''); // For filtering loops
 
   // Dialog states
@@ -117,9 +117,9 @@ export default function LoopsView({ activeProject = null }) {
     loadLoops();
     loadConfig();
     loadHookStatus();
-    loadWorkstreams();
+    fetchWorkstreams();
     loadPluginStatus();
-  }, []);
+  }, [fetchWorkstreams]);
 
   // Track the last known status to detect changes
   const lastKnownStatus = useRef(null);
@@ -205,16 +205,6 @@ export default function LoopsView({ activeProject = null }) {
       setPluginStatus(status);
     } catch (error) {
       console.error('Failed to load plugin status:', error);
-    }
-  };
-
-  const loadWorkstreams = async () => {
-    try {
-      const data = await api.getWorkstreams();
-      setWorkstreams(data.workstreams || []);
-      setActiveWorkstreamId(data.activeId || null);
-    } catch (error) {
-      console.error('Failed to load workstreams:', error);
     }
   };
 

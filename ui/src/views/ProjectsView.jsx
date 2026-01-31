@@ -14,33 +14,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import api from "@/lib/api";
 import AddProjectDialog from "@/components/AddProjectDialog";
+import { useProjectsStore } from "@/stores";
 
 export default function ProjectsView({ onProjectSwitch }) {
-  const [projects, setProjects] = useState([]);
-  const [activeProjectId, setActiveProjectId] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { projects, activeProject, loading, fetch: fetchProjects, remove, update } = useProjectsStore();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialog, setEditDialog] = useState({ open: false, project: null, name: '' });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    loadProjects();
-  }, []);
+    fetchProjects();
+  }, [fetchProjects]);
 
-  const loadProjects = async () => {
-    try {
-      setLoading(true);
-      const data = await api.getProjects();
-      setProjects(data.projects || []);
-      setActiveProjectId(data.activeProjectId);
-    } catch (error) {
-      toast.error('Failed to load projects');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loadProjects = () => fetchProjects();
 
   const handleEdit = (project) => {
     setEditDialog({ open: true, project, name: project.name });
@@ -50,22 +37,14 @@ export default function ProjectsView({ onProjectSwitch }) {
     if (!editDialog.project || !editDialog.name.trim()) return;
 
     setSaving(true);
-    try {
-      const result = await api.updateProject(editDialog.project.id, { name: editDialog.name.trim() });
-      if (result.success) {
-        setProjects(prev => prev.map(p =>
-          p.id === editDialog.project.id ? { ...p, name: result.project.name } : p
-        ));
-        toast.success('Project updated');
-        setEditDialog({ open: false, project: null, name: '' });
-      } else {
-        toast.error(result.error || 'Failed to update project');
-      }
-    } catch (error) {
-      toast.error('Failed to update project: ' + error.message);
-    } finally {
-      setSaving(false);
+    const result = await update(editDialog.project.id, { name: editDialog.name.trim() });
+    if (result.success) {
+      toast.success('Project updated');
+      setEditDialog({ open: false, project: null, name: '' });
+    } else {
+      toast.error(result.error || 'Failed to update project');
     }
+    setSaving(false);
   };
 
   const handleRemove = async (project) => {
@@ -73,21 +52,16 @@ export default function ProjectsView({ onProjectSwitch }) {
       return;
     }
 
-    try {
-      const result = await api.removeProject(project.id);
-      if (result.success) {
-        setProjects(prev => prev.filter(p => p.id !== project.id));
-        toast.success(`Removed project: ${project.name}`);
-      } else {
-        toast.error(result.error || 'Failed to remove project');
-      }
-    } catch (error) {
-      toast.error('Failed to remove project: ' + error.message);
+    const result = await remove(project.id);
+    if (result.success) {
+      toast.success(`Removed project: ${project.name}`);
+    } else {
+      toast.error(result.error || 'Failed to remove project');
     }
   };
 
-  const handleProjectAdded = (project) => {
-    setProjects(prev => [...prev, { ...project, exists: true, hasClaudeConfig: false }]);
+  const handleProjectAdded = () => {
+    fetchProjects();
   };
 
   if (loading) {

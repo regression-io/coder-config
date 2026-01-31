@@ -14,6 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import api from "@/lib/api";
+import { useProjectsStore, useSettingsStore } from "@/stores";
 import { cn } from "@/lib/utils";
 import {
   PreferencesView,
@@ -77,6 +78,10 @@ const setStoredState = (key, value) => {
 };
 
 export default function Dashboard() {
+  // Zustand stores
+  const { projects, activeProject, fetch: fetchProjects, setActive: setActiveProject } = useProjectsStore();
+  const { appConfig, version, fetch: fetchSettings, checkVersion } = useSettingsStore();
+
   const [currentView, setCurrentView] = useState(() => getStoredState('currentView', 'explorer'));
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState({ dir: '', subprojects: [], hierarchy: [] });
@@ -91,14 +96,10 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [editorContent, setEditorContent] = useState('');
   const [fileHashes, setFileHashes] = useState({});
-  const [version, setVersion] = useState(null);
   const [updateInfo, setUpdateInfo] = useState(null);
   const [updating, setUpdating] = useState(false);
-  const [projects, setProjects] = useState([]);
-  const [activeProject, setActiveProject] = useState(null);
   const [addProjectOpen, setAddProjectOpen] = useState(false);
   const [rootProject, setRootProject] = useState(null); // Track root project for sticky subprojects
-  const [appConfig, setAppConfig] = useState(null); // coder-config preferences
   const [checkingUpdates, setCheckingUpdates] = useState(false); // Manual update check in progress
   const loadedVersionRef = useRef(null); // Version when UI first loaded
 
@@ -135,13 +136,11 @@ export default function Dashboard() {
     }
   }, [selectedConfig]);
 
-  // Load projects registry
+  // Load projects registry (now uses store)
   const loadProjects = useCallback(async (isInitialLoad = false) => {
     try {
-      const data = await api.getProjects();
-      setProjects(data.projects || []);
-      const active = data.projects?.find(p => p.isActive);
-      setActiveProject(active || null);
+      const projectsList = await fetchProjects();
+      const active = projectsList?.find(p => p.isActive);
 
       // On initial load, set root project from active project's registered path
       if (isInitialLoad && active) {
@@ -161,21 +160,16 @@ export default function Dashboard() {
       // Projects API might not exist in older versions
       console.log('Projects API not available');
     }
-  }, []);
+  }, [fetchProjects]);
 
   // Handle project switch (from registry - sets root project)
   const handleSwitchProject = async (projectId) => {
     try {
-      const result = await api.setActiveProject(projectId);
+      const result = await setActiveProject(projectId);
       if (result.success) {
         setProject({ dir: result.dir, hierarchy: result.hierarchy, subprojects: result.subprojects });
         // Store as root project for sticky subprojects
         setRootProject({ dir: result.dir, subprojects: result.subprojects });
-        setActiveProject(result.project);
-        setProjects(prev => prev.map(p => ({
-          ...p,
-          isActive: p.id === projectId
-        })));
         await loadData();
         toast.success(`Switched to ${result.project.name}`);
       } else {
@@ -186,9 +180,9 @@ export default function Dashboard() {
     }
   };
 
-  // Handle project added
-  const handleProjectAdded = (newProject) => {
-    setProjects(prev => [...prev, { ...newProject, exists: true, hasClaudeConfig: false }]);
+  // Handle project added - just refresh the store
+  const handleProjectAdded = () => {
+    fetchProjects();
   };
 
   // Initial load
@@ -199,22 +193,22 @@ export default function Dashboard() {
     // Load version info and check for updates
     const checkForUpdates = async () => {
       try {
-        const [versionData, configData] = await Promise.all([
-          api.checkVersion(),
-          api.getConfig()
+        const [versionData] = await Promise.all([
+          checkVersion(),
+          fetchSettings()
         ]);
-
-        setVersion(versionData?.installedVersion);
-        setAppConfig(configData?.config || {});
 
         // Store initial version for stale UI detection
         if (!loadedVersionRef.current && versionData?.installedVersion) {
           loadedVersionRef.current = versionData.installedVersion;
         }
 
+        // Get fresh config from store after fetch
+        const currentConfig = useSettingsStore.getState().appConfig;
+
         if (versionData?.updateAvailable && versionData?.updateMethod === 'npm') {
           // Check if auto-update is enabled
-          if (configData?.config?.autoUpdate) {
+          if (currentConfig?.autoUpdate) {
             // Auto-update: trigger update immediately
             toast.info(`Auto-updating to v${versionData.latestVersion}...`);
             setUpdating(true);
@@ -535,7 +529,7 @@ export default function Dashboard() {
       case 'sessions':
         return <SessionsView />;
       case 'preferences':
-        return <PreferencesView onConfigChange={(newConfig) => setAppConfig(newConfig)} />;
+        return <PreferencesView onConfigChange={() => fetchSettings()} />;
       case 'projects':
         return <ProjectsView onProjectSwitch={(result) => {
           setProject({ dir: result.dir, hierarchy: result.hierarchy, subprojects: result.subprojects });
@@ -544,7 +538,7 @@ export default function Dashboard() {
           loadProjects();
         }} />;
       case 'workstreams':
-        return <WorkstreamsView projects={projects} onWorkstreamChange={(ws) => {
+        return <WorkstreamsView onWorkstreamChange={(ws) => {
           toast.success(`Switched to workstream: ${ws.name}`);
         }} />;
       case 'loops':

@@ -7,10 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Zustand state management** - Introduced centralized stores for shared UI state
+  - `projectsStore` - Projects list, active project, CRUD operations
+  - `workstreamsStore` - Workstreams list, active workstream, project associations
+  - `loopsStore` - Loops list, config, history, lifecycle operations
+  - `settingsStore` - App config, version info, feature flags
+  - Eliminates prop drilling and stale state issues across components
+
 ### Fixed
 
-- **WorkstreamsView projects list** - Load projects directly on mount instead of relying solely on Dashboard prop
-  - Fixes dropdown not showing projects added via CLI until page refresh
+- **WorkstreamsView projects list** - Use stores for shared state instead of prop drilling
+  - Projects now stay in sync across all views (Dashboard, WorkstreamsView, LoopsView)
 - **Ralph Loop stop hook path** - Fix hook not finding state files in legacy directory
   - Hook was hardcoded to check `~/.coder-config/loops/` only
   - Manager uses `~/.claude-config/loops/` when legacy `projects.json` exists
