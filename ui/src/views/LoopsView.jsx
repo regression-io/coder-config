@@ -843,7 +843,7 @@ export default function LoopsView({ activeProject = null }) {
             Ralph Loops
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Autonomous development loops using the official ralph-loop plugin
+            Autonomous development loops with iteration tracking and safety controls
           </p>
         </div>
         <div className="flex items-center gap-2">
