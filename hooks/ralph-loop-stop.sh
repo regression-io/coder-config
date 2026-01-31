@@ -1,15 +1,13 @@
 #!/bin/bash
-# Ralph Loop continuation hook
-# Called after each Claude response to manage loop continuation
+# Ralph Loop continuation hook (coder-config)
+# Called when Claude tries to stop - blocks exit and feeds prompt back
 #
-# This hook:
-# 1. Checks if we're in an active loop (via CODER_LOOP_ID env var)
-# 2. Verifies the loop is still running
-# 3. Checks budget limits (iterations and cost)
-# 4. Updates iteration count
-# 5. Outputs continuation prompt based on current phase
+# Uses CODER_LOOP_ID env var to identify active loop
+# State stored in ~/.coder-config/loops/<id>/state.json
 
-LOOP_ID="$CODER_LOOP_ID"
+set -euo pipefail
+
+LOOP_ID="${CODER_LOOP_ID:-}"
 if [[ -z "$LOOP_ID" ]]; then
   exit 0
 fi
@@ -25,77 +23,59 @@ if [[ "$STATUS" != "running" ]]; then
   exit 0
 fi
 
-# Check budget limits
-CURRENT_ITER=$(jq -r '.iterations.current' "$STATE_FILE")
-MAX_ITER=$(jq -r '.iterations.max' "$STATE_FILE")
-CURRENT_COST=$(jq -r '.budget.currentCost // 0' "$STATE_FILE")
-MAX_COST=$(jq -r '.budget.maxCost // 10' "$STATE_FILE")
+# Get loop config
+CURRENT_ITER=$(jq -r '.iterations.current // 0' "$STATE_FILE")
+MAX_ITER=$(jq -r '.iterations.max // 50' "$STATE_FILE")
+COMPLETION_PROMISE=$(jq -r '.completionPromise // "DONE"' "$STATE_FILE")
+TASK=$(jq -r '.task.original // ""' "$STATE_FILE")
 
 # Check iteration limit
-if (( CURRENT_ITER >= MAX_ITER )); then
-  echo "Loop paused: max iterations reached ($MAX_ITER)"
+if [[ $MAX_ITER -gt 0 ]] && [[ $CURRENT_ITER -ge $MAX_ITER ]]; then
   jq '.status = "paused" | .pauseReason = "max_iterations" | .updatedAt = (now | todate)' "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
   exit 0
 fi
 
-# Check cost limit (using bc for floating point comparison)
-if command -v bc &> /dev/null; then
-  if (( $(echo "$CURRENT_COST >= $MAX_COST" | bc -l) )); then
-    echo "Loop paused: budget exceeded (\$$MAX_COST)"
-    jq '.status = "paused" | .pauseReason = "budget" | .updatedAt = (now | todate)' "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
-    exit 0
+# Read hook input to check for completion
+HOOK_INPUT=$(cat)
+TRANSCRIPT_PATH=$(echo "$HOOK_INPUT" | jq -r '.transcript_path // ""')
+
+if [[ -n "$TRANSCRIPT_PATH" ]] && [[ -f "$TRANSCRIPT_PATH" ]]; then
+  # Get last assistant message
+  LAST_OUTPUT=$(grep '"role":"assistant"' "$TRANSCRIPT_PATH" | tail -1 | jq -r '
+    .message.content |
+    map(select(.type == "text")) |
+    map(.text) |
+    join("\n")
+  ' 2>/dev/null || echo "")
+
+  # Check for completion promise
+  if [[ -n "$COMPLETION_PROMISE" ]] && [[ "$COMPLETION_PROMISE" != "null" ]]; then
+    if echo "$LAST_OUTPUT" | grep -qF "$COMPLETION_PROMISE"; then
+      jq '.status = "completed" | .taskComplete = true | .completedAt = (now | todate) | .updatedAt = (now | todate)' "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
+      exit 0
+    fi
   fi
 fi
 
-# Update iteration count
-NEW_ITER=$((CURRENT_ITER + 1))
-jq ".iterations.current = $NEW_ITER | .updatedAt = (now | todate)" "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
+# Not complete - continue loop
+NEXT_ITER=$((CURRENT_ITER + 1))
+jq ".iterations.current = $NEXT_ITER | .updatedAt = (now | todate)" "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
 
-# Check if task is complete (Claude sets this flag)
-PHASE=$(jq -r '.phase' "$STATE_FILE")
-TASK_COMPLETE=$(jq -r '.taskComplete // false' "$STATE_FILE")
-
-if [[ "$TASK_COMPLETE" == "true" ]]; then
-  jq '.status = "completed" | .completedAt = (now | todate) | .updatedAt = (now | todate)' "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
-  echo ""
-  echo "---"
-  echo "[Ralph Loop COMPLETED]"
-  echo "Task has been marked as complete."
-  echo "---"
-  exit 0
+# Build system message
+if [[ -n "$COMPLETION_PROMISE" ]] && [[ "$COMPLETION_PROMISE" != "null" ]]; then
+  SYSTEM_MSG="🔄 Ralph iteration $NEXT_ITER/$MAX_ITER | Output '$COMPLETION_PROMISE' when task is complete"
+else
+  SYSTEM_MSG="🔄 Ralph iteration $NEXT_ITER/$MAX_ITER | No completion promise set"
 fi
 
-# Continue loop - output continuation prompt based on phase
-PHASE_PROMPT=""
-case "$PHASE" in
-  "clarify")
-    PHASE_PROMPT="Continue clarifying requirements. Ask any remaining questions needed to fully understand the task.
+# Output JSON to block stop and feed prompt back
+jq -n \
+  --arg prompt "$TASK" \
+  --arg msg "$SYSTEM_MSG" \
+  '{
+    "decision": "block",
+    "reason": $prompt,
+    "systemMessage": $msg
+  }'
 
-If requirements are now clear:
-1. Save clarifications to ~/.coder-config/loops/$LOOP_ID/clarifications.md
-2. Update state: jq '.phase = \"plan\"' to advance to planning phase"
-    ;;
-  "plan")
-    PHASE_PROMPT="Continue developing the implementation plan based on clarified requirements.
-
-When the plan is complete:
-1. Save the plan to ~/.coder-config/loops/$LOOP_ID/plan.md
-2. Wait for user approval before advancing to execute phase
-3. If auto-approve is enabled, update state: jq '.phase = \"execute\"'"
-    ;;
-  "execute")
-    PHASE_PROMPT="Continue executing the implementation plan.
-
-When the task is complete:
-1. Verify all requirements have been met
-2. Run any relevant tests
-3. Update state: jq '.taskComplete = true' to mark as complete"
-    ;;
-esac
-
-echo ""
-echo "---"
-echo "[Ralph Loop iteration $NEW_ITER/$MAX_ITER - Phase: $PHASE]"
-echo ""
-echo "$PHASE_PROMPT"
-echo "---"
+exit 0
