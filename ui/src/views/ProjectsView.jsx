@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   FolderOpen, Folder, Plus, Trash2, RefreshCw, Check,
-  AlertTriangle, Loader2, Pencil
+  AlertTriangle, Pencil
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,43 +15,44 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import AddProjectDialog from "@/components/AddProjectDialog";
+import PageHeader from "@/components/PageHeader";
+import EmptyState from "@/components/EmptyState";
+import { Spinner } from "@/components/ui/spinner";
 import { useProjectsStore } from "@/stores";
+import { useDialog, useAsyncAction } from "@/hooks";
 
 export default function ProjectsView({ onProjectSwitch }) {
-  const { projects, activeProject, loading, fetch: fetchProjects, remove, update } = useProjectsStore();
+  const { projects, loading, fetch: fetchProjects, remove, update } = useProjectsStore();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [editDialog, setEditDialog] = useState({ open: false, project: null, name: '' });
-  const [saving, setSaving] = useState(false);
+  const editDialog = useDialog();
+  const [editName, setEditName] = useState('');
+
+  const { execute: executeUpdate, loading: saving } = useAsyncAction({
+    onSuccess: () => {
+      toast.success('Project updated');
+      editDialog.close();
+    },
+    onError: (err) => toast.error(err || 'Failed to update project'),
+  });
 
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
 
-  const loadProjects = () => fetchProjects();
-
   const handleEdit = (project) => {
-    setEditDialog({ open: true, project, name: project.name });
+    setEditName(project.name);
+    editDialog.open(project);
   };
 
-  const handleSaveEdit = async () => {
-    if (!editDialog.project || !editDialog.name.trim()) return;
-
-    setSaving(true);
-    const result = await update(editDialog.project.id, { name: editDialog.name.trim() });
-    if (result.success) {
-      toast.success('Project updated');
-      setEditDialog({ open: false, project: null, name: '' });
-    } else {
-      toast.error(result.error || 'Failed to update project');
-    }
-    setSaving(false);
+  const handleSaveEdit = () => {
+    if (!editDialog.data || !editName.trim()) return;
+    executeUpdate(() => update(editDialog.data.id, { name: editName.trim() }));
   };
 
   const handleRemove = async (project) => {
     if (!confirm(`Remove "${project.name}" from the registry?\n\nThis won't delete any files.`)) {
       return;
     }
-
     const result = await remove(project.id);
     if (result.success) {
       toast.success(`Removed project: ${project.name}`);
@@ -60,44 +61,34 @@ export default function ProjectsView({ onProjectSwitch }) {
     }
   };
 
-  const handleProjectAdded = () => {
-    fetchProjects();
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <Spinner size="lg" className="text-indigo-600" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-            <FolderOpen className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Projects</h2>
-            <p className="text-sm text-gray-500 dark:text-slate-400">
-              Registered projects for quick switching
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={loadProjects} size="sm">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
-          <Button onClick={() => setAddDialogOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Project
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        icon={<FolderOpen className="w-5 h-5" />}
+        iconColor="indigo"
+        title="Projects"
+        subtitle="Registered projects for quick switching"
+        actions={
+          <>
+            <Button variant="outline" onClick={() => fetchProjects()} size="sm">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+            <Button onClick={() => setAddDialogOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Project
+            </Button>
+          </>
+        }
+      />
 
       {/* Info */}
       <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 text-sm text-blue-700 dark:text-blue-400">
@@ -110,17 +101,17 @@ export default function ProjectsView({ onProjectSwitch }) {
       {/* Projects List */}
       <div className="bg-white dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
         {projects.length === 0 ? (
-          <div className="p-12 text-center">
-            <Folder className="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-slate-600" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Projects Yet</h3>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">
-              Add your first project to get started with quick switching.
-            </p>
-            <Button onClick={() => setAddDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Your First Project
-            </Button>
-          </div>
+          <EmptyState
+            icon={<Folder className="w-12 h-12" />}
+            title="No Projects Yet"
+            description="Add your first project to get started with quick switching."
+            action={
+              <Button onClick={() => setAddDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Your First Project
+              </Button>
+            }
+          />
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-slate-800">
             {projects.map(project => (
@@ -217,11 +208,11 @@ export default function ProjectsView({ onProjectSwitch }) {
       <AddProjectDialog
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
-        onAdded={handleProjectAdded}
+        onAdded={fetchProjects}
       />
 
       {/* Edit Project Dialog */}
-      <Dialog open={editDialog.open} onOpenChange={(open) => !open && setEditDialog({ open: false, project: null, name: '' })}>
+      <Dialog open={editDialog.isOpen} onOpenChange={editDialog.onOpenChange}>
         <DialogContent className="bg-card">
           <DialogHeader>
             <DialogTitle>Edit Project</DialogTitle>
@@ -232,24 +223,24 @@ export default function ProjectsView({ onProjectSwitch }) {
           <div className="py-4">
             <label className="text-sm font-medium text-foreground">Project Name</label>
             <Input
-              value={editDialog.name}
-              onChange={(e) => setEditDialog(prev => ({ ...prev, name: e.target.value }))}
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
               placeholder="My Project"
               className="mt-1"
               onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit()}
             />
-            {editDialog.project && (
+            {editDialog.data && (
               <p className="text-xs text-muted-foreground mt-2 font-mono">
-                {editDialog.project.path.replace(/^\/Users\/[^/]+/, '~')}
+                {editDialog.data.path.replace(/^\/Users\/[^/]+/, '~')}
               </p>
             )}
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditDialog({ open: false, project: null, name: '' })}>
+            <Button variant="ghost" onClick={editDialog.close}>
               Cancel
             </Button>
-            <Button onClick={handleSaveEdit} disabled={saving || !editDialog.name.trim()}>
-              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+            <Button onClick={handleSaveEdit} disabled={saving || !editName.trim()}>
+              {saving ? <Spinner size="sm" className="mr-2" /> : null}
               Save
             </Button>
           </DialogFooter>

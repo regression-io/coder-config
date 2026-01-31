@@ -142,7 +142,7 @@ const useWorkstreamsStore = create((set, get) => ({
 
   // Count workstreams containing a project
   countWorkstreamsForProject: (projectPath) => {
-    return get().workstreams.filter(ws => ws.projects?.includes(projectPath)).length;
+    return get().getWorkstreamsForProject(projectPath).length;
   },
 }));
 

@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `loopsStore` - Loops list, config, history, lifecycle operations
   - `settingsStore` - App config, version info, feature flags
   - Eliminates prop drilling and stale state issues across components
+- **DRY components and hooks** - Extracted reusable UI patterns
+  - `<Spinner />` - Consistent loading spinner (replaces 59 inline Loader2 usages)
+  - `<PageHeader />` - Consistent page headers with icon, title, subtitle, actions
+  - `<EmptyState />` - Consistent empty state with icon, title, description, action
+  - `useDialog()` - Hook for dialog open/close state with data
+  - `useAsyncAction()` - Hook for async operations with loading state and toasts
 
 ### Fixed
 
