@@ -88,6 +88,8 @@ export default function WorkstreamsView({ onWorkstreamChange }) {
   const [selectedAITool, setSelectedAITool] = useState(''); // '' = basic, 'claude', 'gemini', etc.
   const [availableAITools, setAvailableAITools] = useState([]);
   const [ollamaModel, setOllamaModel] = useState('llama3.2');
+  const [lmstudioModel, setLmstudioModel] = useState('default');
+  const [lmstudioEndpoint, setLmstudioEndpoint] = useState('http://localhost:1234/v1/chat/completions');
 
   // Inline rules editing
   const [editingRulesId, setEditingRulesId] = useState(null);
@@ -250,8 +252,13 @@ export default function WorkstreamsView({ onWorkstreamChange }) {
     }
     setGeneratingRules(true);
     try {
-      // Build AI options (for ollama, pass model)
-      const aiOptions = selectedAITool === 'ollama' ? { model: ollamaModel } : {};
+      // Build AI options based on selected tool
+      let aiOptions = {};
+      if (selectedAITool === 'ollama') {
+        aiOptions = { model: ollamaModel };
+      } else if (selectedAITool === 'lmstudio') {
+        aiOptions = { model: lmstudioModel, endpoint: lmstudioEndpoint };
+      }
       const result = await api.generateWorkstreamRules(projects, selectedAITool || false, aiOptions);
       if (result.success && result.rules) {
         setRules(result.rules);
@@ -1421,6 +1428,22 @@ export default function WorkstreamsView({ onWorkstreamChange }) {
                       className="h-7 w-24 text-xs"
                     />
                   )}
+                  {selectedAITool === 'lmstudio' && (
+                    <>
+                      <Input
+                        value={lmstudioModel}
+                        onChange={e => setLmstudioModel(e.target.value)}
+                        placeholder="Model"
+                        className="h-7 w-20 text-xs"
+                      />
+                      <Input
+                        value={lmstudioEndpoint}
+                        onChange={e => setLmstudioEndpoint(e.target.value)}
+                        placeholder="Endpoint URL"
+                        className="h-7 w-48 text-xs"
+                      />
+                    </>
+                  )}
                   <Button
                     type="button"
                     size="sm"
@@ -1706,6 +1729,22 @@ export default function WorkstreamsView({ onWorkstreamChange }) {
                         placeholder="Model"
                         className="h-7 w-24 text-xs"
                       />
+                    )}
+                    {selectedAITool === 'lmstudio' && (
+                      <>
+                        <Input
+                          value={lmstudioModel}
+                          onChange={e => setLmstudioModel(e.target.value)}
+                          placeholder="Model"
+                          className="h-7 w-20 text-xs"
+                        />
+                        <Input
+                          value={lmstudioEndpoint}
+                          onChange={e => setLmstudioEndpoint(e.target.value)}
+                          placeholder="Endpoint URL"
+                          className="h-7 w-48 text-xs"
+                        />
+                      </>
                     )}
                     <Button
                       type="button"
