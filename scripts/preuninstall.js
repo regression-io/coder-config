@@ -31,7 +31,18 @@ if (fs.existsSync(launchAgentPath)) {
   }
 }
 
-// 3. Remove shell hooks from .zshrc and .bashrc
+// 3. Remove PID file
+const pidFile = path.join(home, '.coder-config', 'ui.pid');
+if (fs.existsSync(pidFile)) {
+  try {
+    fs.unlinkSync(pidFile);
+    console.log('Removed PID file');
+  } catch (e) {
+    // Ignore errors
+  }
+}
+
+// 4. Remove shell hooks from .zshrc and .bashrc
 const shellFiles = [
   path.join(home, '.zshrc'),
   path.join(home, '.bashrc'),
