@@ -1,29 +1,97 @@
-name: Publish to npm
+name: Publish Stable Release
 
 on:
   push:
     tags:
-      - 'v*'  # Trigger on version tags (v0.14.16, v1.0.0, etc.)
+      - 'v[0-9]+.[0-9]+.[0-9]+'  # Only stable versions (no -beta suffix)
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.46.0). Leave empty to use current package.json version.'
+        required: false
+        type: string
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      id-token: write  # Required for npm provenance / Trusted Publishing
+      contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Determine version
+        id: version
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ -n "$INPUT_VERSION" ]; then
+            VERSION="$INPUT_VERSION"
+          elif [[ "$REF_NAME" == v* ]]; then
+            VERSION="${REF_NAME#v}"
+          else
+            VERSION=$(node -p "require('./package.json').version.split('-')[0]")
+          fi
+
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version format: $VERSION"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Releasing stable version: $VERSION"
+
+      - name: Update version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          node -e "
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          pkg.version = process.env.VERSION;
+          fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+          npm run version:sync --silent
+
       - name: Install and build
         run: npm install && npm run build:ci
 
-      - name: Publish to npm
+      - name: Run tests
+        run: npm test
+
+      - name: Publish to npm (stable)
         run: npm publish --access public --provenance --ignore-scripts
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if ! git tag -l "v${VERSION}" | grep -q "v${VERSION}"; then
+            git tag "v${VERSION}"
+            git push origin "v${VERSION}"
+          fi
+          gh release create "v${VERSION}" --title "v${VERSION}" --notes "Stable release v${VERSION}" --latest || echo "Release may already exist"
+
+      - name: Summary
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          echo "## ✅ Stable Release Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`${VERSION}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Install with:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "npm install -g coder-config" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

@@ -25,7 +25,9 @@ describe('constants', () => {
     it('should include claude configuration', () => {
       assert.ok(TOOL_PATHS.claude);
       assert.strictEqual(TOOL_PATHS.claude.name, 'Claude Code');
-      assert.strictEqual(TOOL_PATHS.claude.globalConfig, '~/.claude/mcps.json');
+      // Global MCPs are in ~/.claude.json under mcpServers key (not a separate file)
+      assert.strictEqual(TOOL_PATHS.claude.globalConfig, '~/.claude.json');
+      assert.strictEqual(TOOL_PATHS.claude.globalMcpKey, 'mcpServers');
       assert.strictEqual(TOOL_PATHS.claude.outputFile, '.mcp.json');
     });
 

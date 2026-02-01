@@ -1,5 +1,5 @@
 #!/bin/bash
-# Auto-tag and push after every commit
+# Auto-push after every commit (triggers beta release via CI)
 
 # Skip if SKIP_AUTO_PUSH is set
 if [ -n "$SKIP_AUTO_PUSH" ]; then
@@ -13,22 +13,11 @@ fi
 
 # Get version from package.json
 VERSION=$(node -p "require('./package.json').version" 2>/dev/null)
-if [ -z "$VERSION" ]; then
-  exit 0
-fi
 
-TAG="v$VERSION"
+# Push commit (CI will handle beta versioning and publishing)
+echo "🚀 Pushing to main..."
+git push
 
-# Check if tag already exists
-if git rev-parse "$TAG" >/dev/null 2>&1; then
-  exit 0
-fi
-
-# Create tag
-git tag "$TAG"
-
-# Push commit and tags
-echo "🚀 Pushing $TAG..."
-git push && git push --tags
-
-echo "✅ Released $TAG - CI will publish to npm"
+echo "✅ Pushed - CI will publish beta"
+echo ""
+echo "To release as stable, run: npm run release"

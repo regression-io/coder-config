@@ -5,10 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.46.0] - 2026-02-01
 
 ### Added
 
+- **Beta/Stable release system** - New CI/CD workflow for versioning
+  - Every push to main publishes a beta: `npm install coder-config@beta`
+  - Stable releases via `npm run release` or GitHub Actions dispatch
+  - Beta versions: `0.46.0-beta.{build-number}`
+  - Users get stable by default: `npm install coder-config`
 - **Multi-AI context generation** - Generate workstream context with any supported AI tool
   - Supported tools: Claude, Gemini, Codex (OpenAI), Ollama (local), Aider
   - UI dropdown to select AI tool when generating context
