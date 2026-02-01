@@ -263,6 +263,32 @@ class ConfigUIServer {
       console.log(`📁 Project: ${this.projectDir}`);
       console.log(`💻 Terminal WebSocket: ws://localhost:${this.port}/ws/terminal\n`);
     });
+
+    // Watchdog: detect suspend/resume and restart if event loop was blocked
+    this.startSuspendWatchdog();
+  }
+
+  /**
+   * Watchdog to detect system suspend/resume
+   * If the event loop was blocked for too long (suspend), restart the server
+   */
+  startSuspendWatchdog() {
+    const HEARTBEAT_INTERVAL = 5000; // Check every 5 seconds
+    const SUSPEND_THRESHOLD = 30000; // 30 seconds gap = likely suspended
+    let lastHeartbeat = Date.now();
+
+    setInterval(() => {
+      const now = Date.now();
+      const elapsed = now - lastHeartbeat;
+
+      if (elapsed > SUSPEND_THRESHOLD) {
+        console.log(`[Watchdog] System resumed after ${Math.round(elapsed / 1000)}s suspend, restarting server...`);
+        // Exit with code 0 - launchd will restart us
+        process.exit(0);
+      }
+
+      lastHeartbeat = now;
+    }, HEARTBEAT_INTERVAL);
   }
 
   /**
