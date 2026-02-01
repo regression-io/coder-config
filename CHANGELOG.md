@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.46.1] - 2026-02-02
+
+### Fixed
+
+- **Auto-update infinite loop** - Fixed `isNewerVersion()` to properly handle `-beta` suffix
+  - Exact version match now correctly returns "no update needed"
+  - Beta versions properly compared (0.46.2-beta < 0.46.2 stable)
+- **Beta CI workflow** - Commits version bump back to repo with `[skip ci]`
+  - Prevents republishing same beta version on subsequent pushes
+- **Simplified beta versioning** - Changed from `X.Y.Z-beta.N` to `X.Y.Z-beta`
+  - Cleaner version strings
+  - Next stable release is just the same version without `-beta`
+
 ## [0.46.0] - 2026-02-01
 
 ### Added
