@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Need full history for commit count
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -27,37 +27,35 @@ jobs:
       - name: Generate beta version
         id: version
         run: |
-          # Get base version from package.json (e.g., 0.46.0)
-          BASE_VERSION=$(node -p "require('./package.json').version.split('-')[0]")
+          # Get current version from package.json
+          CURRENT=$(node -p "require('./package.json').version")
 
-          # Count commits since last stable tag
-          LAST_STABLE=$(git describe --tags --match "v[0-9]*.[0-9]*.[0-9]" --abbrev=0 2>/dev/null || echo "")
-          if [ -n "$LAST_STABLE" ]; then
-            COMMIT_COUNT=$(git rev-list ${LAST_STABLE}..HEAD --count)
-          else
-            COMMIT_COUNT=$(git rev-list HEAD --count)
-          fi
+          # Strip any existing -beta suffix to get base
+          BASE=$(echo "$CURRENT" | sed 's/-beta$//')
 
-          # Generate beta version: 0.46.0-beta.123
-          BETA_VERSION="${BASE_VERSION}-beta.${COMMIT_COUNT}"
+          # Parse major.minor.patch
+          MAJOR=$(echo "$BASE" | cut -d. -f1)
+          MINOR=$(echo "$BASE" | cut -d. -f2)
+          PATCH=$(echo "$BASE" | cut -d. -f3)
 
-          echo "base=$BASE_VERSION" >> $GITHUB_OUTPUT
+          # Increment patch and add -beta
+          NEW_PATCH=$((PATCH + 1))
+          BETA_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}-beta"
+
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
           echo "beta=$BETA_VERSION" >> $GITHUB_OUTPUT
-          echo "Generated beta version: $BETA_VERSION"
+          echo "Generated beta version: $BETA_VERSION (was $CURRENT)"
 
       - name: Update version for beta
         env:
           BETA_VERSION: ${{ steps.version.outputs.beta }}
         run: |
-          # Update package.json with beta version
           node -e "
           const fs = require('fs');
           const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
           pkg.version = process.env.BETA_VERSION;
           fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
-
-          # Sync to other files
           npm run version:sync --silent
 
       - name: Install and build
