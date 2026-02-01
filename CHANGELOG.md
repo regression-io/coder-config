@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Workstream sub-project discovery** - Automatically discovers sub-projects within monorepos when generating context
+  - Scans up to 2 levels deep for project markers (package.json, pyproject.toml, CLAUDE.md, etc.)
+  - Works with both "Generate with Claude" and basic rule generation
+  - Skips common non-project directories (node_modules, .git, dist, build, etc.)
+  - New `discoverSubProjects()` function exported for programmatic use
 - **Zustand state management** - Introduced centralized stores for shared UI state
   - `projectsStore` - Projects list, active project, CRUD operations
   - `workstreamsStore` - Workstreams list, active workstream, project associations
