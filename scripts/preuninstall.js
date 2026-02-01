@@ -10,7 +10,16 @@ const { execSync } = require('child_process');
 
 const home = os.homedir();
 
-// 1. Stop and remove LaunchAgent
+// 1. Kill any running server processes first
+try {
+  execSync('pkill -f "node.*coder-config.*server" 2>/dev/null || true');
+  execSync('pkill -f "node.*coder-config ui" 2>/dev/null || true');
+  console.log('Stopped running servers');
+} catch (e) {
+  // Ignore errors - process may not be running
+}
+
+// 2. Stop and remove LaunchAgent
 const launchAgentPath = path.join(home, 'Library', 'LaunchAgents', 'io.regression.coder-config.plist');
 if (fs.existsSync(launchAgentPath)) {
   try {
@@ -22,7 +31,7 @@ if (fs.existsSync(launchAgentPath)) {
   }
 }
 
-// 2. Remove shell hooks from .zshrc and .bashrc
+// 3. Remove shell hooks from .zshrc and .bashrc
 const shellFiles = [
   path.join(home, '.zshrc'),
   path.join(home, '.bashrc'),
