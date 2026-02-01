@@ -776,8 +776,17 @@ class ConfigUIServer {
 
       case '/api/workstreams/generate-rules':
         if (req.method === 'POST') {
-          const result = await routes.workstreams.generateRules(this.manager, body.projects, body.useClaude);
+          // Support both old (useClaude: bool) and new (aiTool: string, aiOptions: object) API
+          const useAI = body.aiTool || body.useClaude || false;
+          const aiOptions = body.aiOptions || {};
+          const result = await routes.workstreams.generateRules(this.manager, body.projects, useAI, aiOptions);
           return this.json(res, result);
+        }
+        break;
+
+      case '/api/workstreams/ai-tools':
+        if (req.method === 'GET') {
+          return this.json(res, routes.workstreams.getAvailableAITools(this.manager));
         }
         break;
 

@@ -212,8 +212,12 @@ fi
 
 /**
  * Generate rules from repos
+ * @param {object} manager - Config manager
+ * @param {string[]} projects - Project paths
+ * @param {boolean|string} useAI - false for basic, true/'claude' for Claude, or AI tool ID
+ * @param {object} aiOptions - Tool-specific options (e.g., { model: 'llama3.2' } for ollama)
  */
-async function generateRules(manager, projects, useClaude = false) {
+async function generateRules(manager, projects, useAI = false, aiOptions = {}) {
   if (!manager) return { error: 'Manager not available' };
   if (!projects || projects.length === 0) {
     return { error: 'No projects provided' };
@@ -221,12 +225,38 @@ async function generateRules(manager, projects, useClaude = false) {
 
   try {
     let rules;
-    if (useClaude) {
-      rules = await manager.generateRulesWithClaude(projects);
-    } else {
+    if (useAI === false) {
+      // Basic generation (no AI)
       rules = manager.generateRulesFromRepos(projects);
+    } else if (useAI === true || useAI === 'claude') {
+      // Backwards compatible: true means claude
+      rules = await manager.generateRulesWithAI(projects, 'claude', aiOptions);
+    } else {
+      // Specific AI tool
+      rules = await manager.generateRulesWithAI(projects, useAI, aiOptions);
     }
     return { success: true, rules };
+  } catch (error) {
+    return { error: error.message };
+  }
+}
+
+/**
+ * Get available AI tools for context generation
+ */
+function getAvailableAITools(manager) {
+  if (!manager) return { error: 'Manager not available' };
+  try {
+    const tools = manager.getAvailableAITools();
+    const allTools = manager.AI_TOOLS;
+    // Return all tools with availability status
+    const result = Object.entries(allTools).map(([id, tool]) => ({
+      id,
+      name: tool.name,
+      available: tools.some(t => t.id === id),
+      needsModel: id === 'ollama', // Ollama requires model selection
+    }));
+    return { success: true, tools: result };
   } catch (error) {
     return { error: error.message };
   }
@@ -356,6 +386,7 @@ module.exports = {
   getWorkstreamHookStatus,
   installWorkstreamHook,
   generateRules,
+  getAvailableAITools,
   // Folder auto-activation
   addTriggerFolder,
   removeTriggerFolder,

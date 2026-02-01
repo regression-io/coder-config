@@ -85,7 +85,9 @@ export default function WorkstreamsView({ onWorkstreamChange }) {
 
   // Generate rules state
   const [generatingRules, setGeneratingRules] = useState(false);
-  const [useClaudeForRules, setUseClaudeForRules] = useState(false);
+  const [selectedAITool, setSelectedAITool] = useState(''); // '' = basic, 'claude', 'gemini', etc.
+  const [availableAITools, setAvailableAITools] = useState([]);
+  const [ollamaModel, setOllamaModel] = useState('llama3.2');
 
   // Inline rules editing
   const [editingRulesId, setEditingRulesId] = useState(null);
@@ -109,7 +111,24 @@ export default function WorkstreamsView({ onWorkstreamChange }) {
     loadActivity();
     loadCdHookStatus();
     loadGlobalSettings();
+    loadAvailableAITools();
   }, [fetchWorkstreams, fetchProjects]);
+
+  const loadAvailableAITools = async () => {
+    try {
+      const result = await api.getAvailableAITools();
+      if (result.success && result.tools) {
+        setAvailableAITools(result.tools);
+        // Default to claude if available
+        const claudeAvailable = result.tools.find(t => t.id === 'claude' && t.available);
+        if (claudeAvailable) {
+          setSelectedAITool('claude');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load AI tools:', error);
+    }
+  };
 
   const loadCdHookStatus = async () => {
     try {
@@ -231,10 +250,13 @@ export default function WorkstreamsView({ onWorkstreamChange }) {
     }
     setGeneratingRules(true);
     try {
-      const result = await api.generateWorkstreamRules(projects, useClaudeForRules);
+      // Build AI options (for ollama, pass model)
+      const aiOptions = selectedAITool === 'ollama' ? { model: ollamaModel } : {};
+      const result = await api.generateWorkstreamRules(projects, selectedAITool || false, aiOptions);
       if (result.success && result.rules) {
         setRules(result.rules);
-        toast.success(useClaudeForRules ? 'Generated rules with Claude' : 'Generated rules from repos');
+        const toolName = availableAITools.find(t => t.id === selectedAITool)?.name || 'AI';
+        toast.success(selectedAITool ? `Generated rules with ${toolName}` : 'Generated rules from repos');
       } else {
         toast.error(result.error || 'Failed to generate rules');
       }
@@ -1361,14 +1383,44 @@ export default function WorkstreamsView({ onWorkstreamChange }) {
                   Context (optional)
                 </label>
                 <div className="flex items-center gap-2">
-                  <label className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 cursor-pointer">
-                    <Checkbox
-                      checked={useClaudeForRules}
-                      onCheckedChange={setUseClaudeForRules}
-                      className="h-3.5 w-3.5"
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        {selectedAITool ? availableAITools.find(t => t.id === selectedAITool)?.name || selectedAITool : 'Basic'}
+                        <ChevronDown className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setSelectedAITool('')}>
+                        <span className="text-xs">Basic (no AI)</span>
+                      </DropdownMenuItem>
+                      {availableAITools.filter(t => t.available).map(tool => (
+                        <DropdownMenuItem key={tool.id} onClick={() => setSelectedAITool(tool.id)}>
+                          <span className="text-xs">{tool.name}</span>
+                          {tool.id === selectedAITool && <Check className="w-3 h-3 ml-2" />}
+                        </DropdownMenuItem>
+                      ))}
+                      {availableAITools.filter(t => !t.available).length > 0 && (
+                        <>
+                          <div className="px-2 py-1 text-xs text-gray-400">Not installed:</div>
+                          {availableAITools.filter(t => !t.available).map(tool => (
+                            <DropdownMenuItem key={tool.id} disabled className="text-gray-400">
+                              <span className="text-xs">{tool.name}</span>
+                            </DropdownMenuItem>
+                          ))}
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  {selectedAITool === 'ollama' && (
+                    <Input
+                      value={ollamaModel}
+                      onChange={e => setOllamaModel(e.target.value)}
+                      placeholder="Model"
+                      className="h-7 w-24 text-xs"
                     />
-                    Use Claude
-                  </label>
+                  )}
                   <Button
                     type="button"
                     size="sm"
@@ -1376,7 +1428,7 @@ export default function WorkstreamsView({ onWorkstreamChange }) {
                     onClick={() => handleGenerateRules(newProjects, setNewRules)}
                     disabled={generatingRules || newProjects.length === 0}
                     className="text-xs h-7 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/30"
-                    title={useClaudeForRules ? "Use Claude Code to analyze repos" : "Extract from README, package.json, etc."}
+                    title={selectedAITool ? `Generate with ${availableAITools.find(t => t.id === selectedAITool)?.name}` : "Extract from README, package.json, etc."}
                   >
                     {generatingRules ? (
                       <Loader2 className="w-3 h-3 animate-spin mr-1" />
@@ -1617,14 +1669,44 @@ export default function WorkstreamsView({ onWorkstreamChange }) {
                     Rules
                   </label>
                   <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 cursor-pointer">
-                      <Checkbox
-                        checked={useClaudeForRules}
-                        onCheckedChange={setUseClaudeForRules}
-                        className="h-3.5 w-3.5"
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          {selectedAITool ? availableAITools.find(t => t.id === selectedAITool)?.name || selectedAITool : 'Basic'}
+                          <ChevronDown className="w-3 h-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setSelectedAITool('')}>
+                          <span className="text-xs">Basic (no AI)</span>
+                        </DropdownMenuItem>
+                        {availableAITools.filter(t => t.available).map(tool => (
+                          <DropdownMenuItem key={tool.id} onClick={() => setSelectedAITool(tool.id)}>
+                            <span className="text-xs">{tool.name}</span>
+                            {tool.id === selectedAITool && <Check className="w-3 h-3 ml-2" />}
+                          </DropdownMenuItem>
+                        ))}
+                        {availableAITools.filter(t => !t.available).length > 0 && (
+                          <>
+                            <div className="px-2 py-1 text-xs text-gray-400">Not installed:</div>
+                            {availableAITools.filter(t => !t.available).map(tool => (
+                              <DropdownMenuItem key={tool.id} disabled className="text-gray-400">
+                                <span className="text-xs">{tool.name}</span>
+                              </DropdownMenuItem>
+                            ))}
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    {selectedAITool === 'ollama' && (
+                      <Input
+                        value={ollamaModel}
+                        onChange={e => setOllamaModel(e.target.value)}
+                        placeholder="Model"
+                        className="h-7 w-24 text-xs"
                       />
-                      Use Claude
-                    </label>
+                    )}
                     <Button
                       type="button"
                       size="sm"
@@ -1635,7 +1717,7 @@ export default function WorkstreamsView({ onWorkstreamChange }) {
                       )}
                       disabled={generatingRules || !editingWorkstream.projects?.length}
                       className="text-xs h-7 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/30"
-                      title={useClaudeForRules ? "Use Claude Code to analyze repos" : "Extract from README, package.json, etc."}
+                      title={selectedAITool ? `Generate with ${availableAITools.find(t => t.id === selectedAITool)?.name}` : "Extract from README, package.json, etc."}
                     >
                       {generatingRules ? (
                         <Loader2 className="w-3 h-3 animate-spin mr-1" />

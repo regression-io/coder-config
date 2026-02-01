@@ -9,9 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Multi-AI context generation** - Generate workstream context with any supported AI tool
+  - Supported tools: Claude, Gemini, Codex (OpenAI), Ollama (local), Aider
+  - UI dropdown to select AI tool when generating context
+  - Ollama supports custom model selection (default: llama3.2)
+  - Shows which tools are installed vs not available
+  - New `generateRulesWithAI(projects, toolId, options)` function
+  - New `/api/workstreams/ai-tools` endpoint to list available tools
 - **Workstream sub-project discovery** - Automatically discovers sub-projects within monorepos when generating context
   - Scans up to 2 levels deep for project markers (package.json, pyproject.toml, CLAUDE.md, etc.)
-  - Works with both "Generate with Claude" and basic rule generation
+  - Works with all AI tools and basic rule generation
   - Skips common non-project directories (node_modules, .git, dist, build, etc.)
   - New `discoverSubProjects()` function exported for programmatic use
 - **Zustand state management** - Introduced centralized stores for shared UI state

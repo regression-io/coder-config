@@ -613,10 +613,25 @@ export const api = {
     });
   },
 
-  async generateWorkstreamRules(projects, useClaude = false) {
+  /**
+   * Generate workstream rules/context
+   * @param {string[]} projects - Project paths
+   * @param {boolean|string} aiTool - false for basic, true/'claude' for Claude, or AI tool ID
+   * @param {object} aiOptions - Tool-specific options (e.g., { model: 'llama3.2' } for ollama)
+   */
+  async generateWorkstreamRules(projects, aiTool = false, aiOptions = {}) {
     return request('/workstreams/generate-rules', {
       method: 'POST',
-      body: { projects, useClaude },
+      body: { projects, aiTool, aiOptions },
+    });
+  },
+
+  /**
+   * Get available AI tools for context generation
+   */
+  async getAvailableAITools() {
+    return request('/workstreams/ai-tools', {
+      method: 'GET',
     });
   },
 
