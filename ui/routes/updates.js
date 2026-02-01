@@ -142,20 +142,34 @@ function fetchNpmVersion(channel = 'stable') {
 
 /**
  * Check if source is newer version
+ * Handles versions like: 0.46.1, 0.46.2-beta
+ * Beta versions are considered older than same number stable (0.46.2-beta < 0.46.2)
  */
 function isNewerVersion(source, installed) {
   if (!source || !installed) return false;
+  if (source === installed) return false; // Exact match - no update needed
 
-  const parseVersion = (v) => v.split('.').map(n => parseInt(n, 10) || 0);
+  // Parse version: "0.46.2-beta" -> { major: 0, minor: 46, patch: 2, beta: true }
+  const parseVersion = (v) => {
+    const isBeta = v.includes('-beta');
+    const clean = v.replace('-beta', '');
+    const parts = clean.split('.').map(n => parseInt(n, 10) || 0);
+    return { major: parts[0], minor: parts[1], patch: parts[2], beta: isBeta };
+  };
+
   const s = parseVersion(source);
   const i = parseVersion(installed);
 
-  for (let j = 0; j < Math.max(s.length, i.length); j++) {
-    const sv = s[j] || 0;
-    const iv = i[j] || 0;
-    if (sv > iv) return true;
-    if (sv < iv) return false;
-  }
+  // Compare major.minor.patch first
+  if (s.major !== i.major) return s.major > i.major;
+  if (s.minor !== i.minor) return s.minor > i.minor;
+  if (s.patch !== i.patch) return s.patch > i.patch;
+
+  // Same version number - beta is older than stable
+  // source=stable, installed=beta -> newer (true)
+  // source=beta, installed=stable -> older (false)
+  // source=beta, installed=beta -> same (false)
+  if (!s.beta && i.beta) return true;
   return false;
 }
 
