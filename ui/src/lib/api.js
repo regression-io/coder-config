@@ -558,7 +558,7 @@ export const api = {
     });
   },
 
-  async createWorkstream(name, projects = [], rules = '') {
+  async createWorkstream({ name, projects = [], rules = '' }) {
     return request('/workstreams', {
       method: 'POST',
       body: { name, projects, rules },
