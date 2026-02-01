@@ -76,6 +76,26 @@
         "/Users/ruze/reg/tools/DesktopCommanderMCP/index.js"
       ],
       "description": "MCP server for terminal operations and file editing"
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "description": "Dynamic problem-solving through thought sequences"
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "description": "Up-to-date documentation and code examples from Context7"
+    },
+    "magic": {
+      "command": "npx",
+      "args": ["-y", "@21st-dev/magic"],
+      "description": "21st.dev Magic MCP - AI-powered UI component generation"
+    },
+    "notebooklm-mcp": {
+      "command": "notebooklm-mcp",
+      "args": [],
+      "description": "Google NotebookLM integration for podcast generation and research"
     }
   }
 }
