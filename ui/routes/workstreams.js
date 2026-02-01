@@ -254,9 +254,7 @@ function getAvailableAITools(manager) {
       id,
       name: tool.name,
       available: tools.some(t => t.id === id),
-      needsModel: id === 'ollama' || id === 'lmstudio', // These require model selection
-      needsEndpoint: id === 'lmstudio', // LM Studio uses custom endpoint
-      defaultEndpoint: id === 'lmstudio' ? 'http://localhost:1234/v1/chat/completions' : undefined,
+      needsModel: id === 'ollama', // Ollama requires model selection
     }));
     return { success: true, tools: result };
   } catch (error) {

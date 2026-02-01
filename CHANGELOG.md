@@ -23,10 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Config hierarchy now reads global MCPs from `~/.claude.json` under `mcpServers` key
   - Deprecates `~/.claude/mcps.json` for global MCPs (legacy still supported)
 - **Multi-AI context generation** - Generate workstream context with any supported AI tool
-  - Supported tools: Claude, Gemini, Codex (OpenAI), Ollama (local), Aider, **LM Studio**
+  - Supported tools: Claude, Gemini, Codex (OpenAI), Ollama (local), Aider
   - UI dropdown to select AI tool when generating context
   - Ollama supports custom model selection (default: llama3.2)
-  - **LM Studio** supports custom model and endpoint URL (default: `localhost:1234`)
   - Shows which tools are installed vs not available
   - New `generateRulesWithAI(projects, toolId, options)` function
   - New `/api/workstreams/ai-tools` endpoint to list available tools
