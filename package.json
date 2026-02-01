@@ -21,6 +21,7 @@
     "build:ci": "cd ui && npm install && npm run build",
     "prepublishOnly": "npm run build",
     "postinstall": "node scripts/postinstall.js",
+    "preuninstall": "node scripts/preuninstall.js",
     "test": "node --test test/*.test.js",
     "release": "./scripts/release.sh"
   },
