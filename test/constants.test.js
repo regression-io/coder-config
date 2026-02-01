@@ -7,7 +7,8 @@ describe('constants', () => {
   describe('VERSION', () => {
     it('should be a valid semver string', () => {
       assert.ok(typeof VERSION === 'string');
-      assert.ok(/^\d+\.\d+\.\d+$/.test(VERSION));
+      // Accept both stable (X.Y.Z) and beta (X.Y.Z-beta.N) versions
+      assert.ok(/^\d+\.\d+\.\d+(-beta\.\d+)?$/.test(VERSION));
     });
 
     it('should match package.json version', () => {
