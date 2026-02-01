@@ -69,6 +69,16 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Commit version bump
+        env:
+          BETA_VERSION: ${{ steps.version.outputs.beta }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json lib/constants.js ui/package.json
+          git commit -m "chore: bump version to ${BETA_VERSION} [skip ci]" || echo "No changes to commit"
+          git push
+
       - name: Summary
         env:
           BETA_VERSION: ${{ steps.version.outputs.beta }}
