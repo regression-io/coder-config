@@ -131,6 +131,32 @@ export const api = {
     });
   },
 
+  // Global MCPs (~/.claude.json)
+  async getGlobalMcps() {
+    return request('/global-mcps');
+  },
+
+  async addGlobalMcp(name, config) {
+    return request('/global-mcps', {
+      method: 'POST',
+      body: { name, config },
+    });
+  },
+
+  async removeGlobalMcp(name) {
+    return request('/global-mcps/remove', {
+      method: 'POST',
+      body: { name },
+    });
+  },
+
+  async updateGlobalMcp(name, config) {
+    return request('/global-mcps/update', {
+      method: 'POST',
+      body: { name, config },
+    });
+  },
+
   // Registry
   async getRegistry() {
     return request('/registry');

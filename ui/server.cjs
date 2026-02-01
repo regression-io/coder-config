@@ -441,6 +441,29 @@ class ConfigUIServer {
         }
         break;
 
+      // Global MCPs (~/.claude.json)
+      case '/api/global-mcps':
+        if (req.method === 'GET') {
+          return this.json(res, routes.configs.getGlobalMcps(this.manager));
+        }
+        if (req.method === 'POST') {
+          const result = routes.configs.addGlobalMcp(this.manager, body.name, body.config);
+          return this.json(res, result);
+        }
+        break;
+
+      case '/api/global-mcps/remove':
+        if (req.method === 'POST') {
+          return this.json(res, routes.configs.removeGlobalMcp(this.manager, body.name));
+        }
+        break;
+
+      case '/api/global-mcps/update':
+        if (req.method === 'POST') {
+          return this.json(res, routes.configs.updateGlobalMcp(this.manager, body.name, body.config));
+        }
+        break;
+
       case '/api/version':
         return this.json(res, {
           version: this.serverVersion,

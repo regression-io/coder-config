@@ -28,7 +28,7 @@ import {
 
 // Extracted components
 import { FolderRow } from './tree';
-import { McpEditor, MarkdownEditor, SettingsEditor } from './editors';
+import { McpEditor, MarkdownEditor, SettingsEditor, GlobalMcpEditor } from './editors';
 import { MoveCopyDialog, RenameDialog, CreateFileDialog } from './dialogs';
 
 export default function FileExplorer({ project, onRefresh }) {
@@ -286,6 +286,16 @@ export default function FileExplorer({ project, onRefresh }) {
     const configDir = selectedItem.path ? selectedItem.path.replace(/\/.claude\/mcps\.json$/, '') : null;
 
     switch (selectedItem.type) {
+      case 'global-mcps':
+        // Global MCPs editor - edits ~/.claude.json mcpServers
+        return (
+          <GlobalMcpEditor
+            content={fileContent.content}
+            parsed={fileContent.parsed}
+            onSave={handleSaveFile}
+            registry={registry}
+          />
+        );
       case 'mcps':
         return (
           <McpEditor

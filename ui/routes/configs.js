@@ -534,6 +534,89 @@ function applyTemplateToDir(template, absDir) {
   return { applied: true };
 }
 
+/**
+ * Get global MCPs from ~/.claude.json
+ */
+function getGlobalMcps(manager) {
+  const homeDir = process.env.HOME || '';
+  const claudeJsonPath = path.join(homeDir, '.claude.json');
+
+  if (!fs.existsSync(claudeJsonPath)) {
+    return { mcpServers: {}, path: claudeJsonPath };
+  }
+
+  try {
+    const content = JSON.parse(fs.readFileSync(claudeJsonPath, 'utf-8'));
+    return {
+      mcpServers: content.mcpServers || {},
+      path: claudeJsonPath
+    };
+  } catch (e) {
+    return { mcpServers: {}, path: claudeJsonPath, error: e.message };
+  }
+}
+
+/**
+ * Add MCP to global config (~/.claude.json)
+ */
+function addGlobalMcp(manager, name, config) {
+  const homeDir = process.env.HOME || '';
+  const claudeJsonPath = path.join(homeDir, '.claude.json');
+
+  let content = {};
+  if (fs.existsSync(claudeJsonPath)) {
+    try {
+      content = JSON.parse(fs.readFileSync(claudeJsonPath, 'utf-8'));
+    } catch (e) {
+      return { success: false, error: 'Failed to parse ~/.claude.json: ' + e.message };
+    }
+  }
+
+  if (!content.mcpServers) {
+    content.mcpServers = {};
+  }
+
+  content.mcpServers[name] = config;
+  fs.writeFileSync(claudeJsonPath, JSON.stringify(content, null, 2));
+
+  return { success: true, name };
+}
+
+/**
+ * Remove MCP from global config (~/.claude.json)
+ */
+function removeGlobalMcp(manager, name) {
+  const homeDir = process.env.HOME || '';
+  const claudeJsonPath = path.join(homeDir, '.claude.json');
+
+  if (!fs.existsSync(claudeJsonPath)) {
+    return { success: false, error: '~/.claude.json not found' };
+  }
+
+  let content;
+  try {
+    content = JSON.parse(fs.readFileSync(claudeJsonPath, 'utf-8'));
+  } catch (e) {
+    return { success: false, error: 'Failed to parse ~/.claude.json: ' + e.message };
+  }
+
+  if (!content.mcpServers || !content.mcpServers[name]) {
+    return { success: false, error: `MCP "${name}" not found in global config` };
+  }
+
+  delete content.mcpServers[name];
+  fs.writeFileSync(claudeJsonPath, JSON.stringify(content, null, 2));
+
+  return { success: true, name };
+}
+
+/**
+ * Update MCP in global config (~/.claude.json)
+ */
+function updateGlobalMcp(manager, name, config) {
+  return addGlobalMcp(manager, name, config);
+}
+
 module.exports = {
   getConfigs,
   getInheritedMcps,
@@ -543,4 +626,8 @@ module.exports = {
   detectTemplate,
   applyTemplateBatch,
   applyTemplateToDir,
+  getGlobalMcps,
+  addGlobalMcp,
+  removeGlobalMcp,
+  updateGlobalMcp,
 };

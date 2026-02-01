@@ -86,6 +86,24 @@ function scanFolderForExplorer(dir, manager, label = null) {
     });
   }
 
+  // Global MCPs (~/.claude.json) - only for home directory
+  if (dir === home) {
+    const claudeJsonPath = path.join(home, '.claude.json');
+    if (fs.existsSync(claudeJsonPath)) {
+      const content = manager.loadJson(claudeJsonPath) || {};
+      const mcpCount = Object.keys(content.mcpServers || {}).length;
+      // Insert at the beginning of files array so it appears first
+      folder.files.unshift({
+        name: '.claude.json',
+        path: claudeJsonPath,
+        type: 'global-mcps',
+        size: fs.statSync(claudeJsonPath).size,
+        mcpCount,
+        isGlobal: true
+      });
+    }
+  }
+
   return folder;
 }
 
