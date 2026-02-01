@@ -14,6 +14,7 @@ describe('apply', () => {
   let originalLog;
   let originalWarn;
   let originalError;
+  let originalHome;
   let logs;
   let warnings;
   let errors;
@@ -23,12 +24,16 @@ describe('apply', () => {
     originalLog = console.log;
     originalWarn = console.warn;
     originalError = console.error;
+    // Mock HOME to prevent reading from real ~/.claude.json
+    originalHome = process.env.HOME;
+    process.env.HOME = tempDir;
   });
 
   after(() => {
     console.log = originalLog;
     console.warn = originalWarn;
     console.error = originalError;
+    process.env.HOME = originalHome;
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 

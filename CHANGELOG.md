@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Users get stable by default: `npm install coder-config`
   - **Release Channel preference** in Preferences → select Stable or Beta
   - Beta channel shows warning about potential bugs and data loss
+- **Global MCP management** - Manage MCPs in Claude Code's native `~/.claude.json`
+  - `coder-config global` - List global MCPs
+  - `coder-config global add <mcp>` - Add MCP to global config
+  - `coder-config global remove <mcp>` - Remove MCP from global config
+  - Config hierarchy now reads global MCPs from `~/.claude.json` under `mcpServers` key
+  - Deprecates `~/.claude/mcps.json` for global MCPs (legacy still supported)
 - **Multi-AI context generation** - Generate workstream context with any supported AI tool
   - Supported tools: Claude, Gemini, Codex (OpenAI), Ollama (local), Aider
   - UI dropdown to select AI tool when generating context

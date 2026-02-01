@@ -22,7 +22,7 @@ const { VERSION, TOOL_PATHS } = require('./lib/constants');
 const { loadJson, saveJson, loadEnvFile, interpolate, resolveEnvVars, copyDirRecursive } = require('./lib/utils');
 const { findProjectRoot, findAllConfigs, mergeConfigs, getConfigPath, collectFilesFromHierarchy, findAllConfigsForTool } = require('./lib/config');
 const { apply, applyForAntigravity, applyForGemini, detectInstalledTools, applyForTools } = require('./lib/apply');
-const { list, add, remove } = require('./lib/mcps');
+const { list, add, remove, listGlobal, addGlobal, removeGlobal } = require('./lib/mcps');
 const { registryList, registryAdd, registryRemove } = require('./lib/registry');
 const { init, show } = require('./lib/init');
 const { memoryList, memoryInit, memoryAdd, memorySearch } = require('./lib/memory');
@@ -138,10 +138,15 @@ class ClaudeConfigManager {
   getToolPaths() { return TOOL_PATHS; }
   applyForTools(projectDir, tools) { return applyForTools(this.registryPath, projectDir, tools); }
 
-  // MCPs
+  // MCPs (project)
   list() { return list(this.registryPath); }
   add(mcpNames) { return add(this.registryPath, this.installDir, mcpNames); }
   remove(mcpNames) { return remove(this.installDir, mcpNames); }
+
+  // MCPs (global - ~/.claude.json)
+  globalList() { return listGlobal(); }
+  globalAdd(mcpNames) { return addGlobal(this.registryPath, mcpNames); }
+  globalRemove(mcpNames) { return removeGlobal(mcpNames); }
 
   // Registry
   registryList() { return registryList(this.registryPath); }
