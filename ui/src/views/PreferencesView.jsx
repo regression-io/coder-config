@@ -29,6 +29,7 @@ export default function PreferencesView({ onConfigChange }) {
   const [hiddenSubprojects, setHiddenSubprojects] = useState([]);
   const [changelogDialog, setChangelogDialog] = useState({ open: false, content: '', loading: false });
   const [experimentalWarning, setExperimentalWarning] = useState({ open: false, feature: null });
+  const [betaWarning, setBetaWarning] = useState({ open: false });
 
   useEffect(() => {
     loadConfig();
@@ -713,6 +714,39 @@ export default function PreferencesView({ onConfigChange }) {
                 />
               </div>
 
+              <div className="flex items-center justify-between text-sm pt-2">
+                <div>
+                  <span className="text-muted-foreground">Release Channel</span>
+                  <p className="text-xs text-muted-foreground/70">
+                    {config?.releaseChannel === 'beta' ? (
+                      <span className="text-yellow-500 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        Beta builds may have bugs
+                      </span>
+                    ) : (
+                      'Stable releases (recommended)'
+                    )}
+                  </p>
+                </div>
+                <select
+                  value={config?.releaseChannel || 'stable'}
+                  onChange={(e) => {
+                    const newChannel = e.target.value;
+                    if (newChannel === 'beta') {
+                      setBetaWarning({ open: true });
+                    } else {
+                      updateConfig('releaseChannel', newChannel);
+                      api.saveConfig({ ...config, releaseChannel: newChannel });
+                      toast.success('Switched to stable releases');
+                    }
+                  }}
+                  className="bg-background border border-border rounded px-2 py-1 text-sm"
+                >
+                  <option value="stable">Stable</option>
+                  <option value="beta">Beta</option>
+                </select>
+              </div>
+
               <div className="border-t border-border pt-3 mt-3 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Documentation</span>
@@ -868,6 +902,57 @@ export default function PreferencesView({ onConfigChange }) {
             >
               <FlaskConical className="w-4 h-4 mr-2" />
               Enable Feature
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Beta Channel Warning Dialog */}
+      <Dialog open={betaWarning.open} onOpenChange={(open) => setBetaWarning({ open })}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+              <AlertTriangle className="w-5 h-5" />
+              Switch to Beta Channel?
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <p>
+                  You are about to switch to <strong className="text-foreground">beta releases</strong>.
+                </p>
+                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                  <p className="text-red-700 dark:text-red-300 font-medium mb-2">Warning:</p>
+                  <ul className="list-disc pl-4 space-y-1 text-red-600 dark:text-red-400">
+                    <li><strong>Things may break</strong> - beta releases are not fully tested</li>
+                    <li><strong>Data loss possible</strong> - bugs could corrupt your configuration</li>
+                    <li><strong>Frequent changes</strong> - behavior may change unexpectedly</li>
+                    <li><strong>No rollback</strong> - you'll need to manually downgrade if issues occur</li>
+                  </ul>
+                </div>
+                <p className="text-yellow-600 dark:text-yellow-400">
+                  Only enable this if you're comfortable debugging issues and reporting bugs.
+                </p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setBetaWarning({ open: false })}
+            >
+              Stay on Stable
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                updateConfig('releaseChannel', 'beta');
+                api.saveConfig({ ...config, releaseChannel: 'beta' });
+                toast.warning('Switched to beta releases - expect bugs!');
+                setBetaWarning({ open: false });
+              }}
+            >
+              <AlertTriangle className="w-4 h-4 mr-2" />
+              Switch to Beta
             </Button>
           </DialogFooter>
         </DialogContent>

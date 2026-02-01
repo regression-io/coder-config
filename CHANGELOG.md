@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Stable releases via `npm run release` or GitHub Actions dispatch
   - Beta versions: `0.46.0-beta.{build-number}`
   - Users get stable by default: `npm install coder-config`
+  - **Release Channel preference** in Preferences → select Stable or Beta
+  - Beta channel shows warning about potential bugs and data loss
 - **Multi-AI context generation** - Generate workstream context with any supported AI tool
   - Supported tools: Claude, Gemini, Codex (OpenAI), Ollama (local), Aider
   - UI dropdown to select AI tool when generating context

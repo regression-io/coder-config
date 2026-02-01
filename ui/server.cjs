@@ -551,7 +551,7 @@ class ConfigUIServer {
         return this.json(res, routes.fileExplorer.getFileHashes(this.manager, this.projectDir, this.config));
 
       case '/api/version-check':
-        return this.json(res, await routes.updates.checkForUpdates(this.manager, __dirname));
+        return this.json(res, await routes.updates.checkForUpdates(this.manager, __dirname, this.config?.releaseChannel || 'stable'));
 
       case '/api/update':
         if (req.method === 'POST') return this.json(res, await routes.updates.performUpdate(body, this.manager));

@@ -38,11 +38,13 @@ function getVersionFromFile(filePath) {
 /**
  * Fetch npm version and verify it's installable
  * Uses multiple verification steps to ensure CDN has propagated
+ * @param {string} channel - 'stable' or 'beta' (default: 'stable')
  */
-function fetchNpmVersion() {
+function fetchNpmVersion(channel = 'stable') {
   return new Promise((resolve) => {
-    // Step 1: Get latest version from registry
-    const url = 'https://registry.npmjs.org/coder-config/latest';
+    // Step 1: Get version from registry (latest for stable, beta tag for beta)
+    const tag = channel === 'beta' ? 'beta' : 'latest';
+    const url = `https://registry.npmjs.org/coder-config/${tag}`;
     const req = https.get(url, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
@@ -181,15 +183,18 @@ async function preCachePackage(version) {
 /**
  * Check for updates
  * Only reports update available if package is pre-cached and ready to install
+ * @param {object} manager - Config manager instance
+ * @param {string} dirname - Directory name
+ * @param {string} channel - 'stable' or 'beta' (default: 'stable')
  */
-async function checkForUpdates(manager, dirname) {
+async function checkForUpdates(manager, dirname, channel = 'stable') {
   // Get current installed version
   const installedVersion = getVersionFromFile(
     path.join(dirname, '..', 'config-loader.js')
   );
 
-  // Check npm for latest version
-  const npmVersion = await fetchNpmVersion();
+  // Check npm for version (respects channel preference)
+  const npmVersion = await fetchNpmVersion(channel);
 
   console.log(`[update-check] installed: ${installedVersion}, npm: ${npmVersion}`);
 
@@ -216,6 +221,7 @@ async function checkForUpdates(manager, dirname) {
       latestVersion: npmVersion,
       sourceVersion: npmVersion, // legacy alias for v0.37.0 compatibility
       updateMethod: 'npm',
+      channel,
       installDir: manager.installDir
     };
   }
@@ -232,15 +238,19 @@ async function checkForUpdates(manager, dirname) {
 
 /**
  * Perform npm update
+ * @param {string} targetVersion - Target version to install
+ * @param {string} channel - 'stable' or 'beta' (default: 'stable')
  */
-async function performNpmUpdate(targetVersion) {
+async function performNpmUpdate(targetVersion, channel = 'stable') {
   const maxRetries = 3;
   const retryDelayMs = 5000;
+  // Tag is hardcoded to prevent injection - only 'beta' or 'latest'
+  const tag = channel === 'beta' ? 'beta' : 'latest';
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      // Use npm install @latest instead of npm update for reliable updates
-      execSync('npm install -g coder-config@latest', {
+      // Use npm install with appropriate tag (tag is validated above)
+      execSync(`npm install -g coder-config@${tag}`, {
         stdio: 'pipe',
         timeout: 120000
       });
@@ -388,10 +398,10 @@ function performLocalUpdate(sourcePath, manager) {
  * Perform update
  */
 async function performUpdate(options, manager) {
-  const { updateMethod, sourcePath, targetVersion } = options;
+  const { updateMethod, sourcePath, targetVersion, channel } = options;
 
   if (updateMethod === 'npm') {
-    return await performNpmUpdate(targetVersion);
+    return await performNpmUpdate(targetVersion, channel);
   }
 
   if (sourcePath) {
