@@ -95,7 +95,7 @@ export default function Dashboard() {
   const [modalContent, setModalContent] = useState({ title: '', type: '' });
   const [searchQuery, setSearchQuery] = useState('');
   const [editorContent, setEditorContent] = useState('');
-  const [fileHashes, setFileHashes] = useState({});
+  const fileHashesRef = useRef({});
   const [updateInfo, setUpdateInfo] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [addProjectOpen, setAddProjectOpen] = useState(false);
@@ -410,7 +410,7 @@ export default function Dashboard() {
     const checkFileChanges = async () => {
       try {
         const { hashes } = await api.getFileHashes();
-        const oldHashes = fileHashes;
+        const oldHashes = fileHashesRef.current;
 
         // Check if any hashes changed
         const hasChanges = Object.keys(hashes).some(
@@ -437,7 +437,7 @@ export default function Dashboard() {
           }
         }
 
-        setFileHashes(hashes);
+        fileHashesRef.current = hashes;
       } catch (error) {
         // Ignore polling errors
       }
@@ -447,7 +447,7 @@ export default function Dashboard() {
     checkFileChanges(); // Initial check
 
     return () => clearInterval(interval);
-  }, [fileHashes, loadData, rootProject]);
+  }, [loadData, rootProject]);
 
   // Calculate unique enabled MCPs (not counting duplicates across levels)
   const uniqueEnabledMcps = new Set();
