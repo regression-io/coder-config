@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Inline MCP toggle & edit** - Inline MCPs now have on/off switch and edit button
+  - Toggle disables MCP by adding to `exclude` array (preserves config)
+  - Edit button opens dialog to modify MCP JSON configuration
+  - Visual feedback: grayed out with strikethrough when disabled
 - **Shell integration command** - Easy installation of zsh completions and hooks
   - `coder-config shell` - Check installation status
   - `coder-config shell install` - Add shell integration to ~/.zshrc
