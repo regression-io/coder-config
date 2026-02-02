@@ -423,7 +423,7 @@ export default function Dashboard() {
         const subprojectsChanged = oldHashes['__subprojects__'] !== hashes['__subprojects__'];
 
         if (hasChanges && Object.keys(oldHashes).length > 0) {
-          toast.info('Files changed externally, reloading...');
+          // Silently reload - no toast since CLI usage triggers frequent changes
           await loadData();
 
           // If subprojects changed, also refresh rootProject
