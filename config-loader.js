@@ -33,6 +33,7 @@ const { getActivityPath, getDefaultActivity, loadActivity, saveActivity, detectP
 const { getLoopsPath, loadLoops, saveLoops, loadLoopState, saveLoopState, loadHistory, saveHistory, loopList, loopCreate, loopGet, loopUpdate, loopDelete, loopStart, loopPause, loopResume, loopCancel, loopApprove, loopComplete, loopFail, loopStatus, loopHistory, loopConfig, getActiveLoop, recordIteration, saveClarifications, savePlan, loadClarifications, loadPlan, loopInject, archiveLoop } = require('./lib/loops');
 const { getSessionStatus, showSessionStatus, flushContext, clearContext, installHooks: sessionInstallHooks, getFlushedContext, installFlushCommand, installAll: sessionInstallAll, SESSION_DIR, FLUSHED_CONTEXT_FILE } = require('./lib/sessions');
 const { runCli } = require('./lib/cli');
+const { shellStatus, shellInstall, shellUninstall, printShellStatus } = require('./lib/shell');
 
 class ClaudeConfigManager {
   constructor() {
@@ -274,6 +275,12 @@ class ClaudeConfigManager {
   getFlushedContext() { return getFlushedContext(); }
   getSessionDir() { return SESSION_DIR; }
   getFlushedContextPath() { return FLUSHED_CONTEXT_FILE; }
+
+  // Shell integration
+  shellStatus() { return printShellStatus(); }
+  shellInstall() { return shellInstall(); }
+  shellUninstall() { return shellUninstall(); }
+  getShellStatus() { return shellStatus(); }
 
   // Update - check npm for updates or update from local source
   async update(args = []) {

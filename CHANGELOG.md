@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Shell integration command** - Easy installation of zsh completions and hooks
+  - `coder-config shell` - Check installation status
+  - `coder-config shell install` - Add shell integration to ~/.zshrc
+  - `coder-config shell uninstall` - Remove shell integration
+- **Complete zsh completions** - Tab completion for all commands and subcommands
+  - Context-aware: completes workstream names, MCP names, project names, loop IDs
+  - Subcommand completion for: workstream, loop, memory, env, project, registry, ui, session
+  - Dynamic completion from registry.json, workstreams.json, projects.json
+
 ## [0.46.1] - 2026-02-02
 
 ### Fixed
