@@ -479,10 +479,9 @@ class ConfigUIServer {
         if (req.method === 'POST') {
           this.json(res, { success: true, message: 'Server restarting...' });
           setTimeout(() => {
-            const child = spawn(process.argv[0], process.argv.slice(1), {
-              detached: true, stdio: 'ignore', cwd: process.cwd(), env: process.env
-            });
-            child.unref();
+            // Just exit - LaunchAgent will restart us from the plist config,
+            // which will pick up the newly installed version
+            console.log('[restart] Exiting for restart...');
             process.exit(0);
           }, 500);
           return;
