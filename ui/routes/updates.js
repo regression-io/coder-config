@@ -207,15 +207,43 @@ async function checkForUpdates(manager, dirname, channel = 'stable') {
     path.join(dirname, '..', 'config-loader.js')
   );
 
-  // Check npm for version (respects channel preference)
-  const npmVersion = await fetchNpmVersion(channel);
+  // Check npm for versions
+  // Beta channel should also see stable releases (stable is always preferred if newer)
+  const betaVersion = channel === 'beta' ? await fetchNpmVersion('beta') : null;
+  const stableVersion = await fetchNpmVersion('stable');
 
-  console.log(`[update-check] installed: ${installedVersion}, npm: ${npmVersion}`);
+  console.log(`[update-check] installed: ${installedVersion}, stable: ${stableVersion}, beta: ${betaVersion}`);
 
-  if (npmVersion && isNewerVersion(npmVersion, installedVersion)) {
+  // Determine which version to offer (prefer stable if it's newer than both)
+  let targetVersion = null;
+  let targetChannel = channel;
+
+  if (channel === 'beta') {
+    // On beta channel: prefer stable if newer, otherwise beta
+    if (stableVersion && isNewerVersion(stableVersion, installedVersion)) {
+      // Stable is newer than installed - check if it's also newer than beta
+      if (!betaVersion || isNewerVersion(stableVersion, betaVersion)) {
+        targetVersion = stableVersion;
+        targetChannel = 'stable';
+      } else {
+        targetVersion = betaVersion;
+        targetChannel = 'beta';
+      }
+    } else if (betaVersion && isNewerVersion(betaVersion, installedVersion)) {
+      targetVersion = betaVersion;
+      targetChannel = 'beta';
+    }
+  } else {
+    // On stable channel: only offer stable
+    if (stableVersion && isNewerVersion(stableVersion, installedVersion)) {
+      targetVersion = stableVersion;
+      targetChannel = 'stable';
+    }
+  }
+
+  if (targetVersion) {
     // Pre-cache the package before showing notification
-    // This ensures the update will actually work when clicked
-    const cached = await preCachePackage(npmVersion);
+    const cached = await preCachePackage(targetVersion);
 
     if (!cached) {
       console.log('[update-check] update found but not yet installable, skipping notification');
@@ -228,24 +256,24 @@ async function checkForUpdates(manager, dirname, channel = 'stable') {
       };
     }
 
-    console.log('[update-check] update available and pre-cached');
+    console.log(`[update-check] update available: ${targetVersion} (${targetChannel})`);
     return {
       updateAvailable: true,
       installedVersion,
-      latestVersion: npmVersion,
-      sourceVersion: npmVersion, // legacy alias for v0.37.0 compatibility
+      latestVersion: targetVersion,
+      sourceVersion: targetVersion,
       updateMethod: 'npm',
-      channel,
+      channel: targetChannel,
       installDir: manager.installDir
     };
   }
 
-  // No update available from npm
+  // No update available
   return {
     updateAvailable: false,
     installedVersion,
-    latestVersion: npmVersion || installedVersion,
-    sourceVersion: npmVersion || installedVersion, // legacy alias for v0.37.0 compatibility
+    latestVersion: stableVersion || installedVersion,
+    sourceVersion: stableVersion || installedVersion,
     installDir: manager.installDir
   };
 }
