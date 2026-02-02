@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Inline MCP toggle & edit** - Inline MCPs now have on/off switch and edit button
+
+### Fixed
+
+- **Workstream rules generation** - AI-generated rules now work correctly
+  - Reads project files locally before passing to AI (spawned AI can't read files)
+  - Gathers CLAUDE.md, package.json, pyproject.toml, rules/*.md, etc.
+  - Fixes "don't have permission" errors when generating workstream context
   - Toggle disables MCP by adding to `exclude` array (preserves config)
   - Edit button opens dialog to modify MCP JSON configuration
   - Visual feedback: grayed out with strikethrough when disabled
