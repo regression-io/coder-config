@@ -215,7 +215,8 @@ export default function Dashboard() {
 
             const result = await api.performUpdate({
               updateMethod: versionData.updateMethod,
-              targetVersion: versionData.latestVersion
+              targetVersion: versionData.latestVersion,
+              channel: versionData.channel
             });
 
             if (result.success) {
@@ -288,9 +289,9 @@ export default function Dashboard() {
   };
 
   // Trigger update and handle restart
-  const triggerUpdate = async (targetVersion, updateMethod = 'npm') => {
+  const triggerUpdate = async (targetVersion, updateMethod = 'npm', channel) => {
     setUpdating(true);
-    const result = await api.performUpdate({ updateMethod, targetVersion });
+    const result = await api.performUpdate({ updateMethod, targetVersion, channel });
     if (result.success) {
       toast.success(`Updated to v${result.newVersion}! Restarting server...`);
       setUpdateInfo(null);
@@ -342,7 +343,7 @@ export default function Dashboard() {
         if (appConfig?.autoUpdate) {
           setCheckingUpdates(false);
           toast.info(`Auto-updating to v${latest}...`);
-          await triggerUpdate(latest, versionData?.updateMethod || 'npm');
+          await triggerUpdate(latest, versionData?.updateMethod || 'npm', versionData?.channel);
         } else {
           setUpdateInfo({ ...versionData, updateAvailable: true });
           toast.info(`Update available: v${latest}`);
@@ -363,7 +364,8 @@ export default function Dashboard() {
       const result = await api.performUpdate({
         updateMethod: updateInfo.updateMethod,
         sourcePath: updateInfo.sourcePath,
-        targetVersion: updateInfo.latestVersion
+        targetVersion: updateInfo.latestVersion,
+        channel: updateInfo.channel
       });
       if (result.success) {
         // Show success message and restart the server

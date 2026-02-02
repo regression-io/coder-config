@@ -90,7 +90,8 @@ export default function PreferencesView({ onConfigChange }) {
     try {
       const result = await api.performUpdate({
         updateMethod: versionInfo.updateMethod,
-        sourcePath: versionInfo.sourcePath
+        sourcePath: versionInfo.sourcePath,
+        channel: versionInfo.channel
       });
       if (result.success) {
         toast.success(`Updated to v${result.newVersion}! Restarting server...`);
