@@ -7,6 +7,7 @@ const os = require('os');
 // Create temp directory for tests
 const TEST_DIR = path.join(os.tmpdir(), 'shell-test-' + Date.now());
 const ORIGINAL_HOME = process.env.HOME;
+const ORIGINAL_SHELL = process.env.SHELL;
 
 // Import module
 const {
@@ -21,13 +22,15 @@ describe('shell', () => {
   before(() => {
     // Create test directory
     fs.mkdirSync(TEST_DIR, { recursive: true });
-    // Override HOME for tests
+    // Override HOME and SHELL for tests (ensure consistent behavior across platforms)
     process.env.HOME = TEST_DIR;
+    process.env.SHELL = '/bin/zsh';
   });
 
   after(() => {
-    // Restore HOME
+    // Restore environment
     process.env.HOME = ORIGINAL_HOME;
+    process.env.SHELL = ORIGINAL_SHELL;
     // Clean up
     fs.rmSync(TEST_DIR, { recursive: true, force: true });
   });

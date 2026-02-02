@@ -71,6 +71,7 @@
     "shared/**",
     "scripts/**",
     "hooks/**",
+    "shell/**",
     "README.md"
   ],
   "devDependencies": {
