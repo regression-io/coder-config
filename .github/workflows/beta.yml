@@ -30,8 +30,26 @@ jobs:
           # Get current version from package.json
           CURRENT=$(node -p "require('./package.json').version")
 
-          # Strip any existing -beta suffix to get base
-          BASE=$(echo "$CURRENT" | sed 's/-beta$//')
+          # Get latest beta version from npm (may not exist)
+          NPM_BETA=$(npm view coder-config@beta version 2>/dev/null || echo "")
+          echo "Current in package.json: $CURRENT"
+          echo "Latest beta on npm: ${NPM_BETA:-none}"
+
+          # Use the higher of package.json or npm beta as base
+          if [ -n "$NPM_BETA" ]; then
+            # Strip -beta suffix from npm version
+            NPM_BASE=$(echo "$NPM_BETA" | sed 's/-beta$//')
+            PKG_BASE=$(echo "$CURRENT" | sed 's/-beta$//')
+
+            # Compare versions - use npm if it's higher
+            if [ "$(printf '%s\n' "$NPM_BASE" "$PKG_BASE" | sort -V | tail -n1)" = "$NPM_BASE" ]; then
+              BASE="$NPM_BASE"
+            else
+              BASE="$PKG_BASE"
+            fi
+          else
+            BASE=$(echo "$CURRENT" | sed 's/-beta$//')
+          fi
 
           # Parse major.minor.patch
           MAJOR=$(echo "$BASE" | cut -d. -f1)
@@ -44,7 +62,7 @@ jobs:
 
           echo "current=$CURRENT" >> $GITHUB_OUTPUT
           echo "beta=$BETA_VERSION" >> $GITHUB_OUTPUT
-          echo "Generated beta version: $BETA_VERSION (was $CURRENT)"
+          echo "Generated beta version: $BETA_VERSION (base was $BASE)"
 
       - name: Update version for beta
         env:
