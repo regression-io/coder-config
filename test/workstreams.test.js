@@ -17,6 +17,9 @@ const {
   workstreamGet,
   getActiveWorkstream,
   countWorkstreamsForProject,
+  workstreamSetSandbox,
+  applySandboxIfEnabled,
+  workstreamDeactivate,
 } = require('../lib/workstreams.js');
 
 describe('workstreams', () => {
@@ -638,6 +641,251 @@ describe('workstreams', () => {
 
       assert.ok(ws);
       assert.strictEqual(ws.rules.length, longRules.length);
+    });
+  });
+
+  describe('workstreamSetSandbox', () => {
+    let workstreamId;
+
+    beforeEach(() => {
+      const ws = workstreamCreate(installDir, 'Test', [projectDir1]);
+      workstreamId = ws.id;
+    });
+
+    it('should enable sandbox with "on"', () => {
+      const ws = workstreamSetSandbox(installDir, workstreamId, 'on');
+      assert.strictEqual(ws.sandbox, true);
+    });
+
+    it('should disable sandbox with "off"', () => {
+      workstreamSetSandbox(installDir, workstreamId, 'on');
+      const ws = workstreamSetSandbox(installDir, workstreamId, 'off');
+      assert.strictEqual(ws.sandbox, false);
+    });
+
+    it('should accept boolean true', () => {
+      const ws = workstreamSetSandbox(installDir, workstreamId, true);
+      assert.strictEqual(ws.sandbox, true);
+    });
+
+    it('should accept boolean false', () => {
+      const ws = workstreamSetSandbox(installDir, workstreamId, false);
+      assert.strictEqual(ws.sandbox, false);
+    });
+
+    it('should accept string "true" and "false"', () => {
+      let ws = workstreamSetSandbox(installDir, workstreamId, 'true');
+      assert.strictEqual(ws.sandbox, true);
+      ws = workstreamSetSandbox(installDir, workstreamId, 'false');
+      assert.strictEqual(ws.sandbox, false);
+    });
+
+    it('should return null for invalid value', () => {
+      const ws = workstreamSetSandbox(installDir, workstreamId, 'banana');
+      assert.strictEqual(ws, null);
+    });
+
+    it('should return null for non-existent workstream', () => {
+      const ws = workstreamSetSandbox(installDir, 'nonexistent', 'on');
+      assert.strictEqual(ws, null);
+    });
+
+    it('should persist sandbox setting', () => {
+      workstreamSetSandbox(installDir, workstreamId, 'on');
+      const data = loadWorkstreams(installDir);
+      const ws = data.workstreams.find(w => w.id === workstreamId);
+      assert.strictEqual(ws.sandbox, true);
+    });
+
+    it('should update updatedAt timestamp', () => {
+      workstreamSetSandbox(installDir, workstreamId, 'on');
+      const after = loadWorkstreams(installDir).workstreams[0].updatedAt;
+      assert.ok(after, 'updatedAt should be set');
+      assert.ok(!isNaN(new Date(after).getTime()), 'updatedAt should be valid ISO date');
+    });
+
+    it('should find workstream by name (case insensitive)', () => {
+      const ws = workstreamSetSandbox(installDir, 'test', 'on');
+      assert.strictEqual(ws.sandbox, true);
+    });
+  });
+
+  describe('applySandboxIfEnabled', () => {
+    it('should return false when sandbox is not enabled', () => {
+      const ws = { sandbox: false, projects: [projectDir1, projectDir2] };
+      const result = applySandboxIfEnabled(ws, projectDir1);
+      assert.strictEqual(result, false);
+    });
+
+    it('should return false when sandbox is undefined', () => {
+      const ws = { projects: [projectDir1, projectDir2] };
+      const result = applySandboxIfEnabled(ws, projectDir1);
+      assert.strictEqual(result, false);
+    });
+
+    it('should return false when active is null', () => {
+      const result = applySandboxIfEnabled(null, projectDir1);
+      assert.strictEqual(result, false);
+    });
+
+    it('should return false when no projects', () => {
+      const ws = { sandbox: true, projects: [] };
+      const result = applySandboxIfEnabled(ws, projectDir1);
+      assert.strictEqual(result, false);
+    });
+
+    it('should write settings.local.json when sandbox is enabled', () => {
+      const ws = { sandbox: true, projects: [projectDir1, projectDir2] };
+      fs.mkdirSync(path.join(projectDir1, '.claude'), { recursive: true });
+      const result = applySandboxIfEnabled(ws, projectDir1);
+      assert.strictEqual(result, true);
+
+      const settingsPath = path.join(projectDir1, '.claude', 'settings.local.json');
+      assert.ok(fs.existsSync(settingsPath));
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      assert.ok(settings.permissions);
+      assert.deepStrictEqual(settings.permissions.additionalDirectories, [projectDir2]);
+    });
+
+    it('should exclude CWD from additionalDirectories', () => {
+      const ws = { sandbox: true, projects: [projectDir1, projectDir2] };
+      fs.mkdirSync(path.join(projectDir1, '.claude'), { recursive: true });
+      applySandboxIfEnabled(ws, projectDir1);
+
+      const settings = JSON.parse(fs.readFileSync(
+        path.join(projectDir1, '.claude', 'settings.local.json'), 'utf8'
+      ));
+      assert.ok(!settings.permissions.additionalDirectories.includes(projectDir1));
+      assert.ok(settings.permissions.additionalDirectories.includes(projectDir2));
+    });
+
+    it('should return false when all projects are CWD or parents', () => {
+      const ws = { sandbox: true, projects: [projectDir1] };
+      const result = applySandboxIfEnabled(ws, projectDir1);
+      assert.strictEqual(result, false);
+    });
+
+    it('should merge with existing settings.local.json', () => {
+      const claudeDir = path.join(projectDir1, '.claude');
+      fs.mkdirSync(claudeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(claudeDir, 'settings.local.json'),
+        JSON.stringify({ hooks: { postResponse: [] } }, null, 2)
+      );
+
+      const ws = { sandbox: true, projects: [projectDir1, projectDir2] };
+      applySandboxIfEnabled(ws, projectDir1);
+
+      const settings = JSON.parse(fs.readFileSync(
+        path.join(claudeDir, 'settings.local.json'), 'utf8'
+      ));
+      assert.ok(settings.hooks, 'existing hooks should be preserved');
+      assert.ok(settings.permissions.additionalDirectories, 'additionalDirectories should be added');
+    });
+
+    it('should exclude parent directories of CWD', () => {
+      const subDir = path.join(projectDir1, 'sub');
+      fs.mkdirSync(subDir, { recursive: true });
+      fs.mkdirSync(path.join(subDir, '.claude'), { recursive: true });
+
+      const ws = { sandbox: true, projects: [projectDir1, projectDir2] };
+      applySandboxIfEnabled(ws, subDir);
+
+      const settings = JSON.parse(fs.readFileSync(
+        path.join(subDir, '.claude', 'settings.local.json'), 'utf8'
+      ));
+      // projectDir1 is parent of subDir, should be excluded
+      assert.ok(!settings.permissions.additionalDirectories.includes(projectDir1));
+      assert.ok(settings.permissions.additionalDirectories.includes(projectDir2));
+    });
+  });
+
+  describe('sandbox cleanup on deactivate', () => {
+    it('should remove additionalDirectories from settings.local.json', () => {
+      // Set up: create workstream with sandbox, write settings
+      const ws = workstreamCreate(installDir, 'Test', [projectDir1, projectDir2]);
+      workstreamSetSandbox(installDir, ws.id, 'on');
+
+      const claudeDir = path.join(projectDir1, '.claude');
+      fs.mkdirSync(claudeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(claudeDir, 'settings.local.json'),
+        JSON.stringify({ permissions: { additionalDirectories: [projectDir2] } }, null, 2)
+      );
+
+      // Set env var so deactivate can find the workstream
+      const origEnv = process.env.CODER_WORKSTREAM;
+      process.env.CODER_WORKSTREAM = ws.name;
+
+      // Deactivate cleans all project dirs
+      workstreamDeactivate(installDir);
+
+      process.env.CODER_WORKSTREAM = origEnv || '';
+      if (!origEnv) delete process.env.CODER_WORKSTREAM;
+
+      // settings.local.json should be deleted (was only sandbox data)
+      assert.ok(!fs.existsSync(path.join(claudeDir, 'settings.local.json')));
+    });
+
+    it('should preserve other settings.local.json content', () => {
+      const ws = workstreamCreate(installDir, 'Test', [projectDir1, projectDir2]);
+      workstreamSetSandbox(installDir, ws.id, 'on');
+
+      const claudeDir = path.join(projectDir1, '.claude');
+      fs.mkdirSync(claudeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(claudeDir, 'settings.local.json'),
+        JSON.stringify({
+          hooks: { postResponse: [] },
+          permissions: { additionalDirectories: [projectDir2] }
+        }, null, 2)
+      );
+
+      const origEnv = process.env.CODER_WORKSTREAM;
+      process.env.CODER_WORKSTREAM = ws.name;
+      workstreamDeactivate(installDir);
+      process.env.CODER_WORKSTREAM = origEnv || '';
+      if (!origEnv) delete process.env.CODER_WORKSTREAM;
+
+      // File should still exist with hooks preserved
+      const settingsPath = path.join(claudeDir, 'settings.local.json');
+      assert.ok(fs.existsSync(settingsPath));
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      assert.ok(settings.hooks, 'hooks should be preserved');
+      assert.ok(!settings.permissions, 'permissions should be removed (was empty after deleting additionalDirectories)');
+    });
+  });
+
+  describe('workstream list badges', () => {
+    it('should show sandbox badge when enabled', () => {
+      const ws = workstreamCreate(installDir, 'Test', [projectDir1]);
+      workstreamSetSandbox(installDir, ws.id, 'on');
+
+      workstreamList(installDir);
+      const output = logs.join('\n');
+      assert.ok(output.includes('[sandbox]'), 'should show [sandbox] badge');
+    });
+
+    it('should not show sandbox badge when disabled', () => {
+      workstreamCreate(installDir, 'Test', [projectDir1]);
+
+      workstreamList(installDir);
+      const output = logs.join('\n');
+      assert.ok(!output.includes('[sandbox]'), 'should not show [sandbox] badge');
+    });
+
+    it('should show both sandbox and auto badges', () => {
+      const ws = workstreamCreate(installDir, 'Test', [projectDir1]);
+      const data = loadWorkstreams(installDir);
+      const found = data.workstreams.find(w => w.id === ws.id);
+      found.sandbox = true;
+      found.autoActivate = true;
+      saveWorkstreams(installDir, data);
+
+      workstreamList(installDir);
+      const output = logs.join('\n');
+      assert.ok(output.includes('[sandbox]'), 'should show [sandbox] badge');
+      assert.ok(output.includes('[auto]'), 'should show [auto] badge');
     });
   });
 });

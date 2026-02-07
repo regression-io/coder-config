@@ -137,7 +137,7 @@ class ClaudeConfigManager {
   applyForGemini(projectDir) { return applyForGemini(this.registryPath, projectDir); }
   detectInstalledTools() { return detectInstalledTools(); }
   getToolPaths() { return TOOL_PATHS; }
-  applyForTools(projectDir, tools) { return applyForTools(this.registryPath, projectDir, tools); }
+  applyForTools(projectDir, tools) { return applyForTools(this.registryPath, projectDir, tools, this.installDir); }
 
   // MCPs (project)
   list() { return list(this.registryPath); }
@@ -197,7 +197,7 @@ class ClaudeConfigManager {
   workstreamInstallHook() { return workstreamInstallHook(); }
   workstreamInstallHookGemini() { return workstreamInstallHookGemini(); }
   workstreamInstallHookCodex() { return workstreamInstallHookCodex(); }
-  workstreamDeactivate() { return workstreamDeactivate(); }
+  workstreamDeactivate() { return workstreamDeactivate(this.installDir); }
   workstreamCheckPath(targetPath, silent) { return workstreamCheckPath(this.installDir, targetPath, silent); }
   // Workstream folder auto-activation
   getSettingsPath() { return getSettingsPath(this.installDir); }
