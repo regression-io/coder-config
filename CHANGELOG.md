@@ -29,6 +29,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Subcommand completion for: workstream, loop, memory, env, project, registry, ui, session
   - Dynamic completion from registry.json, workstreams.json, projects.json
 
+## [0.47.0] - 2026-02-07
+
+### Added
+
+- **Workstream Sandbox Integration** - OS-level directory enforcement via Claude Code's `/sandbox` feature
+  - When sandbox is enabled on a workstream, generates `.claude/settings.local.json` with `additionalDirectories`
+  - Claude Code's sandbox restricts file access to CWD + listed directories
+  - Works with `workstream inject` (pre-prompt hook) and `coder-config apply`
+  - Merges with existing `settings.local.json` (preserves hooks from Ralph Loops, etc.)
+  - `coder-config workstream sandbox <ws> on` - Enable OS-level sandbox enforcement
+  - `coder-config workstream sandbox <ws> off` - Disable (advisory LLM rules only)
+  - Default: off (advisory only) - existing behavior preserved
+  - Deactivating a workstream cleans up `additionalDirectories` from `settings.local.json`
+  - Workstream list shows sandbox badge when enabled
+
 ## [0.46.1] - 2026-02-02
 
 ### Fixed
