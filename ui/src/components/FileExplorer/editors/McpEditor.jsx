@@ -22,6 +22,7 @@ import {
 import { toast } from 'sonner';
 import { Server, Plus, Save, Trash2, Ban, Link2, AlertCircle, Zap, Pencil } from 'lucide-react';
 import api from '@/lib/api';
+import AddMcpDialog from './AddMcpDialog';
 
 export default function McpEditor({ content, parsed, onSave, registry, configDir }) {
   const [localConfig, setLocalConfig] = useState(parsed || { include: [], exclude: [], mcpServers: {} });
@@ -148,57 +149,16 @@ export default function McpEditor({ content, parsed, onSave, registry, configDir
     }
   };
 
-  const handleAddMcp = () => {
-    if (!addDialog.json.trim()) {
-      toast.error('Please paste the MCP JSON configuration');
-      return;
-    }
+  const handleAddMcp = (mcpsToAdd) => {
+    const newMcpServers = { ...(localConfig.mcpServers || {}), ...mcpsToAdd };
+    const newConfig = { ...localConfig, mcpServers: newMcpServers };
+    setLocalConfig(newConfig);
+    setJsonText(JSON.stringify(newConfig, null, 2));
+    autoSave(newConfig);
 
-    try {
-      let parsed;
-      try {
-        parsed = JSON.parse(addDialog.json);
-      } catch (e) {
-        toast.error('Invalid JSON format');
-        return;
-      }
-
-      let mcpsToAdd = {};
-      if (parsed.mcpServers && typeof parsed.mcpServers === 'object') {
-        mcpsToAdd = parsed.mcpServers;
-      } else if (typeof parsed === 'object' && !Array.isArray(parsed)) {
-        const keys = Object.keys(parsed);
-        if (keys.includes('command')) {
-          toast.error('JSON is missing the MCP name. Expected: { "name": { "command": "...", "args": [...] } }');
-          return;
-        }
-        mcpsToAdd = parsed;
-      }
-
-      if (Object.keys(mcpsToAdd).length === 0) {
-        toast.error('No MCP configurations found in the JSON');
-        return;
-      }
-
-      for (const [name, mcp] of Object.entries(mcpsToAdd)) {
-        if (!mcp.command) {
-          toast.error(`MCP "${name}" is missing required "command" field`);
-          return;
-        }
-      }
-
-      const newMcpServers = { ...(localConfig.mcpServers || {}), ...mcpsToAdd };
-      const newConfig = { ...localConfig, mcpServers: newMcpServers };
-      setLocalConfig(newConfig);
-      setJsonText(JSON.stringify(newConfig, null, 2));
-      autoSave(newConfig);
-
-      const count = Object.keys(mcpsToAdd).length;
-      toast.success(`Added ${count} MCP${count > 1 ? 's' : ''}`);
-      setAddDialog({ open: false, json: '' });
-    } catch (error) {
-      toast.error('Failed to add: ' + error.message);
-    }
+    const count = Object.keys(mcpsToAdd).length;
+    toast.success(`Added ${count} MCP${count > 1 ? 's' : ''}`);
+    setAddDialog({ open: false, json: '' });
   };
 
   const registryMcps = registry?.mcpServers ? Object.keys(registry.mcpServers) : [];
@@ -425,37 +385,11 @@ export default function McpEditor({ content, parsed, onSave, registry, configDir
         )}
       </ScrollArea>
 
-      <Dialog open={addDialog.open} onOpenChange={(open) => setAddDialog({ ...addDialog, open })}>
-        <DialogContent className="bg-white dark:bg-slate-950 max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Add MCP to Config</DialogTitle>
-            <DialogDescription>
-              Paste the MCP JSON configuration to add to this config file.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Textarea
-              value={addDialog.json}
-              onChange={(e) => setAddDialog({ ...addDialog, json: e.target.value })}
-              placeholder={'{\n  "my-mcp": {\n    "command": "npx",\n    "args": ["-y", "@example/mcp-server"],\n    "env": {\n      "API_KEY": "${API_KEY}"\n    }\n  }\n}'}
-              className="font-mono text-sm bg-gray-50 dark:bg-slate-800"
-              rows={12}
-            />
-            <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">
-              Accepts formats: <code className="bg-gray-100 dark:bg-slate-700 px-1 rounded">{'{ "name": { "command": "...", "args": [...] } }'}</code> or <code className="bg-gray-100 dark:bg-slate-700 px-1 rounded">{'{ "mcpServers": { ... } }'}</code>
-            </p>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setAddDialog({ open: false, json: '' })}>
-              Cancel
-            </Button>
-            <Button onClick={handleAddMcp} className="bg-blue-600 hover:bg-blue-700 text-white">
-              <Plus className="w-4 h-4 mr-2" />
-              Add MCP
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AddMcpDialog
+        open={addDialog.open}
+        onClose={(open) => setAddDialog({ ...addDialog, open })}
+        onAdd={handleAddMcp}
+      />
 
       <Dialog open={editDialog.open} onOpenChange={(open) => setEditDialog({ ...editDialog, open })}>
         <DialogContent className="bg-white dark:bg-slate-950 max-w-2xl">

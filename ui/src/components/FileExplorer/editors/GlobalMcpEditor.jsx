@@ -5,14 +5,6 @@ import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -21,6 +13,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Globe, Server, Plus, Save, Trash2, AlertCircle } from 'lucide-react';
+import AddMcpDialog from './AddMcpDialog';
 
 /**
  * Editor for global MCPs in ~/.claude.json
@@ -83,31 +76,15 @@ export default function GlobalMcpEditor({ content, parsed, onSave, registry }) {
   };
 
   // Add custom MCP from dialog
-  const handleAddCustom = () => {
-    try {
-      const parsed = JSON.parse(addDialog.json);
-      // Support both { name, config } and direct { command, args } formats
-      let name, config;
-      if (parsed.name && parsed.config) {
-        name = parsed.name;
-        config = parsed.config;
-      } else if (parsed.command || parsed.type) {
-        name = prompt('Enter MCP name:');
-        if (!name) return;
-        config = parsed;
-      } else {
-        toast.error('Invalid format. Use { "name": "...", "config": { "command": "..." } }');
-        return;
-      }
-      const newServers = { ...mcpServers, [name]: config };
-      setMcpServers(newServers);
-      setJsonText(JSON.stringify(newServers, null, 2));
-      autoSave(newServers);
-      setAddDialog({ open: false, json: '' });
-      toast.success(`Added ${name}`);
-    } catch (e) {
-      toast.error('Invalid JSON: ' + e.message);
-    }
+  const handleAddCustom = (mcpsToAdd) => {
+    const newServers = { ...mcpServers, ...mcpsToAdd };
+    setMcpServers(newServers);
+    setJsonText(JSON.stringify(newServers, null, 2));
+    autoSave(newServers);
+    setAddDialog({ open: false, json: '' });
+
+    const count = Object.keys(mcpsToAdd).length;
+    toast.success(`Added ${count} MCP${count > 1 ? 's' : ''}`);
   };
 
   const handleSaveJson = () => {
@@ -152,7 +129,7 @@ export default function GlobalMcpEditor({ content, parsed, onSave, registry }) {
               Saving...
             </Badge>
           )}
-          <Button size="sm" variant="outline" onClick={() => setAddDialog({ open: true, json: '{\n  "name": "my-mcp",\n  "config": {\n    "command": "npx",\n    "args": ["-y", "@example/mcp-server"]\n  }\n}' })}>
+          <Button size="sm" variant="outline" onClick={() => setAddDialog({ open: true, json: '' })}>
             <Plus className="w-4 h-4 mr-1" />
             Add MCP
           </Button>
@@ -263,30 +240,11 @@ export default function GlobalMcpEditor({ content, parsed, onSave, registry }) {
         )}
       </ScrollArea>
 
-      {/* Add Custom MCP Dialog */}
-      <Dialog open={addDialog.open} onOpenChange={(open) => setAddDialog({ ...addDialog, open })}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Custom MCP</DialogTitle>
-            <DialogDescription>
-              Enter the MCP configuration as JSON with "name" and "config" fields.
-            </DialogDescription>
-          </DialogHeader>
-          <Textarea
-            value={addDialog.json}
-            onChange={(e) => setAddDialog({ ...addDialog, json: e.target.value })}
-            className="font-mono text-sm h-48"
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddDialog({ open: false, json: '' })}>
-              Cancel
-            </Button>
-            <Button onClick={handleAddCustom}>
-              Add MCP
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AddMcpDialog
+        open={addDialog.open}
+        onClose={(open) => setAddDialog({ ...addDialog, open })}
+        onAdd={handleAddCustom}
+      />
     </div>
   );
 }

@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Global MCP "Add MCP" dialog** - Now uses same rich dialog as project-level editor
+  - Extracted shared `AddMcpDialog` component used by both `McpEditor` and `GlobalMcpEditor`
+  - Same JSON format, placeholder, help text, and validation in both contexts
 - **Workstream rules generation** - AI-generated rules now work correctly
   - Reads project files locally before passing to AI (spawned AI can't read files)
   - Gathers CLAUDE.md, package.json, pyproject.toml, rules/*.md, etc.
