@@ -15,7 +15,8 @@ export default function RenameDialog({ open, onClose, item, onRename }) {
 
   useEffect(() => {
     if (item?.name) {
-      setNewName(item.name.replace(/\.md$/, ''));
+      // Skills use directory name (no .md to strip)
+      setNewName(item.type === 'skill' ? item.name : item.name.replace(/\.md$/, ''));
     }
   }, [item, open]);
 
@@ -42,7 +43,9 @@ export default function RenameDialog({ open, onClose, item, onRename }) {
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleRename()}
           />
-          <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">.md extension will be added automatically</p>
+          <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+            {item?.type === 'skill' ? 'Enter the skill name' : '.md extension will be added automatically'}
+          </p>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancel</Button>

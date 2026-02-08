@@ -8,6 +8,7 @@ import {
   FileText,
   FileCode,
   Brain,
+  Wand2,
 } from 'lucide-react';
 
 // File type icons and colors
@@ -28,6 +29,12 @@ export const FILE_CONFIG = {
     icon: Terminal,
     color: 'text-green-600',
     bgColor: 'bg-green-50',
+    label: 'Command',
+  },
+  skill: {
+    icon: Wand2,
+    color: 'text-violet-600',
+    bgColor: 'bg-violet-50',
     label: 'Skill',
   },
   rule: {

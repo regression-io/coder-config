@@ -147,6 +147,9 @@ function scanClaudeFolder(folder, claudeDir, manager) {
   // memory folder
   addSubfolder(folder.files, claudeDir, 'memory', '.md', 'memory');
 
+  // skills folder
+  addSkillsFolder(folder.files, claudeDir);
+
   // .env file
   const envPath = path.join(claudeDir, '.env');
   if (fs.existsSync(envPath)) {
@@ -254,6 +257,31 @@ function addSubfolder(filesArray, parentDir, folderName, extension, fileType) {
 }
 
 /**
+ * Helper to add skills folder contents (nested directory structure)
+ */
+function addSkillsFolder(filesArray, parentDir) {
+  const dir = path.join(parentDir, 'skills');
+  if (!fs.existsSync(dir)) return;
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const children = [];
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const skillMdPath = path.join(dir, entry.name, 'SKILL.md');
+    if (fs.existsSync(skillMdPath)) {
+      children.push({
+        name: entry.name,
+        path: skillMdPath,
+        type: 'skill',
+        size: fs.statSync(skillMdPath).size
+      });
+    }
+  }
+  if (children.length > 0) {
+    filesArray.push({ name: 'skills', path: dir, type: 'folder', children });
+  }
+}
+
+/**
  * Get all intermediate paths between home and project
  */
 function getIntermediatePaths(projectDir) {
@@ -342,6 +370,17 @@ function deleteClaudeFile(filePath) {
     fs.rmSync(filePath, { recursive: true });
   } else {
     fs.unlinkSync(filePath);
+
+    // Skills: remove parent directory if it's now empty
+    if (filePath.includes('/skills/') && path.basename(filePath) === 'SKILL.md') {
+      const skillDir = path.dirname(filePath);
+      try {
+        const remaining = fs.readdirSync(skillDir);
+        if (remaining.length === 0) {
+          fs.rmdirSync(skillDir);
+        }
+      } catch (e) { /* ignore */ }
+    }
   }
 
   return { success: true, path: filePath };
@@ -380,6 +419,9 @@ function createClaudeFile(body) {
     case 'memory':
       filePath = path.join(dir, '.claude', 'memory', name);
       break;
+    case 'skill':
+      filePath = path.join(dir, '.claude', 'skills', name, 'SKILL.md');
+      break;
     case 'claudemd':
       filePath = path.join(dir, '.claude', 'CLAUDE.md');
       break;
@@ -411,6 +453,20 @@ function renameClaudeFile(body) {
 
   if (!fs.existsSync(oldPath)) {
     return { error: 'File not found', path: oldPath };
+  }
+
+  // Skills: rename the parent directory instead of the file
+  const isSkill = oldPath.includes('/skills/') && path.basename(oldPath) === 'SKILL.md';
+  if (isSkill) {
+    const skillDir = path.dirname(oldPath);
+    const skillsDir = path.dirname(skillDir);
+    const newSkillDir = path.join(skillsDir, newName);
+    if (fs.existsSync(newSkillDir)) {
+      return { error: 'A skill with that name already exists', path: newSkillDir };
+    }
+    fs.renameSync(skillDir, newSkillDir);
+    const newPath = path.join(newSkillDir, 'SKILL.md');
+    return { success: true, oldPath, newPath };
   }
 
   const dir = path.dirname(oldPath);
@@ -522,6 +578,9 @@ function moveClaudeItem(body, manager) {
     targetPath = path.join(targetClaudeDir, 'rules', sourceName);
   } else if (sourcePath.includes('/workflows/')) {
     targetPath = path.join(targetClaudeDir, 'workflows', sourceName);
+  } else if (sourcePath.includes('/skills/') && sourceName === 'SKILL.md') {
+    const skillName = path.basename(path.dirname(sourcePath));
+    targetPath = path.join(targetClaudeDir, 'skills', skillName, 'SKILL.md');
   } else {
     targetPath = path.join(targetClaudeDir, sourceName);
   }
@@ -668,6 +727,22 @@ function getFileHashes(manager, projectDir, config = {}) {
   for (const { fullPath } of [...rules, ...commands]) {
     const hash = hashFile(fullPath);
     if (hash) hashes[fullPath] = hash;
+  }
+
+  // Hash skills
+  for (const { dir } of configs) {
+    const skillsDir = path.join(dir, '.claude', 'skills');
+    try {
+      if (fs.existsSync(skillsDir)) {
+        const entries = fs.readdirSync(skillsDir, { withFileTypes: true });
+        for (const entry of entries) {
+          if (!entry.isDirectory()) continue;
+          const skillMdPath = path.join(skillsDir, entry.name, 'SKILL.md');
+          const hash = hashFile(skillMdPath);
+          if (hash) hashes[skillMdPath] = hash;
+        }
+      }
+    } catch (e) { /* ignore */ }
   }
 
   // Hash env files

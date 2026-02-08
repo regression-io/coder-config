@@ -142,7 +142,7 @@ export default function FileExplorer({ project, onRefresh }) {
   };
 
   const handleCreateFile = async (dir, type) => {
-    if (type === 'command' || type === 'rule' || type === 'workflow' || type === 'memory') {
+    if (type === 'command' || type === 'rule' || type === 'workflow' || type === 'memory' || type === 'skill') {
       setCreateDialog({ open: true, dir, type });
     } else if (type === 'claudemd') {
       // Open terminal to run `claude /init` for proper project-aware CLAUDE.md generation
@@ -165,7 +165,7 @@ export default function FileExplorer({ project, onRefresh }) {
         const newItem = {
           path: result.path,
           name: name,
-          type: ['command', 'rule', 'workflow', 'env', 'mcps', 'settings', 'claudemd', 'memory'].includes(type) ? type : 'file'
+          type: ['command', 'rule', 'workflow', 'env', 'mcps', 'settings', 'claudemd', 'memory', 'skill'].includes(type) ? type : 'file'
         };
         setSelectedItem(newItem);
         setFileContent({ content: result.content || '', parsed: null });
@@ -318,6 +318,7 @@ export default function FileExplorer({ project, onRefresh }) {
       case 'command':
       case 'rule':
       case 'workflow':
+      case 'skill':
       case 'claudemd':
       case 'env':
         return (
@@ -440,7 +441,7 @@ export default function FileExplorer({ project, onRefresh }) {
             className="fixed z-50 bg-white dark:bg-slate-950 rounded-md shadow-lg border py-1 min-w-[160px]"
             style={{ left: contextMenu.x, top: contextMenu.y }}
           >
-            {(contextMenu.item?.type === 'rule' || contextMenu.item?.type === 'command' || contextMenu.item?.type === 'workflow') && (
+            {(contextMenu.item?.type === 'rule' || contextMenu.item?.type === 'command' || contextMenu.item?.type === 'workflow' || contextMenu.item?.type === 'skill') && (
               <button
                 className="w-full px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center"
                 onClick={() => { setRenameDialog({ open: true, item: contextMenu.item }); setContextMenu({ x: 0, y: 0, item: null }); }}

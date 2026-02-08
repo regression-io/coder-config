@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Skills support in Project Explorer** - Full CRUD for Claude Code `skills/` directory
+  - Scans `.claude/skills/*/SKILL.md` nested structure alongside commands, rules, etc.
+  - Create, rename, delete, move/copy skills through the UI
+  - Skill type uses Wand2 icon with violet color; commands relabeled from "Skill" to "Command"
+  - Separate "New Skill" and "New Command" menu items in folder dropdown
+  - Skills included in file hash change detection
 - **Inline MCP toggle & edit** - Inline MCPs now have on/off switch and edit button
 
 ### Fixed

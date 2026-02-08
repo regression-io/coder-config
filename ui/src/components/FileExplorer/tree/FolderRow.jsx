@@ -29,6 +29,7 @@ import {
   Brain,
   EyeOff,
   Puzzle,
+  Wand2,
 } from 'lucide-react';
 import TreeItem from './TreeItem';
 
@@ -158,9 +159,13 @@ export default function FolderRow({
               {hasEnv && <span className="ml-auto text-xs text-muted-foreground">exists</span>}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'skill'); }}>
+              <Wand2 className="w-4 h-4 mr-2" />
+              New Skill
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'command'); }}>
               <Terminal className="w-4 h-4 mr-2" />
-              New Skill
+              New Command
             </DropdownMenuItem>
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'rule'); }}>
               <BookOpen className="w-4 h-4 mr-2" />
