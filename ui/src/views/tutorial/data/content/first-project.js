@@ -30,21 +30,21 @@ With a project added, let's look at what you can do with it.
 
 ### The Project Explorer
 
-Click **Project Explorer** in the sidebar. This is your window into your project's your AI configuration. If the project has a \`.claude\` folder, you'll see its contents laid out as a file tree. If there's no \`.claude\` folder yet, you'll see a prompt to create one.
+Click **Project Explorer** in the sidebar. This is your window into your project's AI configuration. If the project has a \`.claude\` folder, you'll see its contents laid out as a file tree. If there's no \`.claude\` folder yet, you'll see options to create config files that will set it up for you.
 
-The explorer shows the files your AI cares about: rules in the \`rules/\` folder, skills in \`commands/\`, MCP configurations, and local settings. You can click any file to view or edit it right in the browser. Right-click for more options—rename, duplicate, delete.
+The explorer shows the configuration files that matter: rules in the \`rules/\` folder, skills in \`commands/\`, MCP configurations, and local settings. You can click any file to view or edit it right in the browser.
 
 ### Project Information
 
-Above the file tree, there's a summary panel. It shows the project's name, its path, and quick stats like how many rules you have configured. You'll also find buttons to open the project in VS Code or jump to it in your terminal.
+Above the file tree, there's a summary panel showing the project's name, its path, and quick stats like how many rules you have configured.
 
 ### When There's No .claude Folder
 
-New projects don't have your AI configuration yet. That's fine. The Project Explorer will offer to initialize one for you, creating the basic folder structure. Or you can create it manually—it's just folders and files, nothing special about them.
+New projects don't have AI configuration yet. That's fine. In the Project Explorer, use the **+** menu on your project folder to create config files like \`mcps.json\`, rules, or settings. The \`.claude\` folder gets created automatically when you add your first config file. Or you can create it manually—it's just folders and files, nothing special about them.
 
 ### Editing Configuration Files
 
-The built-in editor handles the file formats your AI uses: markdown for rules, JSON for MCP configs and settings. Changes save automatically when you navigate away, though you can also save explicitly. The editor is simple by design—for complex editing, use the "Open in VS Code" button.
+The built-in editor handles the file formats your tools use: markdown for rules, JSON for MCP configs and settings. Changes save automatically when you navigate away, though you can also save explicitly.
 
 Let's create the \`.claude\` folder in the next section, then start writing rules.
     `
@@ -52,11 +52,11 @@ Let's create the \`.claude\` folder in the next section, then start writing rule
   'claude-folder': {
     title: 'The .claude Folder',
     content: `
-The \`.claude\` folder is where your project's your AI configuration lives. Everything your AI needs to know about your project—how you want it to behave, what tools it can use, what patterns to follow—goes here.
+The \`.claude\` folder is where your project's AI configuration lives. Everything your AI needs to know about your project—how you want it to behave, what tools it can use, what patterns to follow—goes here.
 
 ### Creating the Folder
 
-If your project doesn't have a \`.claude\` folder yet, go to Project Explorer and click **Initialize .claude**. This creates the folder with a basic structure:
+If your project doesn't have a \`.claude\` folder yet, go to Project Explorer and use the **+** menu on your project folder. Creating any config file (like a rule or \`mcps.json\`) will automatically create the \`.claude\` folder. The typical structure looks like this:
 
 \`\`\`
 .claude/
@@ -70,7 +70,7 @@ You can also create this manually if you prefer—it's just regular folders and 
 
 ### What Each Piece Does
 
-The \`rules/\` folder contains markdown files that tell your AI about your project. These are instructions, conventions, things to avoid—any guidance you'd give a new team member. your AI reads them at the start of every session.
+The \`rules/\` folder contains markdown files that tell your AI about your project. These are instructions, conventions, things to avoid—any guidance you'd give a new team member. They're read at the start of every session.
 
 The \`commands/\` folder holds skills—reusable prompts you can invoke with slash commands. If you find yourself typing the same instructions over and over, turn them into a skill.
 
@@ -78,13 +78,13 @@ The \`settings.local.json\` file stores project-specific settings that override 
 
 ### The CLAUDE.md Alternative
 
-There's another option: create a \`CLAUDE.md\` file in your project root (not inside \`.claude/\`). your AI reads this automatically too. Some developers prefer this because it's more visible—right there at the top level where everyone can see it.
+There's another option: create a \`CLAUDE.md\` file in your project root (not inside \`.claude/\`). Your AI reads this automatically too. Some developers prefer this because it's more visible—right there at the top level where everyone can see it.
 
 You can use both. The \`CLAUDE.md\` file works well for high-level project context, while the \`.claude/rules/\` folder suits more detailed, categorized guidelines.
 
 ### Should You Commit It?
 
-Generally, yes. Committing your \`.claude\` folder means everyone on your team gets the same your AI experience. The one exception is \`settings.local.json\`—that's for personal preferences and should probably stay in your \`.gitignore\`.
+Generally, yes. Committing your \`.claude\` folder means everyone on your team gets the same AI-assisted experience. The one exception is \`settings.local.json\`—that's for personal preferences and should probably stay in your \`.gitignore\`.
 
 Now that you have the structure in place, let's learn about rules—the most powerful way to configure your AI for your project.
     `

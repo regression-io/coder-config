@@ -32,7 +32,7 @@ Let's configure permissions for your workflow.
 
 ### Getting to the Permissions Panel
 
-Click **Claude Code** in the sidebar. Scroll to the **Permissions** section. You'll see three columns: Allow, Ask, and Deny. Each shows the rules currently configured for that level.
+Click **Claude Code** in the sidebar. The **Permissions** tab is shown by default. You'll see three sections: Allow, Ask, and Deny. Each shows the rules currently configured for that level.
 
 ### Adding Rules
 

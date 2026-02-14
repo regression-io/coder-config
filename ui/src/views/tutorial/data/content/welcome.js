@@ -30,6 +30,8 @@ Then we'll move to MCP servers. These give your AI coding tools new abilities—
 
 After that, we'll cover permissions (controlling what your AI can do without asking), memory (helping it remember things), and plugins (pre-built configurations you can install with a click).
 
+We'll also cover multi-tool support—how to sync your configuration across Claude Code, Gemini CLI, Codex CLI, and Antigravity so you configure once and use everywhere.
+
 Finally, we'll tackle workstreams—the feature that makes working across multiple repos actually pleasant. If you've ever had to re-explain how your API and frontend connect every time you start a new session, workstreams solve that.
 
 Each section takes about five minutes. You can stop anytime and pick up where you left off.

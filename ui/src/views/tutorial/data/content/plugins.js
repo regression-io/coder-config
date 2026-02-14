@@ -10,9 +10,9 @@ A plugin can include any combination of configuration elements. It might have **
 
 ### Why Use Plugins
 
-Writing good your AI configuration takes time. You need to think through conventions, test what works, refine the wording. Plugin authors have done this work already. They've figured out which rules actually help, what patterns your AI follows well, and how to phrase things clearly.
+Writing good AI configuration takes time. You need to think through conventions, test what works, refine the wording. Plugin authors have done this work already. They've figured out which rules actually help, what patterns work well, and how to phrase things clearly.
 
-Plugins also let you learn from others. When you install a React TypeScript plugin, you're getting someone's refined understanding of how your AI works best with that stack. Even if you customize it later, you start from a much better baseline.
+Plugins also let you learn from others. When you install a React TypeScript plugin, you're getting someone's refined understanding of how AI assistants work best with that stack. Even if you customize it later, you start from a much better baseline.
 
 ### Where Plugins Come From
 
@@ -38,27 +38,19 @@ Click on a plugin card to see its details: what rules it includes, any MCPs it c
 
 ### Installing
 
-Found one you want? Click **Install**. A dialog asks where to install it.
-
-Choosing **project scope** puts the plugin's files into your current project's \`.claude/\` folder. Only this project uses it—good for project-specific plugins.
-
-Choosing **user scope** installs to your global \`~/.claude/\` folder. All your projects can use it—good for plugins you want everywhere.
+To install a plugin, go to **Project Explorer**, click the **+** menu on your project folder, and choose **Install Plugins**. You'll see a dialog where you can pick from available plugins. Select the ones you want and they'll be added to your project's \`.claude/\` folder.
 
 ### What Happens After Installing
 
-The plugin's files are copied to your chosen location. Rules become active immediately—your AI reads them on the next session. Skills appear in your available slash commands list. MCPs might need additional setup; check the plugin's documentation for any environment variables or configuration needed.
+The plugin's files are copied into your project configuration. Rules become active immediately—they're loaded on the next session. Skills appear in your available slash commands list. MCPs might need additional setup; check the plugin's documentation for any environment variables or configuration needed.
 
 ### Managing Installed Plugins
 
-Back on the Plugins view, you'll see a section showing what you've installed. You can toggle plugins on and off without uninstalling them—useful for temporarily disabling something. You can uninstall completely if you no longer need a plugin, which deletes the files it added. And when plugin authors release new versions, you can update to get the latest.
-
-### Per-Directory Control
-
-Here's a powerful feature: you can enable or disable plugins at different levels of your project hierarchy. Maybe you want a plugin globally but turned off for one specific project. Or enabled only for a particular subfolder. The Plugins view lets you set this up.
+Back on the Plugins view, you'll see a section showing what you've installed. You can uninstall plugins you no longer need, which removes the files they added.
 
 ### Finding More Plugins
 
-The default marketplace is just a starting point. You can add additional marketplaces in Settings → Plugin Marketplaces. Community marketplaces, company-internal collections, or your own curated set—add the git repo URL and refresh to see new plugins.
+The default marketplace is just a starting point. You can add additional marketplaces from the **Plugins** view using **Manage Marketplaces**. Community marketplaces, company-internal collections, or your own curated set—add the git repo URL and refresh to see new plugins.
 
 You can also create your own plugins. The format is straightforward: a git repo with a manifest file and your configuration files. The Plugins view links to documentation if you want to try this.
     `

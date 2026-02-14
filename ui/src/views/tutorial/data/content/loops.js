@@ -14,7 +14,7 @@ The overhead isn't just the typing. Each round trip breaks your flow. You're eit
 
 ### What Loops Change
 
-With a Ralph Loop, you describe the task once. your AI asks clarifying questions to make sure it understands. Then it drafts a plan. You review and approve the plan. your AI executes, iteration after iteration, until the task is complete. You can walk away and come back to finished work.
+With a Ralph Loop, you describe the task once. Your AI asks clarifying questions to make sure it understands. Then it drafts a plan. You review and approve the plan. It executes, iteration after iteration, until the task is complete. You can walk away and come back to finished work.
 
 ### The Three Phases
 
@@ -52,7 +52,7 @@ Click **New Loop**. A dialog asks for a task description. This is your chance to
 
 Be specific. A good task description might be "Add a dark mode toggle to the settings page, storing the preference in localStorage and respecting the system preference by default." Or "Create unit tests for the UserService class, covering all public methods, using Jest." Or "Refactor the payment module to use async/await instead of callbacks, updating all calling code."
 
-Vague descriptions lead to vague results. "Fix bugs" doesn't tell your AI which bugs. "Make it better" doesn't explain better how. The more specific your description, the better your AI can plan and execute.
+Vague descriptions lead to vague results. "Fix bugs" doesn't tell your AI which bugs. "Make it better" doesn't explain what "better" means. The more specific your description, the better your AI can plan and execute.
 
 ### Step 3: Create and Start
 
@@ -60,11 +60,11 @@ Click **Create Loop**. The loop appears in your list with status "pending." Clic
 
 ### Step 4: Run Through the Phases
 
-Once started, the loop enters the Clarify phase. your AI might ask questions like "Should dark mode affect the entire app or just the settings page?" Answer these to help your AI understand your requirements fully.
+Once started, the loop enters the Clarify phase. Your AI might ask questions like "Should dark mode affect the entire app or just the settings page?" Answer these to help it understand your requirements fully.
 
-After clarification, your AI moves to Plan. You'll see a detailed breakdown of what it intends to do. Review this carefully. If something looks wrong, ask for revisions. If it looks good, approve it.
+After clarification, it moves to Plan. You'll see a detailed breakdown of what it intends to do. Review this carefully. If something looks wrong, ask for revisions. If it looks good, approve it.
 
-With the plan approved, your AI enters Execute. Watch the progress indicators showing iterations completed and budget used. your AI works through the plan, making real changes to your codebase.
+With the plan approved, the loop enters Execute. Watch the progress indicators showing iterations completed and budget used. Your AI works through the plan, making real changes to your codebase.
 
 ### Monitoring Progress
 

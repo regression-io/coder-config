@@ -6,7 +6,7 @@ Workstreams solve a problem that anyone working on multi-repo projects knows wel
 
 ### The Multi-Repo Reality
 
-Modern software often spans multiple repositories. You might have a React frontend in one repo, a Node.js API in another, shared TypeScript types in a third, and infrastructure configs in a fourth. These are all part of the same product, but they live in separate folders with separate your AI configurations.
+Modern software often spans multiple repositories. You might have a React frontend in one repo, a Node.js API in another, shared TypeScript types in a third, and infrastructure configs in a fourth. These are all part of the same product, but they live in separate folders with separate AI configurations.
 
 Every time you switch repos, your AI loses context. It doesn't know that the API you're calling from the frontend lives in that other repo you were just working in. It doesn't remember the database schema you discussed yesterday while working on the backend.
 
@@ -20,7 +20,7 @@ When you're working in any repo that belongs to a workstream, your AI automatica
 
 Say you're in the frontend repo and ask your AI to call a new API endpoint. With workstreams, your AI knows the API repo's structure and conventions. It can suggest code that matches how endpoints are actually built there, not just guess based on what it sees in the frontend.
 
-Or you're debugging an issue that spans both repos. your AI can reason about the full request flow—from frontend component to API handler to database—because it has context about both sides.
+Or you're debugging an issue that spans both repos. Your AI can reason about the full request flow—from frontend component to API handler to database—because it has context about both sides.
 
 ### When You Need Workstreams
 

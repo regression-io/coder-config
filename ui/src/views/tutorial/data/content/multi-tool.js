@@ -28,7 +28,7 @@ In practice, there are limits. Each tool has its own configuration format and qu
 
 ### Enabling Other Tools
 
-By default, Coder Config focuses on Claude Code. To add other tools, go to **Preferences** in the sidebar. Find the **Enabled Tools** section and check the tools you want to manage. New menu items appear in the sidebar for each enabled tool.
+By default, Coder Config focuses on Claude Code. To add other tools, go to **Preferences** in the sidebar. Find the **Enabled AI Tools** section and check the tools you want to manage. New menu items appear in the sidebar for each enabled tool.
     `
   },
   'syncing-tools': {
@@ -42,9 +42,7 @@ Rule syncing copies your rule files between tool-specific folders. Claude Code r
 
 ### How to Sync
 
-Go to **Project Explorer** and look for the **Sync Rules** button. Click it, choose which tools to sync with, and the files are copied over.
-
-You can also set up automatic syncing in Preferences. When enabled, changes to rules automatically propagate to other tools' folders.
+Go to **Project Explorer** and look for the **Sync** button. Click it, choose which tools to sync with, and the files are copied over.
 
 ### What Syncs and What Doesn't
 

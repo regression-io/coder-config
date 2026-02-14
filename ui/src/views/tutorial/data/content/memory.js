@@ -18,7 +18,7 @@ Preferences describe how you like things done: "I prefer functional components w
 
 ### How Memory Works Technically
 
-Memory is just markdown files. Each file contains entries organized by type—preferences, corrections, facts, patterns, decisions. your AI reads these files when a session starts, incorporating them into its context.
+Memory is just markdown files. Each file contains entries organized by type—preferences, corrections, facts, patterns, decisions. Your AI reads these files when a session starts, incorporating them into its context.
 
 Here's what an entry looks like:
 
@@ -42,7 +42,7 @@ Let's add some memory entries to make your AI smarter about how you work.
 
 ### Accessing the Memory View
 
-Click **Memory** in the sidebar. You'll see two tabs: **Global** and **Project**. Global memory affects all your projects; project memory affects only the current project. Switch between them depending on where the information belongs.
+Click **Memory** in the sidebar. You'll see tabs for **Global Memory**, **Project Memory**, and **Sync Memory**. Global memory affects all your projects; project memory affects only the current project. Sync memory manages shared state across tools. Switch between them depending on where the information belongs.
 
 ### Adding an Entry
 

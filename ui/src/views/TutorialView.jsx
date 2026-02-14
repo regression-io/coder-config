@@ -38,14 +38,18 @@ export default function TutorialView() {
   });
   const [expandedSections, setExpandedSections] = useState(() => {
     // Auto-expand the parent section of the restored active section
-    const restored = localStorage.getItem(ACTIVE_SECTION_KEY) || 'intro';
-    const initial = { 'welcome': true };
-    for (const section of tutorialSections) {
-      if (section.subsections.some(s => s.id === restored)) {
-        initial[section.id] = true;
+    try {
+      const restored = localStorage.getItem(ACTIVE_SECTION_KEY) || 'intro';
+      const initial = { 'welcome': true };
+      for (const section of tutorialSections) {
+        if (section.subsections.some(s => s.id === restored)) {
+          initial[section.id] = true;
+        }
       }
+      return initial;
+    } catch {
+      return { 'welcome': true };
     }
-    return initial;
   });
   const [visitedSections, setVisitedSections] = useState(() => {
     try {

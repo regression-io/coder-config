@@ -38,7 +38,7 @@ Click **MCP Registry** in the sidebar. This shows MCPs from the global registry�
 
 ### Adding to Your Project
 
-On the MCP detail page, you'll see an **Add to Project** button. Click it. This adds the MCP to your current project's configuration, stored in \`.claude/mcps.json\`.
+From the MCP Registry, you can add any MCP to the global registry. To add it to a specific project, go to **Project Explorer**, open the project's \`mcps.json\` file, and click **+ Add MCP**. Select from registry MCPs or add a custom one. The MCP gets stored in your project's \`.claude/mcps.json\`.
 
 ### Configuration
 
@@ -59,7 +59,7 @@ Change \`/path/to/allowed/directory\` to an actual path on your system—maybe \
 
 ### Applying the Configuration
 
-After configuring, click **Re-apply Config** in the header. This updates the generated config files that your AI reads. If your AI tool is already running, restart it so it picks up the new MCP.
+After configuring, click **Re-apply** in the header (config also auto-applies on save). This updates the generated config files that your AI reads. If your AI tool is already running, restart it so it picks up the new MCP.
 
 ### Testing It Works
 
@@ -96,9 +96,9 @@ These values are stored locally in your \`.claude/.env\` file. They're never com
 
 ### Global vs Project MCPs
 
-You can configure MCPs at two levels. **Global MCPs** apply to all your projects—configure these in Preferences → MCP Servers. Good candidates include the memory MCP for persistent storage across everything, or tools you use universally regardless of project.
+You can configure MCPs at two levels. **Global MCPs** apply to all your projects—configure these in the Project Explorer's home-level \`mcps.json\` (under \`~/.claude/\`). Good candidates include the memory MCP for persistent storage across everything, or tools you use universally regardless of project.
 
-**Project MCPs** apply to one project only—configure these in the MCP Registry when a project is selected. Good candidates include database connections specific to that project, or API integrations you only need in certain contexts.
+**Project MCPs** apply to one project only—configure these in your project's \`mcps.json\` via the Project Explorer. Good candidates include database connections specific to that project, or API integrations you only need in certain contexts.
 
 When your AI starts in a project directory, it loads global MCPs first, then adds any project-specific ones.
 
