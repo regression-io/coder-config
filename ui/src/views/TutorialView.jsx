@@ -26,10 +26,27 @@ const SECTION_COLORS = {
 };
 
 const STORAGE_KEY = 'claude-config-tutorial-visited';
+const ACTIVE_SECTION_KEY = 'claude-config-tutorial-active';
 
 export default function TutorialView() {
-  const [activeSection, setActiveSection] = useState('intro');
-  const [expandedSections, setExpandedSections] = useState({ 'welcome': true });
+  const [activeSection, setActiveSection] = useState(() => {
+    try {
+      return localStorage.getItem(ACTIVE_SECTION_KEY) || 'intro';
+    } catch {
+      return 'intro';
+    }
+  });
+  const [expandedSections, setExpandedSections] = useState(() => {
+    // Auto-expand the parent section of the restored active section
+    const restored = localStorage.getItem(ACTIVE_SECTION_KEY) || 'intro';
+    const initial = { 'welcome': true };
+    for (const section of tutorialSections) {
+      if (section.subsections.some(s => s.id === restored)) {
+        initial[section.id] = true;
+      }
+    }
+    return initial;
+  });
   const [visitedSections, setVisitedSections] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
@@ -49,12 +66,15 @@ export default function TutorialView() {
     }
   }, [activeSection]);
 
-  // Mark section as visited when viewed
+  // Mark section as visited when viewed, and persist active section
   useEffect(() => {
-    if (activeSection && !visitedSections.includes(activeSection)) {
-      const newVisited = [...visitedSections, activeSection];
-      setVisitedSections(newVisited);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newVisited));
+    if (activeSection) {
+      localStorage.setItem(ACTIVE_SECTION_KEY, activeSection);
+      if (!visitedSections.includes(activeSection)) {
+        const newVisited = [...visitedSections, activeSection];
+        setVisitedSections(newVisited);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(newVisited));
+      }
     }
   }, [activeSection, visitedSections]);
 
@@ -241,7 +261,7 @@ export default function TutorialView() {
           <div className="max-w-3xl mx-auto p-8">
             {currentDoc ? (
               <div
-                className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-code:text-primary prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted prose-pre:border prose-pre:border-border"
+                className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted-foreground prose-strong:text-foreground [&_:not(pre)>code]:text-primary [&_:not(pre)>code]:bg-muted [&_:not(pre)>code]:px-1 [&_:not(pre)>code]:py-0.5 [&_:not(pre)>code]:rounded [&_pre]:bg-zinc-900 [&_pre]:text-zinc-100 [&_pre]:border [&_pre]:border-zinc-700 [&_pre_code]:text-zinc-100 [&_pre_code]:bg-transparent [&_pre_code]:p-0"
                 dangerouslySetInnerHTML={renderContent(currentDoc.content)}
               />
             ) : (

@@ -2,29 +2,29 @@ export const mcpContent = {
   'what-are-mcps': {
     title: 'What Are MCPs?',
     content: `
-MCP stands for Model Context Protocol. In practical terms, MCPs are plugins that give Claude new abilities—ways to interact with systems beyond just reading and writing files.
+MCP stands for Model Context Protocol. In practical terms, MCPs are plugins that give your AI coding tools new abilities—ways to interact with systems beyond just reading and writing files.
 
 ### What MCPs Can Do
 
-By default, Claude can read files, run shell commands, and write code. MCPs extend this. A database MCP lets Claude query your PostgreSQL or MySQL database directly. A GitHub MCP lets it read issues, create pull requests, and manage repositories. A memory MCP gives Claude persistent storage across sessions.
+By default, your AI can read files, run shell commands, and write code. MCPs extend this. A database MCP lets it query your PostgreSQL or MySQL database directly. A GitHub MCP lets it read issues, create pull requests, and manage repositories. A memory MCP gives it persistent storage across sessions.
 
-The protocol is standardized, so MCPs work consistently regardless of who built them. Anthropic publishes official MCPs for common use cases, and there's a growing ecosystem of community-built ones for everything from Slack integration to Kubernetes management.
+The protocol is standardized, so MCPs work consistently regardless of who built them. There's a growing ecosystem of MCPs for everything from Slack integration to Kubernetes management.
 
 ### How They Work
 
-When you configure an MCP, you're telling Claude how to start a server that provides specific tools. Claude connects to that server and can then use whatever capabilities it offers. From your perspective, you just see Claude suddenly able to do things it couldn't do before—query your database, post to Slack, read from a spreadsheet.
+When you configure an MCP, you're telling your AI how to start a server that provides specific tools. It connects to that server and can then use whatever capabilities it offers. From your perspective, you just see your AI suddenly able to do things it couldn't do before—query your database, post to Slack, read from a spreadsheet.
 
-The server runs locally on your machine. Your data doesn't go anywhere unusual; the MCP just acts as a bridge between Claude and the system you're connecting to.
+The server runs locally on your machine. Your data doesn't go anywhere unusual; the MCP just acts as a bridge between your AI and the system you're connecting to.
 
 ### A Practical Example
 
-Say you add the filesystem MCP configured to access \`/var/logs/\`. Now Claude can read log files from that directory. You can ask "What errors happened in the last hour?" and Claude reads the actual logs to answer, rather than asking you to paste them.
+Say you add the filesystem MCP configured to access \`/var/logs/\`. Now your AI can read log files from that directory. You can ask "What errors happened in the last hour?" and it reads the actual logs to answer, rather than asking you to paste them.
 
-Or add the GitHub MCP with your personal token. Claude can now list your repos, read issues, even create PRs on your behalf. The things you'd normally do through the GitHub UI or CLI, Claude can do directly.
+Or add the GitHub MCP with your personal token. Your AI can now list your repos, read issues, even create PRs on your behalf. The things you'd normally do through the GitHub UI or CLI, it can do directly.
 
 ### Where MCPs Come From
 
-Anthropic maintains official MCPs for common integrations. The community has built many more, available through npm or GitHub. And if you have specific needs, you can build your own—the protocol is documented and there are templates to start from.
+There are official MCPs maintained for common integrations. The community has built many more, available through npm or GitHub. And if you have specific needs, you can build your own—the protocol is documented and there are templates to start from.
     `
   },
   'adding-mcp': {
@@ -42,7 +42,7 @@ On the MCP detail page, you'll see an **Add to Project** button. Click it. This 
 
 ### Configuration
 
-After adding, you'll see the configuration panel. The filesystem MCP needs to know which directories Claude should be able to access. The default config looks like this:
+After adding, you'll see the configuration panel. The filesystem MCP needs to know which directories your AI should be able to access. The default config looks like this:
 
 \`\`\`json
 {
@@ -59,13 +59,13 @@ Change \`/path/to/allowed/directory\` to an actual path on your system—maybe \
 
 ### Applying the Configuration
 
-After configuring, click **Re-apply Config** in the header. This updates the generated config files that Claude reads. If Claude Code is already running, restart it so it picks up the new MCP.
+After configuring, click **Re-apply Config** in the header. This updates the generated config files that your AI reads. If your AI tool is already running, restart it so it picks up the new MCP.
 
 ### Testing It Works
 
-In Claude Code, try asking something that uses your new MCP. If you configured the filesystem MCP for \`/var/logs\`, ask "List files in /var/logs" or "Show me the most recent log entries." Claude should respond with actual content from those files.
+In your AI coding tool, try asking something that uses your new MCP. If you configured the filesystem MCP for \`/var/logs\`, ask "List files in /var/logs" or "Show me the most recent log entries." It should respond with actual content from those files.
 
-If it doesn't work, check that the path exists and is readable, that you clicked Re-apply, and that Claude Code was restarted after the change.
+If it doesn't work, check that the path exists and is readable, that you clicked Re-apply, and that you restarted your AI tool after the change.
 
 ### What Else to Try
 
@@ -100,7 +100,7 @@ You can configure MCPs at two levels. **Global MCPs** apply to all your projects
 
 **Project MCPs** apply to one project only—configure these in the MCP Registry when a project is selected. Good candidates include database connections specific to that project, or API integrations you only need in certain contexts.
 
-When Claude starts in a project directory, it loads global MCPs first, then adds any project-specific ones.
+When your AI starts in a project directory, it loads global MCPs first, then adds any project-specific ones.
 
 ### Removing and Disabling
 
@@ -108,7 +108,7 @@ To remove an MCP from a project, find it in your project's MCP list and click th
 
 ### Troubleshooting
 
-When an MCP isn't working, start by checking whether environment variables are set correctly—missing tokens or credentials are the most common problem. If that looks fine, try running the MCP command manually in your terminal to see if the package is installed and working. Make sure you clicked Re-apply and restarted Claude, since config changes don't take effect until both happen. Finally, check Claude's output for error messages—they usually point directly at the problem.
+When an MCP isn't working, start by checking whether environment variables are set correctly—missing tokens or credentials are the most common problem. If that looks fine, try running the MCP command manually in your terminal to see if the package is installed and working. Make sure you clicked Re-apply and restarted your AI tool, since config changes don't take effect until both happen. Finally, check your AI tool's output for error messages—they usually point directly at the problem.
 
 The MCP Registry includes troubleshooting notes for each MCP. Check there if you're stuck on a specific one.
     `

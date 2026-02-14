@@ -34,7 +34,7 @@ By default, Coder Config focuses on Claude Code. To add other tools, go to **Pre
   'syncing-tools': {
     title: 'Syncing Between Tools',
     content: `
-When you use multiple AI coding tools, keeping their configurations in sync becomes important. You don't want different rules telling Claude one thing and Gemini another.
+When you use multiple AI coding tools, keeping their configurations in sync becomes important. You don't want different rules telling one tool one thing and another something different.
 
 ### What Sync Does
 

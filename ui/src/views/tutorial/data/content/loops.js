@@ -4,31 +4,31 @@ export const loopsContent = {
     content: `
 > **Experimental Feature:** Ralph Loops must be enabled in **Preferences → Experimental Features** before use.
 
-Ralph Loops let Claude work autonomously on larger tasks. Instead of the usual back-and-forth where you give Claude an instruction, it does some work, and you say "continue" over and over, loops let Claude keep going until the task is done.
+Ralph Loops let your AI work autonomously on larger tasks. Instead of the usual back-and-forth where you give your AI an instruction, it does some work, and you say "continue" over and over, loops let your AI keep going until the task is done.
 
 ### The Problem with Long Tasks
 
-Normally, working with Claude on substantial tasks feels like pushing a boulder uphill. You ask for a feature, Claude makes progress, hits a natural stopping point, and waits. You say "keep going." It continues, stops again. "Continue." More progress. "Don't stop." This can go on for a while.
+Normally, working with your AI on substantial tasks feels like pushing a boulder uphill. You ask for a feature, your AI makes progress, hits a natural stopping point, and waits. You say "keep going." It continues, stops again. "Continue." More progress. "Don't stop." This can go on for a while.
 
-The overhead isn't just the typing. Each round trip breaks your flow. You're either watching Claude work, or you come back to find it waiting for permission to continue.
+The overhead isn't just the typing. Each round trip breaks your flow. You're either watching your AI work, or you come back to find it waiting for permission to continue.
 
 ### What Loops Change
 
-With a Ralph Loop, you describe the task once. Claude asks clarifying questions to make sure it understands. Then it drafts a plan. You review and approve the plan. Claude executes, iteration after iteration, until the task is complete. You can walk away and come back to finished work.
+With a Ralph Loop, you describe the task once. your AI asks clarifying questions to make sure it understands. Then it drafts a plan. You review and approve the plan. your AI executes, iteration after iteration, until the task is complete. You can walk away and come back to finished work.
 
 ### The Three Phases
 
-The loop progresses through three phases. In the **Clarify** phase, Claude asks questions about requirements, scope, and preferences. This happens at the start—better to surface ambiguities now than discover them mid-implementation.
+The loop progresses through three phases. In the **Clarify** phase, your AI asks questions about requirements, scope, and preferences. This happens at the start—better to surface ambiguities now than discover them mid-implementation.
 
-In the **Plan** phase, Claude creates a detailed implementation plan. You see exactly what it intends to do before any code changes. Approve to proceed, or ask Claude to revise the plan first.
+In the **Plan** phase, your AI creates a detailed implementation plan. You see exactly what it intends to do before any code changes. Approve to proceed, or ask your AI to revise the plan first.
 
-In the **Execute** phase, Claude works through the plan step by step. Each iteration makes progress. The loop continues automatically until the task is done or a safety limit is reached.
+In the **Execute** phase, your AI works through the plan step by step. Each iteration makes progress. The loop continues automatically until the task is done or a safety limit is reached.
 
 ### Built-in Safety
 
-Autonomous execution raises valid concerns. What if Claude goes off track? What if it runs up a huge bill? What if it breaks something?
+Autonomous execution raises valid concerns. What if your AI goes off track? What if it runs up a huge bill? What if it breaks something?
 
-Loops have guardrails. Iteration limits cap how many rounds Claude can run—the default is 50. Cost budgets cap spending—the default is $10. You can pause anytime and resume later. The plan approval step ensures you know what's coming before execution begins.
+Loops have guardrails. Iteration limits cap how many rounds your AI can run—the default is 50. Cost budgets cap spending—the default is $10. You can pause anytime and resume later. The plan approval step ensures you know what's coming before execution begins.
 
 These aren't just safeguards—they're part of the workflow. You stay in control of scope and cost while still getting the benefits of autonomous execution.
     `
@@ -48,11 +48,11 @@ Click **Ralph Loops** in the sidebar. You'll see a list of loops (empty if this 
 
 ### Step 2: Describe Your Task
 
-Click **New Loop**. A dialog asks for a task description. This is your chance to explain what you want Claude to accomplish.
+Click **New Loop**. A dialog asks for a task description. This is your chance to explain what you want your AI to accomplish.
 
 Be specific. A good task description might be "Add a dark mode toggle to the settings page, storing the preference in localStorage and respecting the system preference by default." Or "Create unit tests for the UserService class, covering all public methods, using Jest." Or "Refactor the payment module to use async/await instead of callbacks, updating all calling code."
 
-Vague descriptions lead to vague results. "Fix bugs" doesn't tell Claude which bugs. "Make it better" doesn't explain better how. The more specific your description, the better Claude can plan and execute.
+Vague descriptions lead to vague results. "Fix bugs" doesn't tell your AI which bugs. "Make it better" doesn't explain better how. The more specific your description, the better your AI can plan and execute.
 
 ### Step 3: Create and Start
 
@@ -60,17 +60,17 @@ Click **Create Loop**. The loop appears in your list with status "pending." Clic
 
 ### Step 4: Run Through the Phases
 
-Once started, the loop enters the Clarify phase. Claude might ask questions like "Should dark mode affect the entire app or just the settings page?" Answer these to help Claude understand your requirements fully.
+Once started, the loop enters the Clarify phase. your AI might ask questions like "Should dark mode affect the entire app or just the settings page?" Answer these to help your AI understand your requirements fully.
 
-After clarification, Claude moves to Plan. You'll see a detailed breakdown of what it intends to do. Review this carefully. If something looks wrong, ask for revisions. If it looks good, approve it.
+After clarification, your AI moves to Plan. You'll see a detailed breakdown of what it intends to do. Review this carefully. If something looks wrong, ask for revisions. If it looks good, approve it.
 
-With the plan approved, Claude enters Execute. Watch the progress indicators showing iterations completed and budget used. Claude works through the plan, making real changes to your codebase.
+With the plan approved, your AI enters Execute. Watch the progress indicators showing iterations completed and budget used. your AI works through the plan, making real changes to your codebase.
 
 ### Monitoring Progress
 
-The UI shows real-time status. You can see which iteration Claude is on, what it's currently doing, and how much of the budget it's consumed. If something goes wrong, you can pause the loop immediately.
+The UI shows real-time status. You can see which iteration your AI is on, what it's currently doing, and how much of the budget it's consumed. If something goes wrong, you can pause the loop immediately.
 
-When the task completes, Claude reports what it accomplished. Review the changes, run your tests, and verify everything works as expected.
+When the task completes, your AI reports what it accomplished. Review the changes, run your tests, and verify everything works as expected.
 
 ### When to Use Loops
 

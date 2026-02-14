@@ -6,21 +6,21 @@ Workstreams solve a problem that anyone working on multi-repo projects knows wel
 
 ### The Multi-Repo Reality
 
-Modern software often spans multiple repositories. You might have a React frontend in one repo, a Node.js API in another, shared TypeScript types in a third, and infrastructure configs in a fourth. These are all part of the same product, but they live in separate folders with separate Claude configurations.
+Modern software often spans multiple repositories. You might have a React frontend in one repo, a Node.js API in another, shared TypeScript types in a third, and infrastructure configs in a fourth. These are all part of the same product, but they live in separate folders with separate your AI configurations.
 
-Every time you switch repos, Claude loses context. It doesn't know that the API you're calling from the frontend lives in that other repo you were just working in. It doesn't remember the database schema you discussed yesterday while working on the backend.
+Every time you switch repos, your AI loses context. It doesn't know that the API you're calling from the frontend lives in that other repo you were just working in. It doesn't remember the database schema you discussed yesterday while working on the backend.
 
 ### Workstreams Connect the Dots
 
-A workstream groups related repositories together. You create a workstream called "Acme App" and add your frontend, backend, and shared repos to it. Now Claude understands these are all part of the same system.
+A workstream groups related repositories together. You create a workstream called "Acme App" and add your frontend, backend, and shared repos to it. Now your AI understands these are all part of the same system.
 
-When you're working in any repo that belongs to a workstream, Claude automatically knows about the workstream context. Rules you write at the workstream level apply to all member repos. Context about "Acme App" as a whole—its architecture, its conventions, how the pieces fit together—is available everywhere.
+When you're working in any repo that belongs to a workstream, your AI automatically knows about the workstream context. Rules you write at the workstream level apply to all member repos. Context about "Acme App" as a whole—its architecture, its conventions, how the pieces fit together—is available everywhere.
 
 ### What This Means in Practice
 
-Say you're in the frontend repo and ask Claude to call a new API endpoint. With workstreams, Claude knows the API repo's structure and conventions. It can suggest code that matches how endpoints are actually built there, not just guess based on what it sees in the frontend.
+Say you're in the frontend repo and ask your AI to call a new API endpoint. With workstreams, your AI knows the API repo's structure and conventions. It can suggest code that matches how endpoints are actually built there, not just guess based on what it sees in the frontend.
 
-Or you're debugging an issue that spans both repos. Claude can reason about the full request flow—from frontend component to API handler to database—because it has context about both sides.
+Or you're debugging an issue that spans both repos. your AI can reason about the full request flow—from frontend component to API handler to database—because it has context about both sides.
 
 ### When You Need Workstreams
 
@@ -71,13 +71,13 @@ These rules load automatically whenever you're working in any member repo.
 
 ### Activating a Workstream
 
-Workstreams activate based on which directory you're in. When you open Claude Code inside a workstream member repo, the workstream context applies automatically.
+Workstreams activate based on which directory you're in. When you open your AI coding tool inside a workstream member repo, the workstream context applies automatically.
 
 You can also manually activate a workstream with \`coder-config workstream use <name>\`. This sets the context for your current terminal session. The Workstreams view shows which workstream is active and lets you switch.
 
 ### One Product Per Workstream
 
-Keep workstreams focused. Each workstream represents one product or system. If you work on multiple products, create separate workstreams. Mixing unrelated repos in one workstream dilutes the context and confuses Claude about what goes with what.
+Keep workstreams focused. Each workstream represents one product or system. If you work on multiple products, create separate workstreams. Mixing unrelated repos in one workstream dilutes the context and confuses your AI about what goes with what.
     `
   },
 };

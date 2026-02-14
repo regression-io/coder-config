@@ -2,11 +2,11 @@ export const memoryContent = {
   'what-is-memory': {
     title: 'What is Memory?',
     content: `
-Memory lets Claude retain information across conversations. Without it, every session starts fresh—Claude doesn't know you prefer tabs over spaces, or that your team has specific naming conventions, or that last week you decided to use PostgreSQL instead of MySQL. With memory, you teach Claude once and it remembers.
+Memory lets your AI retain information across conversations. Without it, every session starts fresh—your AI doesn't know you prefer tabs over spaces, or that your team has specific naming conventions, or that last week you decided to use PostgreSQL instead of MySQL. With memory, you teach your AI once and it remembers.
 
 ### Two Kinds of Memory
 
-**Global memory** applies everywhere you use Claude. Your general preferences, facts about your development environment, corrections to mistakes Claude keeps making—these belong in global memory. It lives in \`~/.claude/memory/\` and Claude reads it no matter which project you're in.
+**Global memory** applies everywhere you use your AI. Your general preferences, facts about your development environment, corrections to mistakes your AI keeps making—these belong in global memory. It lives in \`~/.claude/memory/\` and your AI reads it no matter which project you're in.
 
 **Project memory** applies to one project. The tech stack, architectural decisions, code patterns unique to this codebase—these belong in project memory. It lives in \`.claude/memory/\` inside your project folder.
 
@@ -18,7 +18,7 @@ Preferences describe how you like things done: "I prefer functional components w
 
 ### How Memory Works Technically
 
-Memory is just markdown files. Each file contains entries organized by type—preferences, corrections, facts, patterns, decisions. Claude reads these files when a session starts, incorporating them into its context.
+Memory is just markdown files. Each file contains entries organized by type—preferences, corrections, facts, patterns, decisions. your AI reads these files when a session starts, incorporating them into its context.
 
 Here's what an entry looks like:
 
@@ -28,7 +28,7 @@ Always run tests before committing. Use Jest for unit tests, Playwright for e2e.
 Learned: 2024-01-15
 \`\`\`
 
-The format is flexible. What matters is that the information is clear enough for Claude to understand and apply.
+The format is flexible. What matters is that the information is clear enough for your AI to understand and apply.
 
 ### Memory vs Rules
 
@@ -38,7 +38,7 @@ Memory and rules overlap in purpose but differ in intent. Rules are prescriptive
   'using-memory': {
     title: 'Using Memory',
     content: `
-Let's add some memory entries to make Claude smarter about how you work.
+Let's add some memory entries to make your AI smarter about how you work.
 
 ### Accessing the Memory View
 
@@ -50,9 +50,9 @@ Click **Add Entry** and choose the type that fits what you want to record.
 
 A **Preference** captures how you like things done—something like "Use single quotes, not double quotes" or "Always add TypeScript types to function parameters."
 
-A **Correction** fixes something Claude gets wrong repeatedly. If Claude keeps using console.log when you have a custom logger, add a correction: "Don't use console.log for debugging; use the logger at src/utils/logger.ts."
+A **Correction** fixes something your AI gets wrong repeatedly. If your AI keeps using console.log when you have a custom logger, add a correction: "Don't use console.log for debugging; use the logger at src/utils/logger.ts."
 
-A **Fact** records objective information Claude should know: "This is a React 18 app" or "The database is PostgreSQL 15."
+A **Fact** records objective information your AI should know: "This is a React 18 app" or "The database is PostgreSQL 15."
 
 A **Pattern** documents code conventions specific to this project: "API errors return an object with success set to false and an error object containing code and message."
 
@@ -60,7 +60,7 @@ A **Decision** explains why you chose one approach over another: "We use Server 
 
 ### Writing Good Entries
 
-Be specific. "Follow good practices" doesn't help Claude—it already tries to do that. "Use Tailwind classes, never inline styles" is actionable.
+Be specific. "Follow good practices" doesn't help your AI—it already tries to do that. "Use Tailwind classes, never inline styles" is actionable.
 
 Include context when it matters. If a pattern has exceptions, mention them. If a decision had alternatives, note why you rejected them.
 
@@ -68,7 +68,7 @@ Keep entries focused. One preference per entry is easier to maintain than a gian
 
 ### Maintaining Memory
 
-Memory should evolve with your project. When conventions change, update the entries. When you discover Claude making a repeated mistake, add a correction. When entries become outdated, delete them—stale memory confuses Claude more than no memory at all.
+Memory should evolve with your project. When conventions change, update the entries. When you discover your AI making a repeated mistake, add a correction. When entries become outdated, delete them—stale memory confuses your AI more than no memory at all.
 
 Check your memory files occasionally. Delete duplicates. Consolidate related entries. Keep things organized so you can actually find what's there.
 

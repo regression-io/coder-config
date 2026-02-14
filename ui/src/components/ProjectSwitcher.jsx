@@ -15,7 +15,7 @@ export default function ProjectSwitcher({
   disabled = false
 }) {
   // Get display name with fallback
-  const displayName = activeProject?.name || 'No Project';
+  const displayName = activeProject?.name || 'No project selected';
 
   return (
     <DropdownMenu>

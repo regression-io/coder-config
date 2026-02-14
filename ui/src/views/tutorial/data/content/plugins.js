@@ -6,13 +6,13 @@ Plugins are pre-packaged configurations you can install with a click. Instead of
 
 ### What's Inside a Plugin
 
-A plugin can include any combination of configuration elements. It might have **rules**—markdown files with guidelines for Claude, like a React plugin that includes rules about hooks, component structure, and testing patterns. It might have **skills**—reusable prompts invoked via slash commands, like a testing plugin with skills for generating unit tests, integration tests, and test data. It might configure **MCPs**—server connections, like a database plugin with pre-configured connections for PostgreSQL, MySQL, and SQLite.
+A plugin can include any combination of configuration elements. It might have **rules**—markdown files with guidelines for your AI, like a React plugin that includes rules about hooks, component structure, and testing patterns. It might have **skills**—reusable prompts invoked via slash commands, like a testing plugin with skills for generating unit tests, integration tests, and test data. It might configure **MCPs**—server connections, like a database plugin with pre-configured connections for PostgreSQL, MySQL, and SQLite.
 
 ### Why Use Plugins
 
-Writing good Claude configuration takes time. You need to think through conventions, test what works, refine the wording. Plugin authors have done this work already. They've figured out which rules actually help, what patterns Claude follows well, and how to phrase things clearly.
+Writing good your AI configuration takes time. You need to think through conventions, test what works, refine the wording. Plugin authors have done this work already. They've figured out which rules actually help, what patterns your AI follows well, and how to phrase things clearly.
 
-Plugins also let you learn from others. When you install a React TypeScript plugin, you're getting someone's refined understanding of how Claude works best with that stack. Even if you customize it later, you start from a much better baseline.
+Plugins also let you learn from others. When you install a React TypeScript plugin, you're getting someone's refined understanding of how your AI works best with that stack. Even if you customize it later, you start from a much better baseline.
 
 ### Where Plugins Come From
 
@@ -46,7 +46,7 @@ Choosing **user scope** installs to your global \`~/.claude/\` folder. All your 
 
 ### What Happens After Installing
 
-The plugin's files are copied to your chosen location. Rules become active immediately—Claude reads them on the next session. Skills appear in your available slash commands list. MCPs might need additional setup; check the plugin's documentation for any environment variables or configuration needed.
+The plugin's files are copied to your chosen location. Rules become active immediately—your AI reads them on the next session. Skills appear in your available slash commands list. MCPs might need additional setup; check the plugin's documentation for any environment variables or configuration needed.
 
 ### Managing Installed Plugins
 

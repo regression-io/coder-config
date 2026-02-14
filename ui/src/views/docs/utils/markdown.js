@@ -30,6 +30,13 @@ export function formatMarkdown(text) {
     return `<table class="w-full border-collapse border border-border my-4"><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table>`;
   });
 
+  // Process inline code BEFORE bold/italic to protect code content like `**` from being parsed as markdown
+  result = result.replace(/`([^`]+)`/g, (match, code) => {
+    // Use a placeholder to protect inline code from further processing
+    const escaped = code.replace(/\*/g, '&#42;').replace(/_/g, '&#95;');
+    return `<code class="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">${escaped}</code>`;
+  });
+
   return result
     .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mt-6 mb-2 text-foreground">$1</h3>')
     .replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold mt-8 mb-4 text-foreground">$1</h2>')
@@ -37,7 +44,6 @@ export function formatMarkdown(text) {
     .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="rounded-lg shadow-lg my-4 max-w-full border border-border" />')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code class="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
     .replace(/^- (.*$)/gim, '<li class="ml-4">$1</li>')
     .replace(/(<li.*<\/li>\n?)+/g, '<ul class="list-disc my-2">$&</ul>')
     .replace(/^\d+\. (.*$)/gim, '<li class="ml-4">$1</li>')
