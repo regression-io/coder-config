@@ -37,17 +37,17 @@ import PermissionsEditor from "@/components/PermissionsEditor";
 // Model options based on Claude Code docs
 const MODEL_OPTIONS = [
   {
-    id: 'claude-sonnet-4-20250514',
-    name: 'Claude Sonnet 4',
-    description: 'Best balance of speed and capability',
-    tier: 'sonnet',
+    id: 'claude-opus-4-6',
+    name: 'Claude Opus 4.6',
+    description: 'Most capable, best for complex tasks',
+    tier: 'opus',
     recommended: true
   },
   {
-    id: 'claude-opus-4-5-20251101',
-    name: 'Claude Opus 4.5',
-    description: 'Most capable, best for complex tasks',
-    tier: 'opus'
+    id: 'claude-sonnet-4-5-20250929',
+    name: 'Claude Sonnet 4.5',
+    description: 'Best balance of speed and capability',
+    tier: 'sonnet'
   },
   {
     id: 'claude-haiku-4-5-20251001',
@@ -69,7 +69,7 @@ const ENV_VARIABLES = [
     key: 'CLAUDE_CODE_SUBAGENT_MODEL',
     label: 'Subagent Model',
     description: 'Model used for subagent/background processing',
-    placeholder: 'claude-haiku-4-20241022'
+    placeholder: 'claude-haiku-4-5-20251001'
   }
 ];
 
@@ -357,7 +357,7 @@ export default function ClaudeSettingsEditor({
                 <Input
                   value={settings.model || ''}
                   onChange={(e) => updateSetting('model', e.target.value)}
-                  placeholder="claude-sonnet-4-20250514"
+                  placeholder="claude-opus-4-6"
                   className="font-mono"
                 />
               </div>
