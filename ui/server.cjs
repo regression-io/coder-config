@@ -211,6 +211,7 @@ class ConfigUIServer {
     const folders = [];
 
     for (const c of configs) {
+      if (folders.some(f => f.dir === c.dir)) continue; // deduplicate (home dir has both .claude.json and .claude/mcps.json)
       const folder = routes.fileExplorer.scanFolderForExplorer(c.dir, this.manager);
       if (folder) folders.push(folder);
     }
