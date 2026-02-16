@@ -591,6 +591,8 @@ function moveClaudeItem(body, manager) {
     fs.mkdirSync(targetParent, { recursive: true });
   }
 
+  const isDirectory = fs.statSync(sourcePath).isDirectory();
+
   // Handle existing target
   if (fs.existsSync(targetPath)) {
     if (!merge) {
@@ -613,15 +615,19 @@ function moveClaudeItem(body, manager) {
         const merged = { ...targetContent, ...sourceContent };
         fs.writeFileSync(targetPath, JSON.stringify(merged, null, 2));
       }
+    } else if (isDirectory) {
+      fs.cpSync(sourcePath, targetPath, { recursive: true });
     } else {
       fs.copyFileSync(sourcePath, targetPath);
     }
+  } else if (isDirectory) {
+    fs.cpSync(sourcePath, targetPath, { recursive: true });
   } else {
     fs.copyFileSync(sourcePath, targetPath);
   }
 
   if (mode === 'move') {
-    fs.unlinkSync(sourcePath);
+    fs.rmSync(sourcePath, { recursive: true });
   }
 
   return { success: true, sourcePath, targetPath, mode };
