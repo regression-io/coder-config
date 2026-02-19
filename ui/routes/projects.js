@@ -5,31 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { execFileSync, spawn } = require('child_process');
-
-/**
- * Get the full path to the claude binary
- * Needed because daemon processes may not have full PATH
- */
-function getClaudePath() {
-  const candidates = [
-    path.join(os.homedir(), '.local', 'bin', 'claude'),
-    '/usr/local/bin/claude',
-    '/opt/homebrew/bin/claude',
-    path.join(os.homedir(), '.npm-global', 'bin', 'claude'),
-  ];
-
-  for (const p of candidates) {
-    if (fs.existsSync(p)) return p;
-  }
-
-  try {
-    const resolved = execFileSync('which', ['claude'], { encoding: 'utf8' }).trim();
-    if (resolved && fs.existsSync(resolved)) return resolved;
-  } catch (e) {}
-
-  return 'claude';
-}
+const { query } = require('@anthropic-ai/claude-agent-sdk');
 
 /**
  * Get all registered projects with status info
@@ -85,7 +61,7 @@ function getActiveProject(manager, projectDir, getHierarchy, getSubprojects) {
  * Add a project to the registry
  * @param {boolean} runClaudeInit - If true, run `claude /init` to create CLAUDE.md
  */
-function addProject(manager, projectPath, name, setProjectDir, runClaudeInit = false) {
+async function addProject(manager, projectPath, name, setProjectDir, runClaudeInit = false) {
   if (!manager) return { error: 'Manager not available' };
 
   const absPath = path.resolve(projectPath.replace(/^~/, os.homedir()));
@@ -109,14 +85,13 @@ function addProject(manager, projectPath, name, setProjectDir, runClaudeInit = f
   // Run claude /init if requested and CLAUDE.md doesn't exist
   if (runClaudeInit && !fs.existsSync(claudeMd)) {
     try {
-      execFileSync(getClaudePath(), ['-p', '/init'], {
-        cwd: absPath,
-        stdio: 'pipe',
-        timeout: 30000
-      });
-      claudeInitRan = true;
+      for await (const msg of query({
+        prompt: '/init',
+        options: { cwd: absPath, maxTurns: 5, settingSources: ['user', 'project'] }
+      })) {
+        if (msg.type === 'result') claudeInitRan = !msg.is_error;
+      }
     } catch (err) {
-      // Claude Code not installed or init failed
       claudeInitError = err.message;
     }
   }
@@ -244,7 +219,7 @@ function setActiveProject(manager, projectId, setProjectDir, getHierarchy, getSu
  * @param {object} res - HTTP response object for SSE
  * @param {string} projectPath - Path to project directory
  */
-function streamClaudeInit(res, projectPath) {
+async function streamClaudeInit(res, projectPath) {
   const absPath = path.resolve(projectPath.replace(/^~/, os.homedir()));
 
   if (!fs.existsSync(absPath)) {
@@ -261,42 +236,37 @@ function streamClaudeInit(res, projectPath) {
     return;
   }
 
-  res.write(`data: ${JSON.stringify({ type: 'status', message: 'Starting claude -p /init...' })}\n\n`);
+  res.write(`data: ${JSON.stringify({ type: 'status', message: 'Running /init...' })}\n\n`);
 
-  const child = spawn(getClaudePath(), ['-p', '/init'], {
-    cwd: absPath,
-    env: { ...process.env, TERM: 'dumb' },
-    stdio: ['ignore', 'pipe', 'pipe']
-  });
+  const abortController = new AbortController();
+  res.on('close', () => abortController.abort());
 
-  child.stdout.on('data', (data) => {
-    const text = data.toString();
-    res.write(`data: ${JSON.stringify({ type: 'output', text })}\n\n`);
-  });
-
-  child.stderr.on('data', (data) => {
-    const text = data.toString();
-    res.write(`data: ${JSON.stringify({ type: 'output', text })}\n\n`);
-  });
-
-  child.on('close', (code) => {
-    if (code === 0) {
-      res.write(`data: ${JSON.stringify({ type: 'done', success: true })}\n\n`);
-    } else {
-      res.write(`data: ${JSON.stringify({ type: 'done', success: false, code })}\n\n`);
+  try {
+    for await (const msg of query({
+      prompt: '/init',
+      options: {
+        cwd: absPath,
+        maxTurns: 5,
+        settingSources: ['user', 'project'],
+        abortController,
+      }
+    })) {
+      if (msg.type === 'assistant') {
+        const text = msg.message.content
+          .filter(b => b.type === 'text')
+          .map(b => b.text)
+          .join('');
+        if (text) res.write(`data: ${JSON.stringify({ type: 'output', text })}\n\n`);
+      } else if (msg.type === 'result') {
+        res.write(`data: ${JSON.stringify({ type: 'done', success: !msg.is_error })}\n\n`);
+      }
     }
-    res.end();
-  });
-
-  child.on('error', (err) => {
-    res.write(`data: ${JSON.stringify({ type: 'error', message: err.message })}\n\n`);
-    res.end();
-  });
-
-  // Handle client disconnect
-  res.on('close', () => {
-    child.kill();
-  });
+  } catch (err) {
+    if (err.name !== 'AbortError') {
+      res.write(`data: ${JSON.stringify({ type: 'error', message: err.message })}\n\n`);
+    }
+  }
+  res.end();
 }
 
 module.exports = {

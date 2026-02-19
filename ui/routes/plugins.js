@@ -5,34 +5,8 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { spawn, execFileSync } = require('child_process');
-
-/**
- * Get the full path to the claude binary
- * Needed because daemon processes may not have full PATH
- */
-function getClaudePath() {
-  // Common locations
-  const candidates = [
-    path.join(os.homedir(), '.local', 'bin', 'claude'),
-    '/usr/local/bin/claude',
-    '/opt/homebrew/bin/claude',
-    path.join(os.homedir(), '.npm-global', 'bin', 'claude'),
-  ];
-
-  for (const p of candidates) {
-    if (fs.existsSync(p)) return p;
-  }
-
-  // Try to resolve via which command
-  try {
-    const resolved = execFileSync('which', ['claude'], { encoding: 'utf8' }).trim();
-    if (resolved && fs.existsSync(resolved)) return resolved;
-  } catch (e) {}
-
-  // Fallback to hoping it's in PATH
-  return 'claude';
-}
+const { spawn } = require('child_process');
+const { getClaudePath } = require('./utils');
 
 /**
  * Default marketplace to auto-install

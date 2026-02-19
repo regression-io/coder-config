@@ -5,31 +5,8 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { execFileSync } = require('child_process');
-
-/**
- * Get the full path to the claude binary
- * Needed because daemon processes may not have full PATH
- */
-function getClaudePath() {
-  const candidates = [
-    path.join(os.homedir(), '.local', 'bin', 'claude'),
-    '/usr/local/bin/claude',
-    '/opt/homebrew/bin/claude',
-    path.join(os.homedir(), '.npm-global', 'bin', 'claude'),
-  ];
-
-  for (const p of candidates) {
-    if (fs.existsSync(p)) return p;
-  }
-
-  try {
-    const resolved = execFileSync('which', ['claude'], { encoding: 'utf8' }).trim();
-    if (resolved && fs.existsSync(resolved)) return resolved;
-  } catch (e) {}
-
-  return 'claude';
-}
+const { query } = require('@anthropic-ai/claude-agent-sdk');
+const { RALPH_LOOP_SKILL_DIR } = require('./utils');
 
 /**
  * Get all loops
@@ -310,77 +287,14 @@ function getLoopHookStatus() {
 }
 
 /**
- * Check if ralph-loop plugin is installed at user scope
- * Returns { installed: boolean, scope: string|null }
+ * ralph-loop skill is bundled with coder-config — no external plugin install needed.
  */
 function getRalphLoopPluginStatus() {
-  const installedPluginsPath = path.join(os.homedir(), '.claude', 'plugins', 'installed_plugins.json');
-
-  if (!fs.existsSync(installedPluginsPath)) {
-    return { installed: false, scope: null, needsInstall: true };
-  }
-
-  try {
-    const data = JSON.parse(fs.readFileSync(installedPluginsPath, 'utf8'));
-    const plugins = data.plugins || {};
-    const ralphLoop = plugins['ralph-loop@claude-plugins-official'];
-
-    if (!ralphLoop || ralphLoop.length === 0) {
-      return { installed: false, scope: null, needsInstall: true };
-    }
-
-    // Check if any installation is at user scope
-    const userScopeInstall = ralphLoop.find(p => p.scope === 'user');
-    if (userScopeInstall) {
-      // Fix plugin structure in case it's using old commands/ format
-      fixRalphLoopPluginStructure();
-      return { installed: true, scope: 'user', needsInstall: false };
-    }
-
-    // Plugin is installed but only at project scope
-    return {
-      installed: true,
-      scope: 'project',
-      projectPath: ralphLoop[0].projectPath,
-      needsInstall: true,
-      message: 'Plugin is installed for a specific project only. Install at user scope for global access.'
-    };
-  } catch (e) {
-    return { installed: false, scope: null, needsInstall: true, error: e.message };
-  }
+  return { installed: true, scope: 'bundled', needsInstall: false };
 }
 
-/**
- * Install ralph-loop plugin at user scope via CLI
- * Uses execFileSync with fixed args (no shell injection risk)
- */
 async function installRalphLoopPlugin() {
-  const claudePath = getClaudePath();
-
-  try {
-    // Run claude plugin install command with execFileSync (safer than execSync)
-    // All arguments are fixed strings - no user input
-    execFileSync(claudePath, ['plugin', 'install', 'ralph-loop@claude-plugins-official', '--scope', 'user'], {
-      encoding: 'utf8',
-      timeout: 30000, // 30 second timeout
-      stdio: ['pipe', 'pipe', 'pipe']
-    });
-
-    // Fix the plugin structure - create skills symlink if needed
-    // The official plugin uses commands/ but Claude Code expects skills/
-    fixRalphLoopPluginStructure();
-
-    return {
-      success: true,
-      message: 'ralph-loop plugin installed successfully at user scope'
-    };
-  } catch (e) {
-    return {
-      success: false,
-      error: e.message,
-      suggestion: 'Try running manually: claude plugin install ralph-loop@claude-plugins-official --scope user'
-    };
-  }
+  return { success: true, message: 'ralph-loop skill is bundled with coder-config' };
 }
 
 /**
@@ -482,179 +396,28 @@ ${task}
 
 ## Rewritten Task:`;
 
-  return new Promise((resolve) => {
-    const { spawn } = require('child_process');
-    const claudePath = getClaudePath();
-    const args = ['-p', metaPrompt];
-
-    // Run from project directory if provided
-    const options = {
-      encoding: 'utf8',
-      cwd: projectPath || process.cwd()
-    };
-
-    let output = '';
-    let errorOutput = '';
-    let resolved = false;
-    let timeoutId = null;
-
-    const proc = spawn(claudePath, args, options);
-
-    // Close stdin immediately - claude -p reads from args, not stdin
-    proc.stdin.end();
-
-    const safeResolve = (result) => {
-      if (resolved) return;
-      resolved = true;
-      if (timeoutId) clearTimeout(timeoutId);
-      resolve(result);
-    };
-
-    proc.stdout.on('data', (data) => {
-      output += data.toString();
-    });
-
-    proc.stderr.on('data', (data) => {
-      errorOutput += data.toString();
-    });
-
-    proc.on('close', (code) => {
-      if (code === 0 && output.trim()) {
-        safeResolve({
-          success: true,
-          tunedPrompt: output.trim()
-        });
-      } else {
-        safeResolve({
-          success: false,
-          error: errorOutput || 'Failed to tune prompt',
-          originalPrompt: task
-        });
+  try {
+    let tunedPrompt = '';
+    for await (const msg of query({
+      prompt: metaPrompt,
+      options: {
+        cwd: projectPath || process.cwd(),
+        maxTurns: 1,
       }
-    });
-
-    proc.on('error', (err) => {
-      safeResolve({
-        success: false,
-        error: err.message,
-        originalPrompt: task
-      });
-    });
-
-    // Handle timeout manually since spawn doesn't have timeout
-    timeoutId = setTimeout(() => {
-      if (!resolved) {
-        proc.kill();
-        safeResolve({
-          success: false,
-          error: 'Prompt tuning timed out',
-          originalPrompt: task
-        });
-      }
-    }, 60000);
-  });
-}
-
-/**
- * Fix the ralph-loop plugin structure by converting commands to skills format
- * Claude Code expects skills/<name>/SKILL.md, but the plugin has commands/<name>.md
- * Also fixes frontmatter issues (hide-from-slash-command-tool -> name)
- * Also fixes hooks.json to use absolute paths instead of ${CLAUDE_PLUGIN_ROOT}
- */
-function fixRalphLoopPluginStructure() {
-  // Fix both cache and marketplace directories
-  // Claude Code reads hooks from marketplace source, not cache
-  const pluginLocations = [
-    path.join(os.homedir(), '.claude', 'plugins', 'cache', 'claude-plugins-official', 'ralph-loop'),
-    path.join(os.homedir(), '.claude', 'plugins', 'marketplaces', 'claude-plugins-official', 'plugins', 'ralph-loop')
-  ];
-
-  for (const pluginDir of pluginLocations) {
-    if (!fs.existsSync(pluginDir)) {
-      continue;
-    }
-
-    // Check if this is a versioned cache dir or direct marketplace dir
-    const hasVersionDirs = fs.readdirSync(pluginDir).some(f => {
-      const fullPath = path.join(pluginDir, f);
-      return fs.statSync(fullPath).isDirectory() && !['commands', 'skills', 'hooks', 'scripts', '.claude-plugin'].includes(f);
-    });
-
-    const dirsToFix = hasVersionDirs
-      ? fs.readdirSync(pluginDir).filter(f => {
-          const fullPath = path.join(pluginDir, f);
-          return fs.statSync(fullPath).isDirectory();
-        }).map(v => path.join(pluginDir, v))
-      : [pluginDir];
-
-    for (const versionDir of dirsToFix) {
-      const commandsDir = path.join(versionDir, 'commands');
-      const skillsDir = path.join(versionDir, 'skills');
-      const hooksDir = path.join(versionDir, 'hooks');
-
-      // Disable plugin's hooks.json - we use our own env-var-based hooks
-      // The plugin's hooks use project-local state files which affect ALL terminals
-      // in the same project, causing input freezing in other Claude sessions
-      const hooksJsonPath = path.join(hooksDir, 'hooks.json');
-      if (fs.existsSync(hooksJsonPath)) {
-        try {
-          const hooksContent = fs.readFileSync(hooksJsonPath, 'utf8');
-          const hooks = JSON.parse(hooksContent);
-          // Only disable if it has hooks defined (not already disabled)
-          if (hooks.hooks && Object.keys(hooks.hooks).length > 0) {
-            hooks._disabled_hooks = hooks.hooks;  // Keep for reference
-            hooks.hooks = {};  // Disable all hooks
-            hooks._disabled_reason = 'Disabled by coder-config - using env-var-based hooks instead';
-            fs.writeFileSync(hooksJsonPath, JSON.stringify(hooks, null, 2), 'utf8');
-          }
-        } catch (e) {
-          // Ignore errors fixing hooks
-        }
-      }
-
-      if (!fs.existsSync(commandsDir)) {
-        continue;
-      }
-
-      // Remove old symlink if it exists
-      if (fs.existsSync(skillsDir) && fs.lstatSync(skillsDir).isSymbolicLink()) {
-        fs.unlinkSync(skillsDir);
-      }
-
-      // Create skills directory if it doesn't exist
-      if (!fs.existsSync(skillsDir)) {
-        fs.mkdirSync(skillsDir, { recursive: true });
-      }
-
-      // Convert each command to skill format
-      // commands/ralph-loop.md -> skills/ralph-loop/SKILL.md
-      const commands = fs.readdirSync(commandsDir).filter(f => f.endsWith('.md'));
-      for (const cmdFile of commands) {
-        const skillName = cmdFile.replace('.md', '');
-        const skillDir = path.join(skillsDir, skillName);
-        const skillFile = path.join(skillDir, 'SKILL.md');
-
-        // Create skill directory
-        if (!fs.existsSync(skillDir)) {
-          fs.mkdirSync(skillDir, { recursive: true });
-        }
-
-        // Read command file content
-        const cmdPath = path.join(commandsDir, cmdFile);
-        let content = fs.readFileSync(cmdPath, 'utf8');
-
-        // Fix frontmatter: replace hide-from-slash-command-tool with name
-        content = content.replace(
-          /hide-from-slash-command-tool:\s*["']true["']/g,
-          `name: ${skillName}`
-        );
-
-        // Write skill file (always overwrite to ensure fix is applied)
-        fs.writeFileSync(skillFile, content, 'utf8');
+    })) {
+      if (msg.type === 'result' && msg.subtype === 'success') {
+        tunedPrompt = msg.result;
       }
     }
+    if (tunedPrompt) {
+      return { success: true, tunedPrompt: tunedPrompt.trim() };
+    }
+    return { success: false, error: 'No result from Claude', originalPrompt: task };
+  } catch (err) {
+    return { success: false, error: err.message, originalPrompt: task };
   }
 }
+
 
 /**
  * Install loop hooks for a specific project directory
@@ -860,6 +623,5 @@ module.exports = {
   removeGlobalHooks,
   getRalphLoopPluginStatus,
   installRalphLoopPlugin,
-  fixRalphLoopPluginStructure,
   tunePrompt,
 };

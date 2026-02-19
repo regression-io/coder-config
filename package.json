@@ -42,6 +42,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.47",
     "@iarna/toml": "^3.0.0",
     "chalk": "^4.1.2",
     "js-yaml": "^4.1.1",
@@ -71,6 +72,7 @@
     "shared/**",
     "scripts/**",
     "hooks/**",
+    "skills/**",
     "shell/**",
     "README.md"
   ],
