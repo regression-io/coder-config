@@ -1,181 +1,309 @@
 /**
- * Statuslines Routes - Library of Claude Code statusCommand presets
+ * Statuslines Routes
+ *
+ * Claude Code's statusLine feature sends JSON session data to a script via stdin.
+ * Scripts parse it with jq and print text for the status bar.
+ *
+ * Settings format in ~/.claude/settings.json:
+ *   { "statusLine": { "type": "command", "command": "~/.claude/statuslines/<id>.sh" } }
+ *
+ * JSON fields available: model.display_name, context_window.used_percentage,
+ *   context_window.context_window_size, context_window.current_usage.*,
+ *   cost.total_cost_usd, cost.total_duration_ms, cost.total_lines_added,
+ *   cost.total_lines_removed, workspace.current_dir, session_id, version
  */
 
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { execSync } = require('child_process');
 
-/**
- * Preset statusline library.
- * Each preset's `command` is set as `statusCommand` in ~/.claude/settings.json.
- * Empty command string = remove statusCommand (use Claude Code built-in).
- */
+const STATUSLINES_DIR = path.join(os.homedir(), '.claude', 'statuslines');
+
+// ---------------------------------------------------------------------------
+// Script templates
+// ---------------------------------------------------------------------------
+
+const SCRIPTS = {
+  minimal: `#!/bin/bash
+# Minimal: model name and context percentage
+input=$(cat)
+MODEL=$(echo "$input" | jq -r '.model.display_name // "?"')
+PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
+echo "* $MODEL  ${PCT}% ctx"
+`,
+
+  'context-bar': `#!/bin/bash
+# Context Bar: model with dot-gauge context usage
+input=$(cat)
+MODEL=$(echo "$input" | jq -r '.model.display_name // "?"')
+PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
+FILLED=$((PCT / 10)); EMPTY=$((10 - FILLED))
+BAR=""; for ((i=0; i<FILLED; i++)); do BAR="${BAR}●"; done
+         for ((i=0; i<EMPTY;  i++)); do BAR="${BAR}○"; done
+echo "* $MODEL  ctx $BAR  ${PCT}%"
+`,
+
+  'git-context': `#!/bin/bash
+# Git + Context: model, context bar, git branch, lines changed
+input=$(cat)
+MODEL=$(echo "$input" | jq -r '.model.display_name // "?"')
+PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
+LINES_ADD=$(echo "$input" | jq -r '.cost.total_lines_added // 0')
+LINES_REM=$(echo "$input" | jq -r '.cost.total_lines_removed // 0')
+FILLED=$((PCT / 10)); EMPTY=$((10 - FILLED))
+BAR=""; for ((i=0; i<FILLED; i++)); do BAR="${BAR}●"; done
+         for ((i=0; i<EMPTY;  i++)); do BAR="${BAR}○"; done
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')
+OUT="* $MODEL  |  ctx $BAR  ${PCT}%"
+[ -n "$BRANCH" ] && OUT="$OUT  |  $BRANCH"
+[ "$LINES_ADD" != "0" ] || [ "$LINES_REM" != "0" ] && OUT="$OUT  |  +${LINES_ADD} -${LINES_REM}"
+echo "$OUT"
+`,
+
+  full: `#!/bin/bash
+# Full: model, context with token counts, lines changed, git branch, duration, cost
+input=$(cat)
+MODEL=$(echo "$input" | jq -r '.model.display_name // "?"')
+PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
+CTX_USED=$(echo "$input" | jq -r '((.context_window.current_usage.input_tokens // 0) + (.context_window.current_usage.cache_creation_input_tokens // 0) + (.context_window.current_usage.cache_read_input_tokens // 0))')
+CTX_MAX=$(echo "$input" | jq -r '.context_window.context_window_size // 200000')
+LINES_ADD=$(echo "$input" | jq -r '.cost.total_lines_added // 0')
+LINES_REM=$(echo "$input" | jq -r '.cost.total_lines_removed // 0')
+DUR_MS=$(echo "$input" | jq -r '.cost.total_duration_ms // 0')
+COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
+
+FILLED=$((PCT / 10)); EMPTY=$((10 - FILLED))
+BAR=""; for ((i=0; i<FILLED; i++)); do BAR="${BAR}●"; done
+         for ((i=0; i<EMPTY;  i++)); do BAR="${BAR}○"; done
+
+CTX_K=$(awk "BEGIN {printf \\"%.1fK\\", $CTX_USED/1000}")
+MAX_K=$(awk "BEGIN {printf \\"%.1fK\\", $CTX_MAX/1000}")
+HOURS=$((DUR_MS / 3600000)); MINS=$(((DUR_MS % 3600000) / 60000))
+COST_FMT=$(printf '\$%.3f' $COST)
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')
+
+OUT="* $MODEL  |  ctx $BAR  ${CTX_K}/${MAX_K}"
+[ "$LINES_ADD" != "0" ] || [ "$LINES_REM" != "0" ] && OUT="$OUT  |  +${LINES_ADD} -${LINES_REM}"
+[ -n "$BRANCH" ] && OUT="$OUT  |  $BRANCH"
+[ "$HOURS" -gt 0 ] && OUT="$OUT  |  ${HOURS}h ${MINS}m" || OUT="$OUT  |  ${MINS}m"
+OUT="$OUT  |  $COST_FMT"
+echo "$OUT"
+`,
+
+  'cost-tracker': `#!/bin/bash
+# Cost Tracker: model, session cost, duration
+input=$(cat)
+MODEL=$(echo "$input" | jq -r '.model.display_name // "?"')
+COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
+DUR_MS=$(echo "$input" | jq -r '.cost.total_duration_ms // 0')
+COST_FMT=$(printf '\$%.3f' $COST)
+MINS=$((DUR_MS / 60000)); SECS=$(((DUR_MS % 60000) / 1000))
+echo "* $MODEL  |  $COST_FMT  |  ${MINS}m ${SECS}s"
+`,
+
+  multiline: `#!/bin/bash
+# Multiline: line 1 = model + git, line 2 = color context bar + cost
+input=$(cat)
+MODEL=$(echo "$input" | jq -r '.model.display_name // "?"')
+PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
+COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
+DUR_MS=$(echo "$input" | jq -r '.cost.total_duration_ms // 0')
+
+GREEN='\\033[32m'; YELLOW='\\033[33m'; RED='\\033[31m'
+CYAN='\\033[36m'; RESET='\\033[0m'
+[ "$PCT" -ge 90 ] && BAR_COLOR="$RED" || { [ "$PCT" -ge 70 ] && BAR_COLOR="$YELLOW" || BAR_COLOR="$GREEN"; }
+
+FILLED=$((PCT / 10)); EMPTY=$((10 - FILLED))
+BAR=""; for ((i=0; i<FILLED; i++)); do BAR="${BAR}█"; done
+         for ((i=0; i<EMPTY;  i++)); do BAR="${BAR}░"; done
+
+MINS=$((DUR_MS / 60000)); SECS=$(((DUR_MS % 60000) / 1000))
+COST_FMT=$(printf '\$%.3f' $COST)
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')
+[ -n "$BRANCH" ] && BRANCH_STR="  |  $BRANCH" || BRANCH_STR=""
+
+echo -e "${CYAN}* $MODEL${RESET}${BRANCH_STR}"
+echo -e "${BAR_COLOR}${BAR}${RESET}  ${PCT}%  |  ${YELLOW}${COST_FMT}${RESET}  |  ${MINS}m ${SECS}s"
+`,
+};
+
+// ---------------------------------------------------------------------------
+// Preset metadata (no script content here — see SCRIPTS above)
+// ---------------------------------------------------------------------------
+
 const PRESETS = [
   {
-    id: 'default',
-    name: 'Claude Code Default',
-    description: 'Built-in statusline from Claude Code (model, context, git, cost)',
-    preview: '* opus-4-6  |  ctx ●●●●○○○○○○ 74.4K/200.0K  |  +146 -13  |  main  |  5h 7%  |  7d 11% • 6d left',
-    command: '',
+    id: 'disabled',
+    name: 'Disabled',
+    description: 'No status bar shown',
+    preview: '',
     category: 'Built-in',
   },
   {
-    id: 'git-branch',
-    name: 'Git Branch',
-    description: 'Shows current branch and dirty file count',
-    preview: ' main  2 changed',
-    command: "branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) && dirty=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') && echo \"${branch}  ${dirty} changed\"",
-    category: 'Git',
-  },
-  {
-    id: 'git-extended',
-    name: 'Git Extended',
-    description: 'Branch, staged/unstaged counts, and last commit message',
-    preview: ' main  +3 ~1  "fix: auth bug"',
-    command: "branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?') && staged=$(git diff --cached --name-only 2>/dev/null | wc -l | tr -d ' ') && unstaged=$(git diff --name-only 2>/dev/null | wc -l | tr -d ' ') && msg=$(git log -1 --pretty=%s 2>/dev/null | cut -c1-40) && echo \" ${branch}  +${staged} ~${unstaged}  \\\"${msg}\\\"\"",
-    category: 'Git',
-  },
-  {
-    id: 'git-sync',
-    name: 'Git Sync Status',
-    description: 'Branch with ahead/behind counts relative to remote',
-    preview: ' main ↑2 ↓0',
-    command: "branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?') && ahead=$(git rev-list --count @{u}..HEAD 2>/dev/null || echo 0) && behind=$(git rev-list --count HEAD..@{u} 2>/dev/null || echo 0) && echo \" ${branch} ↑${ahead} ↓${behind}\"",
-    category: 'Git',
-  },
-  {
-    id: 'project-context',
-    name: 'Project Context',
-    description: 'Repo name, branch, and uncommitted file count',
-    preview: 'coder-config  main  3 pending',
-    command: "repo=$(basename $(git rev-parse --show-toplevel 2>/dev/null) 2>/dev/null || basename $PWD) && branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '') && count=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') && echo \"${repo}  ${branch}  ${count} pending\"",
-    category: 'Git',
-  },
-  {
-    id: 'clock',
-    name: 'Clock',
-    description: 'Current time (HH:MM)',
-    preview: ' 14:32',
-    command: "date +'  %H:%M'",
-    category: 'System',
-  },
-  {
-    id: 'datetime',
-    name: 'Date & Time',
-    description: 'Full date and time',
-    preview: ' Mon Mar 04  14:32',
-    command: "date +'  %a %b %d  %H:%M'",
-    category: 'System',
-  },
-  {
-    id: 'system-load',
-    name: 'System Load',
-    description: 'CPU load average and memory usage',
-    preview: ' load 1.2  mem 8.4G/16G',
-    command: "load=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $1}' | tr -d ',') && mem=$(vm_stat 2>/dev/null | awk '/Pages free/{free=$3} /Pages active/{active=$3} /Pages inactive/{inact=$3} END{total=(free+active+inact)*4096/1073741824; used=active*4096/1073741824; printf \"%.1fG/%.1fG\", used, total}' 2>/dev/null || echo '?') && echo \" load ${load}  mem ${mem}\"",
-    category: 'System',
-  },
-  {
-    id: 'git-clock',
-    name: 'Git + Clock',
-    description: 'Branch and current time',
-    preview: ' main   14:32',
-    command: "branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '') && echo \" ${branch}   $(date +'%H:%M')\"",
-    category: 'Combo',
-  },
-  {
-    id: 'git-project-clock',
-    name: 'Git + Project + Clock',
-    description: 'Repo name, branch with diff stats, and time',
-    preview: 'coder-config  main +3 ~1   14:32',
-    command: "repo=$(basename $(git rev-parse --show-toplevel 2>/dev/null) 2>/dev/null || basename $PWD) && branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '') && added=$(git diff --stat HEAD 2>/dev/null | grep -E '^.*\\+' | tail -1 | grep -o '[0-9]* insertion' | grep -o '[0-9]*' || echo 0) && deleted=$(git diff --stat HEAD 2>/dev/null | grep -E 'deletion' | tail -1 | grep -o '[0-9]* deletion' | grep -o '[0-9]*' || echo 0) && echo \"${repo}  ${branch} +${added} ~${deleted}   $(date +'%H:%M')\"",
-    category: 'Combo',
-  },
-  {
-    id: 'minimal-branch',
+    id: 'minimal',
     name: 'Minimal',
-    description: 'Just the git branch, nothing else',
-    preview: 'main',
-    command: "git rev-parse --abbrev-ref HEAD 2>/dev/null || echo ''",
-    category: 'Minimal',
+    description: 'Model name and context percentage',
+    preview: '* opus-4-6  37% ctx',
+    category: 'Simple',
+  },
+  {
+    id: 'context-bar',
+    name: 'Context Bar',
+    description: 'Model with a ●○ dot gauge showing context usage',
+    preview: '* opus-4-6  ctx ●●●●○○○○○○  37%',
+    category: 'Simple',
+  },
+  {
+    id: 'git-context',
+    name: 'Git + Context',
+    description: 'Model, context bar, git branch, and lines changed this session',
+    preview: '* opus-4-6  |  ctx ●●●●○○○○○○  37%  |  main  |  +146 -13',
+    category: 'Git',
+  },
+  {
+    id: 'full',
+    name: 'Full',
+    description: 'Everything: model, context with token counts, lines, branch, duration, cost',
+    preview: '* opus-4-6  |  ctx ●●●●○○○○○○  74.4K/200.0K  |  +146 -13  |  main  |  5h 2m  |  $0.142',
+    category: 'Git',
+  },
+  {
+    id: 'cost-tracker',
+    name: 'Cost Tracker',
+    description: 'Model, total session cost, and elapsed time',
+    preview: '* opus-4-6  |  $0.142  |  32m 15s',
+    category: 'Cost',
+  },
+  {
+    id: 'multiline',
+    name: 'Multiline',
+    description: 'Two rows: model + branch on top, color-coded context bar + cost below',
+    preview: '* opus-4-6  |  main\n█████░░░░░  37%  |  $0.142  |  32m 15s',
+    category: 'Cost',
   },
   {
     id: 'custom',
-    name: 'Custom',
-    description: 'Write your own shell command',
-    preview: '(your output here)',
-    command: null, // null = user-defined
+    name: 'Custom Script',
+    description: 'Write your own bash script — receives Claude Code JSON via stdin',
+    preview: null,
     category: 'Custom',
   },
 ];
 
-/**
- * Returns the full preset library
- */
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function scriptPath(presetId) {
+  return path.join(STATUSLINES_DIR, `${presetId}.sh`);
+}
+
+function expandHome(p) {
+  return p.replace(/^~/, os.homedir());
+}
+
+function settingsPath() {
+  return path.join(os.homedir(), '.claude', 'settings.json');
+}
+
+function readSettings() {
+  const p = settingsPath();
+  if (!fs.existsSync(p)) return {};
+  try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return {}; }
+}
+
+function writeSettings(settings) {
+  const p = settingsPath();
+  const dir = path.dirname(p);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(p, JSON.stringify(settings, null, 2) + '\n', 'utf8');
+}
+
+function ensureScriptDir() {
+  if (!fs.existsSync(STATUSLINES_DIR)) fs.mkdirSync(STATUSLINES_DIR, { recursive: true });
+}
+
+function writeScript(presetId, content) {
+  ensureScriptDir();
+  const p = scriptPath(presetId);
+  fs.writeFileSync(p, content, 'utf8');
+  fs.chmodSync(p, 0o755);
+  return p;
+}
+
+function commandPathInSettings(settings) {
+  return settings?.statusLine?.command || null;
+}
+
+function matchPresetFromCommand(cmd) {
+  if (!cmd) return 'disabled';
+  // Match against known script paths
+  for (const preset of PRESETS) {
+    if (preset.id === 'disabled' || preset.id === 'custom') continue;
+    const expected = scriptPath(preset.id);
+    const expectedHome = expected.replace(os.homedir(), '~');
+    if (cmd === expected || cmd === expectedHome) return preset.id;
+  }
+  return 'custom';
+}
+
+// ---------------------------------------------------------------------------
+// Route handlers
+// ---------------------------------------------------------------------------
+
 function getStatuslinePresets() {
   return { presets: PRESETS };
 }
 
-/**
- * Reads current statusCommand from ~/.claude/settings.json
- */
 function getCurrentStatusline() {
-  const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+  const settings = readSettings();
+  const cmd = commandPathInSettings(settings);
+  const presetId = matchPresetFromCommand(cmd);
 
-  try {
-    if (!fs.existsSync(settingsPath)) {
-      return { command: '', presetId: 'default' };
+  // For custom, also return the current script content
+  let scriptContent = '';
+  if (presetId === 'custom' && cmd) {
+    const resolved = expandHome(cmd);
+    if (fs.existsSync(resolved)) {
+      scriptContent = fs.readFileSync(resolved, 'utf8');
     }
-    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-    const command = settings.statusCommand || '';
-    const matched = PRESETS.find(p => p.command !== null && p.command === command);
-    return {
-      command,
-      presetId: matched ? matched.id : (command ? 'custom' : 'default'),
-    };
-  } catch (e) {
-    return { command: '', presetId: 'default', error: e.message };
   }
+
+  return { command: cmd || '', presetId, scriptContent };
 }
 
 /**
- * Saves statusCommand to ~/.claude/settings.json.
- * Pass command='' to remove (revert to Claude Code built-in).
+ * Apply a preset or custom script.
+ * body: { presetId: string, scriptContent?: string }
  */
 function setStatusline(body) {
-  const { command } = body;
-  const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+  const { presetId, scriptContent } = body;
 
   try {
-    const claudeDir = path.dirname(settingsPath);
-    if (!fs.existsSync(claudeDir)) {
-      fs.mkdirSync(claudeDir, { recursive: true });
+    const settings = readSettings();
+
+    if (presetId === 'disabled') {
+      delete settings.statusLine;
+      writeSettings(settings);
+      return { success: true, presetId: 'disabled', command: '' };
     }
 
-    let settings = {};
-    if (fs.existsSync(settingsPath)) {
-      try {
-        settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-      } catch (e) {
-        settings = {};
-      }
-    }
+    let cmd;
 
-    if (command === '' || command == null) {
-      delete settings.statusCommand;
+    if (presetId === 'custom') {
+      if (!scriptContent) return { success: false, error: 'scriptContent required for custom preset' };
+      cmd = writeScript('custom', scriptContent);
     } else {
-      settings.statusCommand = command;
+      const template = SCRIPTS[presetId];
+      if (!template) return { success: false, error: `Unknown preset: ${presetId}` };
+      cmd = writeScript(presetId, template);
     }
 
-    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
+    settings.statusLine = { type: 'command', command: cmd };
+    writeSettings(settings);
 
-    const matched = PRESETS.find(p => p.command !== null && p.command === (command || ''));
-    return {
-      success: true,
-      command: command || '',
-      presetId: matched ? matched.id : (command ? 'custom' : 'default'),
-    };
+    return { success: true, presetId, command: cmd };
   } catch (e) {
     return { success: false, error: e.message };
   }

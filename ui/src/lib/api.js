@@ -492,10 +492,10 @@ export const api = {
     return request('/statuslines/current');
   },
 
-  async setStatusline(command) {
+  async setStatusline(presetId, scriptContent) {
     return request('/statuslines/current', {
       method: 'PUT',
-      body: { command },
+      body: { presetId, scriptContent },
     });
   },
 
