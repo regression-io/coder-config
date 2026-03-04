@@ -331,5 +331,6 @@ function setStatusline(body) {
 module.exports = {
   getStatuslinePresets,
   getCurrentStatusline,
+  getPresetScript,
   setStatusline,
 };
