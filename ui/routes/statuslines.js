@@ -30,7 +30,7 @@ const SCRIPTS = {
 input=$(cat)
 MODEL=$(echo "$input" | jq -r '.model.display_name // "?"')
 PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
-echo "* $MODEL  ${PCT}% ctx"
+echo "* $MODEL  $PCT% ctx"
 `,
 
   'context-bar': `#!/bin/bash
@@ -39,9 +39,9 @@ input=$(cat)
 MODEL=$(echo "$input" | jq -r '.model.display_name // "?"')
 PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
 FILLED=$((PCT / 10)); EMPTY=$((10 - FILLED))
-BAR=""; for ((i=0; i<FILLED; i++)); do BAR="${BAR}●"; done
-         for ((i=0; i<EMPTY;  i++)); do BAR="${BAR}○"; done
-echo "* $MODEL  ctx $BAR  ${PCT}%"
+BAR=""; for ((i=0; i<FILLED; i++)); do BAR="$BAR●"; done
+         for ((i=0; i<EMPTY;  i++)); do BAR="$BAR○"; done
+echo "* $MODEL  ctx $BAR  $PCT%"
 `,
 
   'git-context': `#!/bin/bash
@@ -52,12 +52,12 @@ PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1
 LINES_ADD=$(echo "$input" | jq -r '.cost.total_lines_added // 0')
 LINES_REM=$(echo "$input" | jq -r '.cost.total_lines_removed // 0')
 FILLED=$((PCT / 10)); EMPTY=$((10 - FILLED))
-BAR=""; for ((i=0; i<FILLED; i++)); do BAR="${BAR}●"; done
-         for ((i=0; i<EMPTY;  i++)); do BAR="${BAR}○"; done
+BAR=""; for ((i=0; i<FILLED; i++)); do BAR="$BAR●"; done
+         for ((i=0; i<EMPTY;  i++)); do BAR="$BAR○"; done
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')
-OUT="* $MODEL  |  ctx $BAR  ${PCT}%"
+OUT="* $MODEL  |  ctx $BAR  $PCT%"
 [ -n "$BRANCH" ] && OUT="$OUT  |  $BRANCH"
-[ "$LINES_ADD" != "0" ] || [ "$LINES_REM" != "0" ] && OUT="$OUT  |  +${LINES_ADD} -${LINES_REM}"
+[ "$LINES_ADD" != "0" ] || [ "$LINES_REM" != "0" ] && OUT="$OUT  |  +$LINES_ADD -$LINES_REM"
 echo "$OUT"
 `,
 
@@ -74,19 +74,19 @@ DUR_MS=$(echo "$input" | jq -r '.cost.total_duration_ms // 0')
 COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
 
 FILLED=$((PCT / 10)); EMPTY=$((10 - FILLED))
-BAR=""; for ((i=0; i<FILLED; i++)); do BAR="${BAR}●"; done
-         for ((i=0; i<EMPTY;  i++)); do BAR="${BAR}○"; done
+BAR=""; for ((i=0; i<FILLED; i++)); do BAR="$BAR●"; done
+         for ((i=0; i<EMPTY;  i++)); do BAR="$BAR○"; done
 
 CTX_K=$(awk "BEGIN {printf \\"%.1fK\\", $CTX_USED/1000}")
 MAX_K=$(awk "BEGIN {printf \\"%.1fK\\", $CTX_MAX/1000}")
 HOURS=$((DUR_MS / 3600000)); MINS=$(((DUR_MS % 3600000) / 60000))
-COST_FMT=$(printf '\$%.3f' $COST)
+COST_FMT=$(printf '$%.3f' $COST)
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')
 
-OUT="* $MODEL  |  ctx $BAR  ${CTX_K}/${MAX_K}"
-[ "$LINES_ADD" != "0" ] || [ "$LINES_REM" != "0" ] && OUT="$OUT  |  +${LINES_ADD} -${LINES_REM}"
+OUT="* $MODEL  |  ctx $BAR  $CTX_K/$MAX_K"
+[ "$LINES_ADD" != "0" ] || [ "$LINES_REM" != "0" ] && OUT="$OUT  |  +$LINES_ADD -$LINES_REM"
 [ -n "$BRANCH" ] && OUT="$OUT  |  $BRANCH"
-[ "$HOURS" -gt 0 ] && OUT="$OUT  |  ${HOURS}h ${MINS}m" || OUT="$OUT  |  ${MINS}m"
+[ "$HOURS" -gt 0 ] && OUT="$OUT  |  \${HOURS}h \${MINS}m" || OUT="$OUT  |  \${MINS}m"
 OUT="$OUT  |  $COST_FMT"
 echo "$OUT"
 `,
@@ -97,9 +97,9 @@ input=$(cat)
 MODEL=$(echo "$input" | jq -r '.model.display_name // "?"')
 COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
 DUR_MS=$(echo "$input" | jq -r '.cost.total_duration_ms // 0')
-COST_FMT=$(printf '\$%.3f' $COST)
+COST_FMT=$(printf '$%.3f' $COST)
 MINS=$((DUR_MS / 60000)); SECS=$(((DUR_MS % 60000) / 1000))
-echo "* $MODEL  |  $COST_FMT  |  ${MINS}m ${SECS}s"
+echo "* $MODEL  |  $COST_FMT  |  \${MINS}m \${SECS}s"
 `,
 
   multiline: `#!/bin/bash
@@ -115,16 +115,16 @@ CYAN='\\033[36m'; RESET='\\033[0m'
 [ "$PCT" -ge 90 ] && BAR_COLOR="$RED" || { [ "$PCT" -ge 70 ] && BAR_COLOR="$YELLOW" || BAR_COLOR="$GREEN"; }
 
 FILLED=$((PCT / 10)); EMPTY=$((10 - FILLED))
-BAR=""; for ((i=0; i<FILLED; i++)); do BAR="${BAR}█"; done
-         for ((i=0; i<EMPTY;  i++)); do BAR="${BAR}░"; done
+BAR=""; for ((i=0; i<FILLED; i++)); do BAR="$BAR█"; done
+         for ((i=0; i<EMPTY;  i++)); do BAR="$BAR░"; done
 
 MINS=$((DUR_MS / 60000)); SECS=$(((DUR_MS % 60000) / 1000))
-COST_FMT=$(printf '\$%.3f' $COST)
+COST_FMT=$(printf '$%.3f' $COST)
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')
 [ -n "$BRANCH" ] && BRANCH_STR="  |  $BRANCH" || BRANCH_STR=""
 
-echo -e "${CYAN}* $MODEL${RESET}${BRANCH_STR}"
-echo -e "${BAR_COLOR}${BAR}${RESET}  ${PCT}%  |  ${YELLOW}${COST_FMT}${RESET}  |  ${MINS}m ${SECS}s"
+echo -e "$CYAN* $MODEL$RESET$BRANCH_STR"
+echo -e "$BAR_COLOR$BAR$RESET  $PCT%  |  $YELLOW$COST_FMT$RESET  |  \${MINS}m \${SECS}s"
 `,
 };
 
