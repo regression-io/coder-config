@@ -314,9 +314,10 @@ function setStatusline(body) {
       if (!scriptContent) return { success: false, error: 'scriptContent required for custom preset' };
       cmd = writeScript('custom', scriptContent);
     } else {
-      const template = SCRIPTS[presetId];
-      if (!template) return { success: false, error: `Unknown preset: ${presetId}` };
-      cmd = writeScript(presetId, template);
+      // Use provided scriptContent if given (user edited the script), else fall back to built-in template
+      const script = scriptContent || SCRIPTS[presetId];
+      if (!script) return { success: false, error: `Unknown preset: ${presetId}` };
+      cmd = writeScript(presetId, script);
     }
 
     settings.statusLine = { type: 'command', command: cmd };

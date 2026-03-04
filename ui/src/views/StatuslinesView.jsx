@@ -79,13 +79,13 @@ export default function StatuslinesView() {
     }
   };
 
-  const saveEdit = async (presetId) => {
+  const saveEdit = async (presetId, script = editScript) => {
     setSaving(true);
     try {
-      // Always save as the preset's own id (preserves customized version)
-      await api.setStatusline(presetId, editScript);
+      const result = await api.setStatusline(presetId, script);
+      if (result.success === false) throw new Error(result.error || 'Save failed');
       setActivePresetId(presetId);
-      if (presetId === 'custom') setCustomScript(editScript);
+      if (presetId === 'custom') setCustomScript(script);
       setEditingId(null);
       toast.success('Script saved and applied');
     } catch (e) {
@@ -223,7 +223,7 @@ export default function StatuslinesView() {
                       <Button
                         size="sm"
                         className="w-full"
-                        onClick={() => saveEdit('custom')}
+                        onClick={() => saveEdit('custom', customScript)}
                         disabled={saving || !customScript.trim()}
                       >
                         {saving && activePresetId === 'custom'
