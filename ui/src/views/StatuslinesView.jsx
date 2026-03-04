@@ -190,7 +190,7 @@ export default function StatuslinesView() {
                       <Textarea
                         value={customCommand}
                         onChange={e => setCustomCommand(e.target.value)}
-                        placeholder="echo \"$(git rev-parse --abbrev-ref HEAD)\""
+                        placeholder={'echo "$(git rev-parse --abbrev-ref HEAD)"'}
                         className="font-mono text-xs h-20 resize-none bg-gray-950 dark:bg-black text-green-400 border-gray-800 placeholder:text-gray-600"
                       />
                       <Button
