@@ -128,9 +128,15 @@ export default function StatuslinesView() {
           )}
         </div>
 
+        {/* Restart notice */}
+        <div className="mt-4 flex items-start gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
+          <span className="shrink-0 mt-0.5">⚡</span>
+          <span>Changes apply to new Claude Code sessions. Start a new <code className="font-mono">claude</code> session to see the updated statusline.</span>
+        </div>
+
         {/* Current command preview */}
         {currentCommand && (
-          <div className="mt-4 p-3 bg-gray-950 dark:bg-black rounded-lg font-mono text-xs text-green-400 border border-gray-800">
+          <div className="mt-3 p-3 bg-gray-950 dark:bg-black rounded-lg font-mono text-xs text-green-400 border border-gray-800">
             <span className="text-gray-500 select-none">$ </span>
             {currentCommand}
           </div>
