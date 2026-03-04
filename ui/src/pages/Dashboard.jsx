@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Settings, Package, RefreshCw, Rocket, Terminal,
-  Folder, FolderOpen, Loader2, Brain, Wand2, Wrench, Shield, Download, Layers, BookOpen, Puzzle, Workflow, GraduationCap, RefreshCcw, Save
+  Folder, FolderOpen, Loader2, Brain, Wand2, Wrench, Shield, Download, Layers, BookOpen, Puzzle, Workflow, GraduationCap, RefreshCcw, Save, MonitorDot
 } from 'lucide-react';
 import FileExplorer from "@/components/FileExplorer";
 import ProjectSwitcher from "@/components/ProjectSwitcher";
@@ -31,7 +31,8 @@ import {
   WorkstreamsView,
   LoopsView,
   TutorialView,
-  SessionsView
+  SessionsView,
+  StatuslinesView,
 } from "@/views";
 
 const navItems = [
@@ -52,6 +53,7 @@ const navItems = [
   { id: 'create-mcp', label: 'Create MCP', icon: Wand2, section: 'Developer' },
   { id: 'loops', label: 'Ralph Loops', icon: RefreshCcw, section: 'Developer', isNew: true },
   // System section
+  { id: 'statuslines', label: 'Statusline', icon: MonitorDot, section: 'System' },
   { id: 'sessions', label: 'Sessions', icon: Save, section: 'System' },
   { id: 'preferences', label: 'Preferences', icon: Wrench, section: 'System' },
   // Help section
@@ -528,6 +530,8 @@ export default function Dashboard() {
         return <CodexSettingsView />;
       case 'antigravity-settings':
         return <AntigravitySettingsView />;
+      case 'statuslines':
+        return <StatuslinesView />;
       case 'sessions':
         return <SessionsView />;
       case 'preferences':

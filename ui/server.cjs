@@ -681,6 +681,15 @@ class ConfigUIServer {
         if (req.method === 'PUT') return this.json(res, routes.settings.saveClaudeSettings(body));
         break;
 
+      case '/api/statuslines':
+        if (req.method === 'GET') return this.json(res, routes.statuslines.getStatuslinePresets());
+        break;
+
+      case '/api/statuslines/current':
+        if (req.method === 'GET') return this.json(res, routes.statuslines.getCurrentStatusline());
+        if (req.method === 'PUT') return this.json(res, routes.statuslines.setStatusline(body));
+        break;
+
       case '/api/gemini-settings':
         if (req.method === 'GET') return this.json(res, routes.settings.getGeminiSettings());
         if (req.method === 'PUT') return this.json(res, routes.settings.saveGeminiSettings(body));

@@ -483,6 +483,22 @@ export const api = {
     });
   },
 
+  // Statuslines
+  async getStatuslinePresets() {
+    return request('/statuslines');
+  },
+
+  async getCurrentStatusline() {
+    return request('/statuslines/current');
+  },
+
+  async setStatusline(command) {
+    return request('/statuslines/current', {
+      method: 'PUT',
+      body: { command },
+    });
+  },
+
   // User preferences/config
   async getConfig() {
     return request('/preferences');
