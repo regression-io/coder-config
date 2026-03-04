@@ -53,7 +53,7 @@ const navItems = [
   { id: 'create-mcp', label: 'Create MCP', icon: Wand2, section: 'Developer' },
   { id: 'loops', label: 'Ralph Loops', icon: RefreshCcw, section: 'Developer', isNew: true },
   // System section
-  { id: 'statuslines', label: 'Statusline', icon: MonitorDot, section: 'System' },
+  { id: 'statuslines', label: 'Statusline', icon: MonitorDot, section: 'System', isNew: true },
   { id: 'sessions', label: 'Sessions', icon: Save, section: 'System' },
   { id: 'preferences', label: 'Preferences', icon: Wrench, section: 'System' },
   // Help section
