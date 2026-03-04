@@ -492,6 +492,10 @@ export const api = {
     return request('/statuslines/current');
   },
 
+  async getPresetScript(id) {
+    return request(`/statuslines/script?id=${encodeURIComponent(id)}`);
+  },
+
   async setStatusline(presetId, scriptContent) {
     return request('/statuslines/current', {
       method: 'PUT',

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Check, Loader2, Terminal, Pencil } from 'lucide-react';
+import { Check, Loader2, Terminal, Pencil, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
@@ -32,6 +32,8 @@ export default function StatuslinesView() {
   const [presets, setPresets] = useState([]);
   const [activePresetId, setActivePresetId] = useState('disabled');
   const [customScript, setCustomScript] = useState(DEFAULT_CUSTOM_SCRIPT);
+  const [editingId, setEditingId] = useState(null);       // preset being edited
+  const [editScript, setEditScript] = useState('');        // script content in editor
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -57,7 +59,7 @@ export default function StatuslinesView() {
   };
 
   const applyPreset = async (preset) => {
-    if (preset.id === 'custom') return; // handled by applyCustom
+    if (preset.id === 'custom' || preset.id === editingId) return;
     setSaving(true);
     try {
       await api.setStatusline(preset.id);
@@ -70,14 +72,33 @@ export default function StatuslinesView() {
     }
   };
 
-  const applyCustom = async () => {
+  const openEditor = async (preset, e) => {
+    e.stopPropagation();
+    if (preset.id === 'custom') {
+      setEditScript(customScript);
+      setEditingId('custom');
+      return;
+    }
+    try {
+      const data = await api.getPresetScript(preset.id);
+      setEditScript(data.scriptContent || '');
+      setEditingId(preset.id);
+    } catch (err) {
+      toast.error('Failed to load script: ' + err.message);
+    }
+  };
+
+  const saveEdit = async (presetId) => {
     setSaving(true);
     try {
-      await api.setStatusline('custom', customScript);
-      setActivePresetId('custom');
-      toast.success('Custom script applied');
+      // Always save as the preset's own id (preserves customized version)
+      await api.setStatusline(presetId, editScript);
+      setActivePresetId(presetId);
+      if (presetId === 'custom') setCustomScript(editScript);
+      setEditingId(null);
+      toast.success('Script saved and applied');
     } catch (e) {
-      toast.error('Failed to apply: ' + e.message);
+      toast.error('Failed to save: ' + e.message);
     } finally {
       setSaving(false);
     }
@@ -122,14 +143,16 @@ export default function StatuslinesView() {
               const isActive = activePresetId === preset.id;
               const isCustom = preset.id === 'custom';
               const isDisabled = preset.id === 'disabled';
+              const isEditing = editingId === preset.id;
+              const canEdit = !isDisabled;
 
               return (
                 <div
                   key={preset.id}
-                  onClick={() => !isCustom && applyPreset(preset)}
+                  onClick={() => !isCustom && !isEditing && applyPreset(preset)}
                   className={[
                     'rounded-xl border p-4 transition-all',
-                    isCustom ? 'cursor-default' : 'cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-500',
+                    isCustom || isEditing ? 'cursor-default' : 'cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-500',
                     isActive
                       ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40 shadow-sm'
                       : 'border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950',
@@ -141,41 +164,80 @@ export default function StatuslinesView() {
                         <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
                           {preset.name}
                         </span>
-                        {isActive && <Check className="w-4 h-4 text-indigo-500 shrink-0" />}
+                        {isActive && !isEditing && <Check className="w-4 h-4 text-indigo-500 shrink-0" />}
                       </div>
                       <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
                         {preset.description}
                       </p>
                     </div>
-                    {isCustom && <Pencil className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />}
+                    {canEdit && (
+                      <button
+                        onClick={e => isEditing ? (e.stopPropagation(), setEditingId(null)) : openEditor(preset, e)}
+                        className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 shrink-0"
+                        title={isEditing ? 'Close editor' : 'Edit script'}
+                      >
+                        {isEditing ? <X className="w-3.5 h-3.5" /> : <Pencil className="w-3.5 h-3.5" />}
+                      </button>
+                    )}
                   </div>
 
-                  {/* Preview bar */}
-                  {!isCustom && !isDisabled && preset.preview && (
+                  {/* Preview bar (when not editing) */}
+                  {!isEditing && !isCustom && !isDisabled && preset.preview && (
                     <div className="mt-3 px-2 py-1.5 bg-gray-950 dark:bg-black rounded font-mono text-[11px] border border-gray-800 whitespace-pre text-gray-300 truncate">
                       {preset.preview}
                     </div>
                   )}
 
-                  {isDisabled && (
+                  {!isEditing && isDisabled && (
                     <div className="mt-3 px-2 py-1.5 bg-gray-950 dark:bg-black rounded font-mono text-[11px] border border-gray-800 text-gray-600 italic">
                       (no status bar)
                     </div>
                   )}
 
-                  {/* Custom script editor */}
-                  {isCustom && (
+                  {/* Inline script editor */}
+                  {isEditing && (
+                    <div className="mt-3 space-y-2" onClick={e => e.stopPropagation()}>
+                      <Textarea
+                        value={editScript}
+                        onChange={e => setEditScript(e.target.value)}
+                        className="font-mono text-xs h-48 resize-y bg-gray-950 dark:bg-black text-green-400 border-gray-800"
+                        spellCheck={false}
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => saveEdit(preset.id)}
+                          disabled={saving || !editScript.trim()}
+                        >
+                          {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
+                          Save & Apply
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEditingId(null)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Custom preset: always show editor */}
+                  {isCustom && !isEditing && (
                     <div className="mt-3 space-y-2" onClick={e => e.stopPropagation()}>
                       <Textarea
                         value={customScript}
                         onChange={e => setCustomScript(e.target.value)}
-                        className="font-mono text-xs h-40 resize-y bg-gray-950 dark:bg-black text-green-400 border-gray-800 placeholder:text-gray-600"
+                        className="font-mono text-xs h-40 resize-y bg-gray-950 dark:bg-black text-green-400 border-gray-800"
                         spellCheck={false}
                       />
                       <Button
                         size="sm"
                         className="w-full"
-                        onClick={applyCustom}
+                        onClick={() => saveEdit('custom')}
                         disabled={saving || !customScript.trim()}
                       >
                         {saving && activePresetId === 'custom'
@@ -202,9 +264,9 @@ export default function StatuslinesView() {
           Claude Code pipes JSON session data to the script on each turn.
         </p>
         <p className="text-xs text-gray-500 dark:text-slate-500">
-          Test a script manually:{' '}
+          Test a script:{' '}
           <code className="bg-gray-100 dark:bg-slate-800 px-1 rounded font-mono">
-            {'echo \'{"model":{"display_name":"opus-4-6"},"context_window":{"used_percentage":37}}\' | ~/.claude/statuslines/full.sh'}
+            {'echo \'{"model":{"display_name":"opus-4-6"},"context_window":{"used_percentage":37,"remaining_percentage":63}}\' | ~/.claude/statuslines/full.sh'}
           </code>
         </p>
       </div>

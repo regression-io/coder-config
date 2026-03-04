@@ -62,10 +62,11 @@ echo "$OUT"
 `,
 
   full: `#!/bin/bash
-# Full: model, context with token counts, lines changed, git branch, duration, cost
+# Full: model, context with token counts + ctx left, lines changed, git branch, duration, cost
 input=$(cat)
 MODEL=$(echo "$input" | jq -r '.model.display_name // "?"')
 PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
+REM=$(echo "$input" | jq -r '.context_window.remaining_percentage // 0' | cut -d. -f1)
 CTX_USED=$(echo "$input" | jq -r '((.context_window.current_usage.input_tokens // 0) + (.context_window.current_usage.cache_creation_input_tokens // 0) + (.context_window.current_usage.cache_read_input_tokens // 0))')
 CTX_MAX=$(echo "$input" | jq -r '.context_window.context_window_size // 200000')
 LINES_ADD=$(echo "$input" | jq -r '.cost.total_lines_added // 0')
@@ -83,7 +84,7 @@ HOURS=$((DUR_MS / 3600000)); MINS=$(((DUR_MS % 3600000) / 60000))
 COST_FMT=$(printf '$%.3f' $COST)
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')
 
-OUT="* $MODEL  |  ctx $BAR  $CTX_K/$MAX_K"
+OUT="* $MODEL  |  ctx $BAR  $CTX_K/$MAX_K  |  $REM% ctx left"
 [ "$LINES_ADD" != "0" ] || [ "$LINES_REM" != "0" ] && OUT="$OUT  |  +$LINES_ADD -$LINES_REM"
 [ -n "$BRANCH" ] && OUT="$OUT  |  $BRANCH"
 [ "$HOURS" -gt 0 ] && OUT="$OUT  |  \${HOURS}h \${MINS}m" || OUT="$OUT  |  \${MINS}m"
@@ -254,6 +255,24 @@ function matchPresetFromCommand(cmd) {
 
 function getStatuslinePresets() {
   return { presets: PRESETS };
+}
+
+/**
+ * Returns the script content for a given preset id.
+ * For presets that have been applied, returns the saved file content (may have edits).
+ * Falls back to the built-in template.
+ */
+function getPresetScript(presetId) {
+  if (presetId === 'disabled' || presetId === 'custom') {
+    return { scriptContent: '' };
+  }
+  // Prefer the saved file (may have user edits)
+  const saved = scriptPath(presetId);
+  if (fs.existsSync(saved)) {
+    return { scriptContent: fs.readFileSync(saved, 'utf8') };
+  }
+  // Fall back to built-in template
+  return { scriptContent: SCRIPTS[presetId] || '' };
 }
 
 function getCurrentStatusline() {
