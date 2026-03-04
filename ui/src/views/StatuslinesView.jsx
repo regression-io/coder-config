@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Check, Loader2, Terminal, Pencil, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import api from '@/lib/api';
+import StatuslineVisualEditor from '@/components/StatuslineVisualEditor';
+import { DEFAULT_VISUAL_CONFIG, configToScript } from '@/lib/statuslineConfig';
 
 const CATEGORY_ORDER = ['Built-in', 'Simple', 'Git', 'Cost', 'Custom'];
 
@@ -16,17 +17,7 @@ function groupByCategory(presets) {
   return groups;
 }
 
-const DEFAULT_CUSTOM_SCRIPT = `#!/bin/bash
-# Claude Code passes JSON session data to this script via stdin.
-# Available fields: model.display_name, context_window.used_percentage,
-#   cost.total_cost_usd, cost.total_lines_added, cost.total_lines_removed,
-#   cost.total_duration_ms, workspace.current_dir
-# Requires: jq
-input=$(cat)
-MODEL=$(echo "$input" | jq -r '.model.display_name // "?"')
-PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
-echo "* $MODEL  $PCT% ctx"
-`;
+const DEFAULT_CUSTOM_SCRIPT = configToScript(DEFAULT_VISUAL_CONFIG);
 
 export default function StatuslinesView() {
   const [presets, setPresets] = useState([]);
@@ -197,12 +188,9 @@ export default function StatuslinesView() {
                   {/* Inline script editor */}
                   {isEditing && (
                     <div className="mt-3 space-y-2" onClick={e => e.stopPropagation()}>
-                      <Textarea
+                      <StatuslineVisualEditor
                         value={editScript}
-                        onChange={e => setEditScript(e.target.value)}
-                        className="font-mono text-xs h-48 resize-y bg-gray-950 dark:bg-black text-green-400 border-gray-800"
-                        spellCheck={false}
-                        autoFocus
+                        onChange={setEditScript}
                       />
                       <div className="flex gap-2">
                         <Button
@@ -228,11 +216,9 @@ export default function StatuslinesView() {
                   {/* Custom preset: always show editor */}
                   {isCustom && !isEditing && (
                     <div className="mt-3 space-y-2" onClick={e => e.stopPropagation()}>
-                      <Textarea
+                      <StatuslineVisualEditor
                         value={customScript}
-                        onChange={e => setCustomScript(e.target.value)}
-                        className="font-mono text-xs h-40 resize-y bg-gray-950 dark:bg-black text-green-400 border-gray-800"
-                        spellCheck={false}
+                        onChange={setCustomScript}
                       />
                       <Button
                         size="sm"
