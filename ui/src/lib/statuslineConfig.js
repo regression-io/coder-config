@@ -94,8 +94,9 @@ export function configToScript(config) {
     const f = barBlock.style === 'blocks' ? '█' : '●';
     const e = barBlock.style === 'blocks' ? '░' : '○';
     lines.push(`FILLED=$((PCT / 10)); EMPTY=$((10 - FILLED))`);
-    lines.push(`BAR=""; for ((i=0; i<FILLED; i++)); do BAR="$BAR${f}"; done`);
-    lines.push(`         for ((i=0; i<EMPTY;  i++)); do BAR="$BAR${e}"; done`);
+    lines.push(`BAR=""; [ "$FILLED" -gt 0 ] && BAR="$BAR$(printf '${f}%.0s' $(seq 1 $FILLED))"`);
+    lines.push(`        [ "$EMPTY" -gt 0 ]  && BAR="$BAR$(printf '${e}%.0s' $(seq 1 $EMPTY))"`);
+
   }
 
   let first = true;

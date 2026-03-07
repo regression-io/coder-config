@@ -39,8 +39,8 @@ input=$(cat)
 MODEL=$(echo "$input" | jq -r '.model.display_name // "?"')
 PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
 FILLED=$((PCT / 10)); EMPTY=$((10 - FILLED))
-BAR=""; for ((i=0; i<FILLED; i++)); do BAR="$BAR●"; done
-         for ((i=0; i<EMPTY;  i++)); do BAR="$BAR○"; done
+BAR=""; [ "$FILLED" -gt 0 ] && BAR="$BAR$(printf '●%.0s' $(seq 1 $FILLED))"
+        [ "$EMPTY" -gt 0 ]  && BAR="$BAR$(printf '○%.0s' $(seq 1 $EMPTY))"
 echo "* $MODEL  ctx $BAR  $PCT%"
 `,
 
@@ -52,8 +52,8 @@ PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1
 LINES_ADD=$(echo "$input" | jq -r '.cost.total_lines_added // 0')
 LINES_REM=$(echo "$input" | jq -r '.cost.total_lines_removed // 0')
 FILLED=$((PCT / 10)); EMPTY=$((10 - FILLED))
-BAR=""; for ((i=0; i<FILLED; i++)); do BAR="$BAR●"; done
-         for ((i=0; i<EMPTY;  i++)); do BAR="$BAR○"; done
+BAR=""; [ "$FILLED" -gt 0 ] && BAR="$BAR$(printf '●%.0s' $(seq 1 $FILLED))"
+        [ "$EMPTY" -gt 0 ]  && BAR="$BAR$(printf '○%.0s' $(seq 1 $EMPTY))"
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')
 OUT="* $MODEL  |  ctx $BAR  $PCT%"
 [ -n "$BRANCH" ] && OUT="$OUT  |  $BRANCH"
@@ -75,8 +75,8 @@ DUR_MS=$(echo "$input" | jq -r '.cost.total_duration_ms // 0')
 COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
 
 FILLED=$((PCT / 10)); EMPTY=$((10 - FILLED))
-BAR=""; for ((i=0; i<FILLED; i++)); do BAR="$BAR●"; done
-         for ((i=0; i<EMPTY;  i++)); do BAR="$BAR○"; done
+BAR=""; [ "$FILLED" -gt 0 ] && BAR="$BAR$(printf '●%.0s' $(seq 1 $FILLED))"
+        [ "$EMPTY" -gt 0 ]  && BAR="$BAR$(printf '○%.0s' $(seq 1 $EMPTY))"
 
 CTX_K=$(awk "BEGIN {printf \\"%.1fK\\", $CTX_USED/1000}")
 MAX_K=$(awk "BEGIN {printf \\"%.1fK\\", $CTX_MAX/1000}")
@@ -116,8 +116,8 @@ CYAN='\\033[36m'; RESET='\\033[0m'
 [ "$PCT" -ge 90 ] && BAR_COLOR="$RED" || { [ "$PCT" -ge 70 ] && BAR_COLOR="$YELLOW" || BAR_COLOR="$GREEN"; }
 
 FILLED=$((PCT / 10)); EMPTY=$((10 - FILLED))
-BAR=""; for ((i=0; i<FILLED; i++)); do BAR="$BAR█"; done
-         for ((i=0; i<EMPTY;  i++)); do BAR="$BAR░"; done
+BAR=""; [ "$FILLED" -gt 0 ] && BAR="$BAR$(printf '█%.0s' $(seq 1 $FILLED))"
+        [ "$EMPTY" -gt 0 ]  && BAR="$BAR$(printf '░%.0s' $(seq 1 $EMPTY))"
 
 MINS=$((DUR_MS / 60000)); SECS=$(((DUR_MS % 60000) / 1000))
 COST_FMT=$(printf '$%.3f' $COST)
