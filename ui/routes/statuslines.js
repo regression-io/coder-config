@@ -62,7 +62,7 @@ echo "$OUT"
 `,
 
   full: `#!/bin/bash
-# Full: model, context with token counts + ctx left, lines changed, git branch, duration, cost
+# Full: model, colored context bar, token counts, lines, branch, duration, cost
 input=$(cat)
 MODEL=$(echo "$input" | jq -r '.model.display_name // "?"')
 PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
@@ -74,6 +74,10 @@ LINES_REM=$(echo "$input" | jq -r '.cost.total_lines_removed // 0')
 DUR_MS=$(echo "$input" | jq -r '.cost.total_duration_ms // 0')
 COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
 
+GREEN='\\033[32m'; YELLOW='\\033[33m'; RED='\\033[31m'
+CYAN='\\033[36m'; DIM='\\033[2m'; RESET='\\033[0m'
+[ "$PCT" -ge 90 ] && BAR_COLOR="$RED" || { [ "$PCT" -ge 70 ] && BAR_COLOR="$YELLOW" || BAR_COLOR="$GREEN"; }
+
 FILLED=$((PCT / 10)); EMPTY=$((10 - FILLED))
 BAR=""; [ "$FILLED" -gt 0 ] && BAR="$BAR$(printf '●%.0s' $(seq 1 $FILLED))"
         [ "$EMPTY" -gt 0 ]  && BAR="$BAR$(printf '○%.0s' $(seq 1 $EMPTY))"
@@ -84,12 +88,12 @@ HOURS=$((DUR_MS / 3600000)); MINS=$(((DUR_MS % 3600000) / 60000))
 COST_FMT=$(printf '$%.3f' $COST)
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')
 
-OUT="* $MODEL  |  ctx $BAR  $CTX_K/$MAX_K  |  $REM% ctx left"
-[ "$LINES_ADD" != "0" ] || [ "$LINES_REM" != "0" ] && OUT="$OUT  |  +$LINES_ADD -$LINES_REM"
-[ -n "$BRANCH" ] && OUT="$OUT  |  $BRANCH"
-[ "$HOURS" -gt 0 ] && OUT="$OUT  |  \${HOURS}h \${MINS}m" || OUT="$OUT  |  \${MINS}m"
-OUT="$OUT  |  $COST_FMT"
-echo "$OUT"
+OUT="\${CYAN}*\${RESET} $MODEL | \${BAR_COLOR}\${BAR}\${RESET} \${DIM}\${CTX_K}/\${MAX_K}\${RESET} | \${REM}% left"
+[ "$LINES_ADD" != "0" ] || [ "$LINES_REM" != "0" ] && OUT="$OUT | \${GREEN}+\${LINES_ADD}\${RESET} \${RED}-\${LINES_REM}\${RESET}"
+[ -n "$BRANCH" ] && OUT="$OUT | \${CYAN}\${BRANCH}\${RESET}"
+[ "$HOURS" -gt 0 ] && OUT="$OUT | \${HOURS}h \${MINS}m" || OUT="$OUT | \${MINS}m"
+OUT="$OUT | \${YELLOW}\${COST_FMT}\${RESET}"
+echo -e "$OUT"
 `,
 
   'cost-tracker': `#!/bin/bash
@@ -165,8 +169,8 @@ const PRESETS = [
   {
     id: 'full',
     name: 'Full',
-    description: 'Everything: model, context with token counts, lines, branch, duration, cost',
-    preview: '* opus-4-6  |  ctx ●●●●○○○○○○  74.4K/200.0K  |  +146 -13  |  main  |  5h 2m  |  $0.142',
+    description: 'Everything with colors: model, context bar, token counts, lines, branch, duration, cost',
+    preview: '* opus-4-6 | ●●●●○○○○○○ 74.4K/200.0K | 37% left | +146 -13 | main | 5h 2m | $0.142',
     category: 'Git',
   },
   {
