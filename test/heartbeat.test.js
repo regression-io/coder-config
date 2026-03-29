@@ -4,7 +4,11 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const { heartbeat, getDefaultHeartbeatConfig } = require('../lib/heartbeat.js');
+const {
+  heartbeat, getDefaultHeartbeatConfig,
+  saveLastHeartbeat, loadLastHeartbeat, shouldNotify,
+  buildMacosNotification, getExitCode
+} = require('../lib/heartbeat.js');
 const { saveLoops, saveLoopState, getLoopDir } = require('../lib/loops.js');
 
 describe('heartbeat', () => {
@@ -303,5 +307,118 @@ describe('heartbeat', () => {
     assert.strictEqual(report.healthy.length, 1);
     assert.strictEqual(report.healthy[0].loopId, 'loop_009c');
     assert.deepStrictEqual(report.alerts, []);
+  });
+});
+
+describe('saveLastHeartbeat / loadLastHeartbeat', () => {
+  let tempDir;
+  let installDir;
+
+  before(() => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'heartbeat-dedup-test-'));
+  });
+
+  after(() => {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  beforeEach(() => {
+    installDir = path.join(tempDir, `install-${Date.now()}-${Math.random()}`);
+    fs.mkdirSync(installDir, { recursive: true });
+  });
+
+  // 12. saveLastHeartbeat writes alertHashes, loadLastHeartbeat reads them back
+  it('saves report with alert hashes and reads them back', () => {
+    const report = {
+      alerts: [
+        { loopId: 'loop_001', type: 'failed', severity: 'critical', name: 'Test', message: 'failed' },
+        { loopId: 'loop_002', type: 'stale', severity: 'warning', name: 'Test2', message: 'stale' }
+      ]
+    };
+    saveLastHeartbeat(installDir, report);
+    const loaded = loadLastHeartbeat(installDir);
+    assert.ok(loaded, 'loadLastHeartbeat should return an object');
+    assert.ok(loaded.alertHashes, 'should have alertHashes');
+    assert.ok(typeof loaded.alertHashes['loop_001:failed'] === 'number', 'should have loop_001:failed hash');
+    assert.ok(typeof loaded.alertHashes['loop_002:stale'] === 'number', 'should have loop_002:stale hash');
+    assert.ok(typeof loaded.timestamp === 'number', 'should have numeric timestamp');
+  });
+
+  // 13. shouldNotify returns false for duplicate alerts within cooldown
+  it('shouldNotify returns false for duplicate within cooldown', () => {
+    const report = {
+      alerts: [{ loopId: 'loop_001', type: 'failed', severity: 'critical', name: 'Test', message: 'failed' }]
+    };
+    saveLastHeartbeat(installDir, report);
+    const alert = { loopId: 'loop_001', type: 'failed' };
+    const result = shouldNotify(installDir, alert, 15);
+    assert.strictEqual(result, false, 'should not notify within cooldown');
+  });
+
+  // 14. shouldNotify returns true after cooldown expires
+  it('shouldNotify returns true after cooldown expires', () => {
+    const twentyMinutesAgo = Date.now() - 20 * 60 * 1000;
+    const loopsDir = path.join(installDir, 'loops');
+    fs.mkdirSync(loopsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(loopsDir, 'last-heartbeat.json'),
+      JSON.stringify({ alertHashes: { 'loop_001:failed': twentyMinutesAgo }, timestamp: twentyMinutesAgo })
+    );
+    const alert = { loopId: 'loop_001', type: 'failed' };
+    const result = shouldNotify(installDir, alert, 15);
+    assert.strictEqual(result, true, 'should notify after cooldown expires');
+  });
+});
+
+describe('buildMacosNotification', () => {
+  // 15. buildMacosNotification constructs osascript command
+  it('constructs command containing osascript, Ralph Heartbeat, and critical', () => {
+    const report = {
+      alerts: [
+        { loopId: 'loop_001', type: 'failed', severity: 'critical', name: 'Test', message: 'Loop failed' },
+        { loopId: 'loop_002', type: 'stale', severity: 'warning', name: 'Test2', message: 'Loop stale' }
+      ],
+      summary: '2 active loops, 1 critical, 1 warning'
+    };
+    const cmd = buildMacosNotification(report);
+    assert.ok(cmd.includes('osascript'), 'command should include osascript');
+    assert.ok(cmd.includes('Ralph Heartbeat'), 'command should include "Ralph Heartbeat"');
+    assert.ok(cmd.includes('critical'), 'command should include "critical"');
+  });
+});
+
+describe('getExitCode', () => {
+  // 16. getExitCode returns 0 when no alerts
+  it('returns 0 when healthy (no alerts)', () => {
+    const report = { alerts: [] };
+    assert.strictEqual(getExitCode(report), 0);
+  });
+
+  // 17. getExitCode returns 1 when alerts with warning or critical
+  it('returns 1 when alerts include warning or critical', () => {
+    const report = {
+      alerts: [
+        { loopId: 'loop_001', type: 'stale', severity: 'warning', name: 'Test', message: 'stale' }
+      ]
+    };
+    assert.strictEqual(getExitCode(report), 1);
+
+    const report2 = {
+      alerts: [
+        { loopId: 'loop_001', type: 'failed', severity: 'critical', name: 'Test', message: 'failed' }
+      ]
+    };
+    assert.strictEqual(getExitCode(report2), 1);
+  });
+
+  // 18. getExitCode returns 0 when only info alerts
+  it('returns 0 when only info alerts', () => {
+    const report = {
+      alerts: [
+        { loopId: 'loop_001', type: 'phase_gate', severity: 'info', name: 'Test', message: 'gate' },
+        { loopId: 'loop_002', type: 'blocked', severity: 'info', name: 'Test2', message: 'blocked' }
+      ]
+    };
+    assert.strictEqual(getExitCode(report), 0);
   });
 });
