@@ -31,6 +31,7 @@ const { getProjectsRegistryPath, loadProjectsRegistry, saveProjectsRegistry, pro
 const { getWorkstreamsPath, loadWorkstreams, saveWorkstreams, workstreamList, workstreamCreate, workstreamUpdate, workstreamDelete, workstreamUse, workstreamActive, workstreamAddProject, workstreamRemoveProject, workstreamInject, workstreamDetect, workstreamGet, getActiveWorkstream, countWorkstreamsForProject, workstreamInstallHook, workstreamInstallHookGemini, workstreamInstallHookCodex, workstreamDeactivate, workstreamCheckPath, getSettingsPath, loadSettings, saveSettings, workstreamAddTrigger, workstreamRemoveTrigger, workstreamSetAutoActivate, setGlobalAutoActivate, shouldAutoActivate, workstreamCheckFolder, workstreamInstallCdHook, workstreamUninstallCdHook, workstreamCdHookStatus, discoverSubProjects, generateRulesFromRepos, generateRulesWithClaude, generateRulesWithAI, getAvailableAITools, findAIBinary, AI_TOOLS, workstreamSetSandbox } = require('./lib/workstreams');
 const { getActivityPath, getDefaultActivity, loadActivity, saveActivity, detectProjectRoot, activityLog, activitySummary, generateWorkstreamName, activitySuggestWorkstreams, activityClear } = require('./lib/activity');
 const { getLoopsPath, loadLoops, saveLoops, loadLoopState, saveLoopState, loadHistory, saveHistory, loopList, loopCreate, loopGet, loopUpdate, loopDelete, loopStart, loopPause, loopResume, loopCancel, loopApprove, loopComplete, loopFail, loopStatus, loopHistory, loopConfig, getActiveLoop, recordIteration, saveClarifications, savePlan, loadClarifications, loadPlan, loopInject, archiveLoop } = require('./lib/loops');
+const { heartbeat: runHeartbeat, formatReport, getExitCode, saveLastHeartbeat, shouldNotify, buildMacosNotification, loadHeartbeatConfig, getDefaultHeartbeatConfig } = require('./lib/heartbeat');
 const { getSessionStatus, showSessionStatus, flushContext, clearContext, installHooks: sessionInstallHooks, getFlushedContext, installFlushCommand, installAll: sessionInstallAll, SESSION_DIR, FLUSHED_CONTEXT_FILE } = require('./lib/sessions');
 const { runCli } = require('./lib/cli');
 const { shellStatus, shellInstall, shellUninstall, printShellStatus } = require('./lib/shell');
@@ -252,6 +253,54 @@ class ClaudeConfigManager {
   loadPlan(loopId) { return loadPlan(this.installDir, loopId); }
   loopInject(silent) { return loopInject(this.installDir, silent); }
   archiveLoop(loopId) { return archiveLoop(this.installDir, loopId); }
+
+  loopHeartbeat(options = {}) {
+    const report = runHeartbeat(this.installDir);
+
+    if (options.json) {
+      console.log(JSON.stringify(report, null, 2));
+    } else if (options.quiet) {
+      if (getExitCode(report) === 1) {
+        console.log(formatReport(report));
+      }
+    } else {
+      console.log(formatReport(report));
+    }
+
+    if (options.notify) {
+      const config = loadHeartbeatConfig(this.installDir);
+      const newAlerts = report.alerts.filter(a =>
+        (a.severity === 'critical' || a.severity === 'warning') &&
+        shouldNotify(this.installDir, a, config.cooldownMinutes || 15)
+      );
+
+      if (newAlerts.length > 0) {
+        if (config.notifications?.macos?.enabled !== false) {
+          const cmd = buildMacosNotification(report);
+          try {
+            require('child_process').execSync(cmd);
+          } catch (e) {
+            // osascript may fail in non-GUI contexts
+          }
+        }
+
+        if (config.notifications?.slack?.enabled && config.notifications?.slack?.webhookUrl) {
+          const https = require('https');
+          const url = new URL(config.notifications.slack.webhookUrl);
+          const payload = JSON.stringify({ text: `Ralph Heartbeat: ${report.summary}` });
+          const req = https.request({ hostname: url.hostname, path: url.pathname, method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          req.write(payload);
+          req.end();
+        }
+
+        saveLastHeartbeat(this.installDir, report);
+      }
+    }
+
+    return report;
+  }
 
   // Activity
   getActivityPath() { return getActivityPath(this.installDir); }
