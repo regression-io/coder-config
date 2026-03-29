@@ -598,7 +598,14 @@ function setupLoopHooks(projectPath) {
   return installLoopHooks(null, projectPath);
 }
 
+function getHeartbeat(manager) {
+  if (!manager) return { error: 'Manager not available' };
+  const { heartbeat: runHeartbeat } = require('../../lib/heartbeat');
+  return runHeartbeat(manager.installDir);
+}
+
 module.exports = {
+  getHeartbeat,
   getLoops,
   getActiveLoop,
   getLoop,

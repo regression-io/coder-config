@@ -886,6 +886,10 @@ class ConfigUIServer {
         }
         break;
 
+      case '/api/loops/heartbeat':
+        if (req.method === 'GET') return this.json(res, routes.loops.getHeartbeat(this.manager));
+        break;
+
       case '/api/loops/tune-prompt':
         if (req.method === 'POST') {
           const result = await routes.loops.tunePrompt(
