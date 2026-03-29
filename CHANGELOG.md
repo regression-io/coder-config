@@ -16,6 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Separate "New Skill" and "New Command" menu items in folder dropdown
   - Skills included in file hash change detection
 - **Inline MCP toggle & edit** - Inline MCPs now have on/off switch and edit button
+- **Ralph Loop Heartbeat** - Supervisor/monitoring system for autonomous loops
+  - `coder-config loop heartbeat` prints health report (failed, stale, blocked, iteration limit, phase gate)
+  - `--notify` flag dispatches macOS native notifications and Slack webhooks
+  - `--quiet` flag for cron/scheduled use (exit code 1 on critical/warning alerts)
+  - `--json` flag for machine-readable output
+  - Per-loop stale threshold override via `heartbeat.staleThresholdMinutes` in loop state
+  - Deduplication prevents repeated notifications within configurable cooldown
+  - Heartbeat config via `coder-config loop config heartbeat.<key> <value>`
+  - Web UI: `GET /api/loops/heartbeat` endpoint returns health report JSON
 
 ### Fixed
 
