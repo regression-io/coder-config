@@ -61,6 +61,12 @@ export const FILE_CONFIG = {
     bgColor: 'bg-blue-50',
     label: 'GEMINI.md',
   },
+  agentsmd: {
+    icon: FileText,
+    color: 'text-green-600',
+    bgColor: 'bg-green-50',
+    label: 'AGENTS.md',
+  },
   env: {
     icon: FileCode,
     color: 'text-yellow-600',

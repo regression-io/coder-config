@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **AGENTS.md support in Project Explorer** - Codex CLI instruction files now visible and manageable
+  - Scans for `AGENTS.md` and `AGENTS.override.md` at project root
+  - "New AGENTS.md" option in folder dropdown menu
+  - `agentsmd` file type with green icon
+- **Agent definitions in Project Explorer** - `.claude/agents/*.md` files now scanned and displayed
+
 ## [0.52.0] - 2026-04-12
 
 ### Fixed

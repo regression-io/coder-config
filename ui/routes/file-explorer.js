@@ -86,6 +86,30 @@ function scanFolderForExplorer(dir, manager, label = null) {
     });
   }
 
+  // Root AGENTS.md (Codex CLI instruction file)
+  const rootAgentsMd = path.join(dir, 'AGENTS.md');
+  if (fs.existsSync(rootAgentsMd)) {
+    folder.files.push({
+      name: 'AGENTS.md (root)',
+      path: rootAgentsMd,
+      type: 'agentsmd',
+      size: fs.statSync(rootAgentsMd).size,
+      isRoot: true
+    });
+  }
+
+  // Root AGENTS.override.md (Codex CLI local override, typically gitignored)
+  const rootAgentsOverrideMd = path.join(dir, 'AGENTS.override.md');
+  if (fs.existsSync(rootAgentsOverrideMd)) {
+    folder.files.push({
+      name: 'AGENTS.override.md (root)',
+      path: rootAgentsOverrideMd,
+      type: 'agentsmd',
+      size: fs.statSync(rootAgentsOverrideMd).size,
+      isRoot: true
+    });
+  }
+
   // Global MCPs (~/.claude.json) - only for home directory
   if (dir === home) {
     const claudeJsonPath = path.join(home, '.claude.json');
@@ -149,6 +173,9 @@ function scanClaudeFolder(folder, claudeDir, manager) {
 
   // skills folder
   addSkillsFolder(folder.files, claudeDir);
+
+  // agents folder (.claude/agents/*.md)
+  addSubfolder(folder.files, claudeDir, 'agents', '.md', 'agentsmd');
 
   // .env file
   const envPath = path.join(claudeDir, '.env');
@@ -424,6 +451,10 @@ function createClaudeFile(body) {
       break;
     case 'claudemd':
       filePath = path.join(dir, '.claude', 'CLAUDE.md');
+      break;
+    case 'agentsmd':
+      filePath = path.join(dir, 'AGENTS.md');
+      initialContent = content || '# Project Instructions\n\nInstructions for Codex CLI.\n';
       break;
     default:
       filePath = path.join(dir, '.claude', name);

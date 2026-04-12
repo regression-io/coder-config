@@ -58,6 +58,7 @@ export default function FolderRow({
   const hasMcps = folder.files?.some(f => f.name === 'mcps.json');
   const hasSettings = folder.files?.some(f => f.name === 'settings.json');
   const hasClaudeMd = folder.files?.some(f => f.name === 'CLAUDE.md' || f.name === 'CLAUDE.md (root)');
+  const hasAgentsMd = folder.files?.some(f => f.name === 'AGENTS.md' || f.name === 'AGENTS.md (root)');
   const hasEnv = folder.files?.some(f => f.name === '.env');
 
   // Determine folder styling
@@ -193,6 +194,15 @@ export default function FolderRow({
               <FileText className="w-4 h-4 mr-2" />
               CLAUDE.md
               {hasClaudeMd && <span className="ml-auto text-xs text-muted-foreground">exists</span>}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'agentsmd'); }}
+              disabled={hasAgentsMd}
+              className={hasAgentsMd ? 'opacity-50' : ''}
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              AGENTS.md
+              {hasAgentsMd && <span className="ml-auto text-xs text-muted-foreground">exists</span>}
             </DropdownMenuItem>
             {/* Add Sub-project - for root project and sub-projects */}
             {(isProject || isSubproject) && onAddSubproject && (
