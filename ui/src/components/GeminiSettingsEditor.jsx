@@ -26,10 +26,12 @@ const THEMES = [
 ];
 
 const GEMINI_MODELS = [
-  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', description: 'Most capable' },
-  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', description: 'Fast and efficient' },
-  { id: 'gemini-2.0-pro', name: 'Gemini 2.0 Pro', description: 'Previous generation' },
-  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', description: 'Previous generation fast' },
+  { id: 'auto', name: 'Auto', description: 'CLI picks best model per task' },
+  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro', description: 'Latest, thinking + multimodal' },
+  { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro', description: 'Thinking + multimodal tools' },
+  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', description: 'Fast with thinking' },
+  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', description: 'Previous generation capable' },
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', description: 'Previous generation fast' },
 ];
 
 export default function GeminiSettingsEditor({ settings, onSave, loading, settingsPath }) {
@@ -95,8 +97,8 @@ export default function GeminiSettingsEditor({ settings, onSave, loading, settin
       return;
     }
 
-    if (!config.command) {
-      toast.error('MCP config must have a "command" field');
+    if (!config.command && !config.url && !config.httpUrl && !config.tcp) {
+      toast.error('MCP config must have a "command" (stdio), "url" (SSE), "httpUrl" (HTTP), or "tcp" (WebSocket) field');
       return;
     }
 
@@ -206,7 +208,7 @@ export default function GeminiSettingsEditor({ settings, onSave, loading, settin
                     {expandedMcps[name] ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
                     <Server className="w-4 h-4 text-blue-500" />
                     <span className="font-medium text-sm">{name}</span>
-                    <span className="text-xs text-muted-foreground font-mono">{config.command}</span>
+                    <span className="text-xs text-muted-foreground font-mono">{config.url || config.httpUrl || config.tcp ? `${config.type || 'http'}: ${config.url || config.httpUrl || config.tcp}` : config.command}</span>
                   </CollapsibleTrigger>
                   <Button
                     size="sm"

@@ -25,9 +25,8 @@ const CODEX_MODELS = [
 ];
 
 const APPROVAL_POLICIES = [
-  { id: 'on-request', name: 'On Request', description: 'Ask before running commands (default)' },
   { id: 'untrusted', name: 'Untrusted', description: 'Ask for everything' },
-  { id: 'on-failure', name: 'On Failure', description: 'Ask only when commands fail' },
+  { id: 'on-request', name: 'On Request', description: 'Ask before running commands (default)' },
   { id: 'never', name: 'Never', description: 'Never ask (use with caution)' },
 ];
 
@@ -117,8 +116,8 @@ export default function CodexSettingsEditor({ settings, rawToml, onSave, loading
       return;
     }
 
-    if (!config.command) {
-      toast.error('MCP config must have a "command" field');
+    if (!config.command && !config.url) {
+      toast.error('MCP config must have a "command" (stdio) or "url" (HTTP) field');
       return;
     }
 
@@ -333,7 +332,7 @@ export default function CodexSettingsEditor({ settings, rawToml, onSave, loading
                     {expandedMcps[name] ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
                     <Server className="w-4 h-4 text-green-500" />
                     <span className="font-medium text-sm">{name}</span>
-                    <span className="text-xs text-muted-foreground font-mono">{config.command}</span>
+                    <span className="text-xs text-muted-foreground font-mono">{config.url ? `http: ${config.url}` : config.command}</span>
                     {config.enabled === false && <Badge variant="secondary" className="text-xs">Disabled</Badge>}
                   </CollapsibleTrigger>
                   <Button

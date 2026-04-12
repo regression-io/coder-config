@@ -254,7 +254,24 @@ The project has comprehensive test coverage for core modules:
 - Command aliases and argument passing
 - Subcommand handling
 
-**Total:** 385 tests across 15 test files, all passing ✅
+**test/loops.test.js** (51 tests)
+- Ralph Loop lifecycle (create, start, stop, resume)
+- Phase transitions (clarify, plan, execute)
+- Iteration limits and cost budgets
+- Loop state persistence and recovery
+
+**test/heartbeat.test.js** (18 tests)
+- Loop health detection (failed, stale, blocked)
+- Notification dispatch (macOS, Slack)
+- Cooldown deduplication
+- Quiet mode exit codes
+
+**test/shell.test.js** (17 tests)
+- Shell integration install/uninstall
+- Zsh completions generation
+- Status detection
+
+**Total:** 602 tests across 18 test files, all passing ✅
 
 ### Writing Tests
 

@@ -14,6 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - "New AGENTS.md" option in folder dropdown menu
   - `agentsmd` file type with green icon
 - **Agent definitions in Project Explorer** - `.claude/agents/*.md` files now scanned and displayed
+- **Gemini CLI model updates** - Added Gemini 3.1 Pro, 3 Pro, 3 Flash, and Auto mode to model picker
+
+### Fixed
+
+- **Gemini MCP transport types** - MCP validation and display now supports `url`, `httpUrl`, `tcp` transports (not just `command`)
+- **Codex MCP transport types** - MCP validation and display now supports `url` transport
+- **Codex approval policies** - Removed deprecated `on-failure` policy
+- **CLAUDE.md test coverage** - Updated from 385 to 608 tests across 18 files, added loops/heartbeat/shell entries
+- **Codex apply test coverage** - 6 new tests for TOML merge, managed MCP tagging, user MCP preservation, cleanup on re-apply, env var interpolation
 
 ## [0.52.0] - 2026-04-12
 

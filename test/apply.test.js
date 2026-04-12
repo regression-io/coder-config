@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const { apply } = require('../lib/apply.js');
+const { apply, applyForCodex } = require('../lib/apply.js');
 const { saveJson } = require('../lib/utils.js');
 
 describe('apply', () => {
@@ -803,6 +803,136 @@ describe('apply', () => {
 
       const mcp = JSON.parse(fs.readFileSync(path.join(projectDir, '.mcp.json'), 'utf8'));
       assert.strictEqual(mcp.mcpServers.test.env.KEY, 'value2');
+    });
+  });
+
+  describe('applyForCodex', () => {
+    let TOML;
+
+    before(() => {
+      try {
+        TOML = require('@iarna/toml');
+      } catch (e) {
+        // TOML not available, tests will be skipped
+      }
+    });
+
+    it('should merge MCPs into ~/.codex/config.toml', () => {
+      if (!TOML) return;
+
+      // Create Codex project config
+      fs.mkdirSync(path.join(projectDir, '.codex'), { recursive: true });
+      saveJson(path.join(projectDir, '.codex', 'mcps.json'), {
+        include: ['github']
+      });
+
+      const result = applyForCodex(registryPath, projectDir);
+      assert.strictEqual(result, true);
+
+      const configPath = path.join(tempDir, '.codex', 'config.toml');
+      assert.ok(fs.existsSync(configPath));
+
+      const config = TOML.parse(fs.readFileSync(configPath, 'utf8'));
+      assert.ok(config.mcp_servers);
+      assert.ok(config.mcp_servers.github);
+      assert.strictEqual(config.mcp_servers.github.command, 'npx');
+    });
+
+    it('should tag managed MCPs for cleanup', () => {
+      if (!TOML) return;
+
+      fs.mkdirSync(path.join(projectDir, '.codex'), { recursive: true });
+      saveJson(path.join(projectDir, '.codex', 'mcps.json'), {
+        include: ['github']
+      });
+
+      applyForCodex(registryPath, projectDir);
+
+      const configPath = path.join(tempDir, '.codex', 'config.toml');
+      const config = TOML.parse(fs.readFileSync(configPath, 'utf8'));
+      assert.strictEqual(config.mcp_servers.github._managed_by_coder_config, true);
+    });
+
+    it('should preserve existing user MCPs in config.toml', () => {
+      if (!TOML) return;
+
+      // Create existing config.toml with a user MCP
+      const codexDir = path.join(tempDir, '.codex');
+      fs.mkdirSync(codexDir, { recursive: true });
+      fs.writeFileSync(path.join(codexDir, 'config.toml'), TOML.stringify({
+        model: 'gpt-5.2-codex',
+        mcp_servers: {
+          'user-mcp': { command: 'my-server', args: [] }
+        }
+      }));
+
+      fs.mkdirSync(path.join(projectDir, '.codex'), { recursive: true });
+      saveJson(path.join(projectDir, '.codex', 'mcps.json'), {
+        include: ['github']
+      });
+
+      applyForCodex(registryPath, projectDir);
+
+      const config = TOML.parse(fs.readFileSync(path.join(codexDir, 'config.toml'), 'utf8'));
+      // User MCP preserved
+      assert.ok(config.mcp_servers['user-mcp']);
+      assert.strictEqual(config.mcp_servers['user-mcp'].command, 'my-server');
+      // Managed MCP added
+      assert.ok(config.mcp_servers.github);
+      // Other settings preserved
+      assert.strictEqual(config.model, 'gpt-5.2-codex');
+    });
+
+    it('should remove old managed MCPs on re-apply', () => {
+      if (!TOML) return;
+
+      fs.mkdirSync(path.join(projectDir, '.codex'), { recursive: true });
+
+      // First apply with github
+      saveJson(path.join(projectDir, '.codex', 'mcps.json'), {
+        include: ['github']
+      });
+      applyForCodex(registryPath, projectDir);
+
+      // Second apply with filesystem instead
+      saveJson(path.join(projectDir, '.codex', 'mcps.json'), {
+        include: ['filesystem']
+      });
+      applyForCodex(registryPath, projectDir);
+
+      const configPath = path.join(tempDir, '.codex', 'config.toml');
+      const config = TOML.parse(fs.readFileSync(configPath, 'utf8'));
+      // Old managed MCP removed
+      assert.ok(!config.mcp_servers.github);
+      // New managed MCP present
+      assert.ok(config.mcp_servers.filesystem);
+    });
+
+    it('should skip when no .codex/mcps.json found', () => {
+      const result = applyForCodex(registryPath, projectDir);
+      assert.strictEqual(result, true);
+      assert.ok(logs.some(l => l.includes('skipping Codex')));
+    });
+
+    it('should interpolate env vars in Codex MCPs', () => {
+      if (!TOML) return;
+
+      fs.mkdirSync(path.join(projectDir, '.codex'), { recursive: true });
+      saveJson(path.join(projectDir, '.codex', 'mcps.json'), {
+        include: ['filesystem']
+      });
+
+      // Set up env file
+      fs.writeFileSync(
+        path.join(projectDir, '.codex', '.env'),
+        'ROOT_PATH=/home/user/docs'
+      );
+
+      applyForCodex(registryPath, projectDir);
+
+      const configPath = path.join(tempDir, '.codex', 'config.toml');
+      const config = TOML.parse(fs.readFileSync(configPath, 'utf8'));
+      assert.strictEqual(config.mcp_servers.filesystem.env.ROOT_PATH, '/home/user/docs');
     });
   });
 });
