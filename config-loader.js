@@ -35,6 +35,7 @@ const { heartbeat: runHeartbeat, formatReport, getExitCode, saveLastHeartbeat, s
 const { getSessionStatus, showSessionStatus, flushContext, clearContext, installHooks: sessionInstallHooks, getFlushedContext, installFlushCommand, installAll: sessionInstallAll, SESSION_DIR, FLUSHED_CONTEXT_FILE } = require('./lib/sessions');
 const { runCli } = require('./lib/cli');
 const { shellStatus, shellInstall, shellUninstall, printShellStatus } = require('./lib/shell');
+const { getConfig: routerGetConfig, saveConfig: routerSaveConfig, listProviders: routerListProviders, addProvider: routerAddProvider, removeProvider: routerRemoveProvider, getRouterRules, setRouterRule, getActivationEnv: routerGetActivationEnv, getStatus: routerGetStatus, listPresets: routerListPresets, savePreset: routerSavePreset, loadPreset: routerLoadPreset } = require('./lib/router');
 
 class ClaudeConfigManager {
   constructor() {
@@ -331,6 +332,20 @@ class ClaudeConfigManager {
   shellInstall() { return shellInstall(); }
   shellUninstall() { return shellUninstall(); }
   getShellStatus() { return shellStatus(); }
+
+  // Router (CCR)
+  routerGetConfig() { return routerGetConfig(); }
+  routerSaveConfig(config) { return routerSaveConfig(config); }
+  routerListProviders() { return routerListProviders(); }
+  routerAddProvider(name, options) { return routerAddProvider(name, options); }
+  routerRemoveProvider(name) { return routerRemoveProvider(name); }
+  routerGetRules() { return getRouterRules(); }
+  routerSetRule(task, providerModel) { return setRouterRule(task, providerModel); }
+  routerGetActivationEnv() { return routerGetActivationEnv(); }
+  routerGetStatus() { return routerGetStatus(); }
+  routerListPresets() { return routerListPresets(); }
+  routerSavePreset(name) { return routerSavePreset(name); }
+  routerLoadPreset(name) { return routerLoadPreset(name); }
 
   // Update - check npm for updates or update from local source
   async update(args = []) {
