@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **MCP transport types** - MCP editors now display HTTP/SSE/WS MCPs correctly (show URL instead of command)
   - AddMcpDialog accepts MCPs with `url` field (not just `command`)
   - McpEditor and GlobalMcpEditor show transport type and URL for non-stdio MCPs
+- **Codex CLI config generation** - Fixed fundamental Codex integration issues
+  - Config path corrected from `config.json` to `config.toml` (Codex uses TOML)
+  - MCP output now merges into `[mcp_servers]` tables in `~/.codex/config.toml` instead of unused `.codex/mcp.json`
+  - Instruction file corrected from `CODEX.md` to `AGENTS.md` (Codex convention)
+  - Managed MCPs tagged with `_managed_by_coder_config` for safe cleanup on re-apply
 
 ## [0.51.0] - 2026-04-12
 
