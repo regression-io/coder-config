@@ -58,7 +58,7 @@ export default function FolderRow({
   const hasMcps = folder.files?.some(f => f.name === 'mcps.json');
   const hasSettings = folder.files?.some(f => f.name === 'settings.json');
   const hasClaudeMd = folder.files?.some(f => f.name === 'CLAUDE.md' || f.name === 'CLAUDE.md (root)');
-  const hasGeminiMd = [...(folder.files || []), ...(folder.geminiFiles || []), ...(folder.agentFiles || [])].some(f => f.name === 'GEMINI.md' || f.name === 'GEMINI.md (root)');
+  const hasGeminiMd = [...(folder.files || []), ...(folder.geminiFiles || [])].some(f => f.name === 'GEMINI.md' || f.name === 'GEMINI.md (root)');
   const hasAgentsMd = folder.files?.some(f => f.name === 'AGENTS.md' || f.name === 'AGENTS.md (root)');
   const hasAgentsOverrideMd = folder.files?.some(f => f.name === 'AGENTS.override.md' || f.name === 'AGENTS.override.md (root)');
   const hasEnv = folder.files?.some(f => f.name === '.env');

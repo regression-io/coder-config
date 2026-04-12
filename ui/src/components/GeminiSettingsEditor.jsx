@@ -452,6 +452,17 @@ export default function GeminiSettingsEditor({ settings, onSave, loading, settin
 
           <div className="flex items-center justify-between">
             <div>
+              <label className="text-sm font-medium text-foreground">Respect .gitignore</label>
+              <p className="text-xs text-muted-foreground">Exclude files matching .gitignore patterns</p>
+            </div>
+            <Switch
+              checked={getSetting('general', 'respectGitignore', true)}
+              onCheckedChange={(checked) => updateSetting('general', 'respectGitignore', checked)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
               <label className="text-sm font-medium text-foreground">Approval Mode</label>
               <p className="text-xs text-muted-foreground">How tool executions are approved</p>
             </div>
@@ -630,6 +641,25 @@ export default function GeminiSettingsEditor({ settings, onSave, loading, settin
                 }
               }))}
               placeholder="unlimited"
+              className="font-mono text-sm w-24"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-foreground">Min Retention</label>
+              <p className="text-xs text-muted-foreground">Minimum time to keep sessions before cleanup (e.g. 1d)</p>
+            </div>
+            <Input
+              value={localSettings?.general?.sessionRetention?.minRetention || ''}
+              onChange={(e) => setLocalSettings(prev => ({
+                ...prev,
+                general: {
+                  ...prev.general,
+                  sessionRetention: { ...prev.general?.sessionRetention, minRetention: e.target.value || undefined }
+                }
+              }))}
+              placeholder="1d"
               className="font-mono text-sm w-24"
             />
           </div>
