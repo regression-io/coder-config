@@ -1,6 +1,6 @@
 # Coder-Config Roadmap
 
-**Last updated:** 2026-04-06
+**Last updated:** 2026-04-12
 
 ---
 
@@ -209,6 +209,35 @@ Convert AI coding tool configurations between 11+ target formats. Single-source-
 
 ---
 
+## CC-9: Claude Code Router Integration
+
+**Status:** `PLANNED`
+
+Manage Claude Code Router (CCR) configuration through coder-config CLI and Web UI. CCR is a local proxy that routes Claude Code API calls to different LLM providers based on task type (default, background, reasoning, long-context, web-search, image). Config at `~/.claude-code-router/config.json`.
+
+**Source:** [claude-code-router](https://github.com/musistudio/claude-code-router) (32K+ stars) — task-based model routing proxy for Claude Code
+
+| # | Item | Status |
+|---|------|--------|
+| 1 | `lib/router.js` module: read/write `~/.claude-code-router/config.json` with provider CRUD and router rule management | `PLANNED` |
+| 2 | CLI commands: `coder-config router list`, `router add-provider`, `router remove-provider`, `router set-rule <task> <provider,model>` | `PLANNED` |
+| 3 | Web UI: Router view with provider management, task-to-model mapping editor, and transformer configuration | `PLANNED` |
+| 4 | Env var bridging: resolve `$VAR` interpolation in CCR config using coder-config's existing env system | `PLANNED` |
+| 5 | Preset support: import/export named router configurations via `coder-config router preset` | `PLANNED` |
+| 6 | Auto-detect CCR installation and show router status in dashboard | `PLANNED` |
+
+**Dependencies:** CC-2 (shared provider registry concepts)
+
+**Exit criteria:**
+- [ ] `coder-config router list` shows providers and routing rules from CCR config
+- [ ] `coder-config router add-provider` creates valid provider entry in CCR config
+- [ ] `coder-config router set-rule default openrouter,claude-opus-4-20250514` updates routing
+- [ ] Web UI router view allows full CRUD on providers and rules
+- [ ] Env vars in CCR config resolve correctly via coder-config's env system
+- [ ] Dashboard shows CCR proxy status when installed
+
+---
+
 ## Dependency Graph
 
 ```
@@ -218,4 +247,5 @@ CC-1 ← CC-8 (source format to convert from)
 CC-2 ← CC-6 (multi-provider config for sweep targets)
 CC-2 ← CC-7 (per-provider model config)
 CC-3    (independent)
+CC-9 ← CC-2 (shared provider registry concepts)
 ```
