@@ -369,16 +369,16 @@ Complete Codex CLI config.toml management. Codex is now Rust-based (v0.120.0) wi
 
 ## CC-15: Codex CLI Instruction File Management
 
-**Status:** `PLANNED`
+**Status:** `PARTIAL`
 
 Manage AGENTS.md files for Codex CLI. Codex uses `AGENTS.md` (not CODEX.md) with directory-walk discovery, override files, and configurable fallback filenames.
 
 | # | Item | Status |
 |---|------|--------|
-| 1 | AGENTS.md CRUD in Project Explorer: create/edit alongside CLAUDE.md and GEMINI.md | `PLANNED` |
-| 2 | Override support: `AGENTS.override.md` for local-only instructions (gitignored) | `PLANNED` |
-| 3 | Fallback filenames: respect `project_doc_fallback_filenames` config for non-standard names | `PLANNED` |
-| 4 | Hierarchy visualization: show directory-walk discovery chain in UI | `PLANNED` |
+| 1 | AGENTS.md CRUD in Project Explorer: create/edit alongside CLAUDE.md and GEMINI.md | `COMPLETE` |
+| 2 | Override support: `AGENTS.override.md` for local-only instructions (gitignored) | `COMPLETE` |
+| 3 | Fallback filenames: respect `project_doc_fallback_filenames` config for non-standard names | `PARKED` |
+| 4 | Hierarchy visualization: instruction-hierarchy API endpoint for directory-walk discovery | `COMPLETE` |
 
 **Dependencies:** None
 

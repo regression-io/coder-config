@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **AGENTS.override.md support** - Create local Codex instruction overrides with auto-gitignore
+  - "New AGENTS.override.md" menu item in Project Explorer
+  - Auto-adds `AGENTS.override.md` to `.gitignore` on creation
+- **Instruction hierarchy API** - `GET /api/instruction-hierarchy?dir=<path>` returns directory-walk discovery chain
+  - Discovers CLAUDE.md, GEMINI.md, AGENTS.md at each level from project to root
+  - Shows override files and global instruction locations
+
+### Fixed
+
+- Duplicate VERSION declaration in constants.js from release conflict
+
 ## [0.53.0] - 2026-04-12
 
 ### Added

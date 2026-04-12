@@ -456,6 +456,10 @@ function createClaudeFile(body) {
       filePath = path.join(dir, 'AGENTS.md');
       initialContent = content || '# Project Instructions\n\nInstructions for Codex CLI.\n';
       break;
+    case 'agentsoverridemd':
+      filePath = path.join(dir, 'AGENTS.override.md');
+      initialContent = content || '# Local Overrides\n\nLocal instructions that override AGENTS.md (gitignored).\n';
+      break;
     default:
       filePath = path.join(dir, '.claude', name);
   }
@@ -470,6 +474,21 @@ function createClaudeFile(body) {
   }
 
   fs.writeFileSync(filePath, initialContent, 'utf8');
+
+  // Auto-add AGENTS.override.md to .gitignore when created
+  if (type === 'agentsoverridemd') {
+    const gitignorePath = path.join(dir, '.gitignore');
+    const entry = 'AGENTS.override.md';
+    let gitignore = '';
+    if (fs.existsSync(gitignorePath)) {
+      gitignore = fs.readFileSync(gitignorePath, 'utf8');
+    }
+    if (!gitignore.split('\n').some(line => line.trim() === entry)) {
+      const separator = gitignore && !gitignore.endsWith('\n') ? '\n' : '';
+      fs.writeFileSync(gitignorePath, gitignore + separator + entry + '\n', 'utf8');
+    }
+  }
+
   return { success: true, path: filePath, content: initialContent };
 }
 
@@ -821,6 +840,71 @@ function getFileHashes(manager, projectDir, config = {}) {
   return { hashes };
 }
 
+/**
+ * Discover instruction file hierarchy for a project directory.
+ * Walks from dir up to root (or home), finding CLAUDE.md, GEMINI.md, AGENTS.md at each level.
+ * Returns the chain of discovered files in priority order.
+ */
+function getInstructionHierarchy(dir) {
+  const home = os.homedir();
+  const hierarchy = { claude: [], gemini: [], codex: [] };
+
+  // Walk from dir up to filesystem root
+  let current = path.resolve(dir);
+  const seen = new Set();
+
+  while (current && !seen.has(current)) {
+    seen.add(current);
+
+    // CLAUDE.md — check root and .claude/ subfolder
+    for (const candidate of [
+      path.join(current, 'CLAUDE.md'),
+      path.join(current, '.claude', 'CLAUDE.md'),
+    ]) {
+      if (fs.existsSync(candidate)) {
+        const rel = current === home ? '~' : (current.startsWith(home + '/') ? '~' + current.slice(home.length) : current);
+        hierarchy.claude.push({ path: candidate, dir: rel, size: fs.statSync(candidate).size });
+      }
+    }
+
+    // GEMINI.md — check root and .gemini/ subfolder
+    for (const candidate of [
+      path.join(current, 'GEMINI.md'),
+      path.join(current, '.gemini', 'GEMINI.md'),
+    ]) {
+      if (fs.existsSync(candidate)) {
+        const rel = current === home ? '~' : (current.startsWith(home + '/') ? '~' + current.slice(home.length) : current);
+        hierarchy.gemini.push({ path: candidate, dir: rel, size: fs.statSync(candidate).size });
+      }
+    }
+
+    // AGENTS.md — check root (Codex walks directories looking for AGENTS.md or AGENTS.override.md)
+    for (const candidate of [
+      path.join(current, 'AGENTS.override.md'),
+      path.join(current, 'AGENTS.md'),
+    ]) {
+      if (fs.existsSync(candidate)) {
+        const rel = current === home ? '~' : (current.startsWith(home + '/') ? '~' + current.slice(home.length) : current);
+        hierarchy.codex.push({ path: candidate, dir: rel, name: path.basename(candidate), size: fs.statSync(candidate).size });
+      }
+    }
+
+    // Also check ~/.codex/AGENTS.md for global Codex instructions
+    if (current === home) {
+      const globalAgents = path.join(home, '.codex', 'AGENTS.md');
+      if (fs.existsSync(globalAgents)) {
+        hierarchy.codex.push({ path: globalAgents, dir: '~/.codex', name: 'AGENTS.md', size: fs.statSync(globalAgents).size });
+      }
+    }
+
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+
+  return hierarchy;
+}
+
 module.exports = {
   scanFolderForExplorer,
   getIntermediatePaths,
@@ -835,4 +919,5 @@ module.exports = {
   moveClaudeItem,
   scanMcpTools,
   getFileHashes,
+  getInstructionHierarchy,
 };

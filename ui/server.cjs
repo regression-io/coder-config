@@ -573,6 +573,9 @@ class ConfigUIServer {
       case '/api/file-hashes':
         return this.json(res, routes.fileExplorer.getFileHashes(this.manager, this.projectDir, this.config));
 
+      case '/api/instruction-hierarchy':
+        return this.json(res, routes.fileExplorer.getInstructionHierarchy(query.dir || this.projectDir));
+
       case '/api/version-check':
         return this.json(res, await routes.updates.checkForUpdates(this.manager, __dirname, this.config?.releaseChannel || 'stable'));
 

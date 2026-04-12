@@ -260,6 +260,10 @@ export const api = {
     return request('/file-hashes');
   },
 
+  async getInstructionHierarchy(dir) {
+    return request(`/instruction-hierarchy${dir ? `?dir=${encodeURIComponent(dir)}` : ''}`);
+  },
+
   // Version check
   async checkVersion() {
     return request('/version-check');

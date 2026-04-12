@@ -59,6 +59,7 @@ export default function FolderRow({
   const hasSettings = folder.files?.some(f => f.name === 'settings.json');
   const hasClaudeMd = folder.files?.some(f => f.name === 'CLAUDE.md' || f.name === 'CLAUDE.md (root)');
   const hasAgentsMd = folder.files?.some(f => f.name === 'AGENTS.md' || f.name === 'AGENTS.md (root)');
+  const hasAgentsOverrideMd = folder.files?.some(f => f.name === 'AGENTS.override.md' || f.name === 'AGENTS.override.md (root)');
   const hasEnv = folder.files?.some(f => f.name === '.env');
 
   // Determine folder styling
@@ -203,6 +204,15 @@ export default function FolderRow({
               <FileText className="w-4 h-4 mr-2" />
               AGENTS.md
               {hasAgentsMd && <span className="ml-auto text-xs text-muted-foreground">exists</span>}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={(e) => { e.stopPropagation(); onCreateFile(folder.dir, 'agentsoverridemd'); }}
+              disabled={hasAgentsOverrideMd}
+              className={hasAgentsOverrideMd ? 'opacity-50' : ''}
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              AGENTS.override.md
+              {hasAgentsOverrideMd && <span className="ml-auto text-xs text-muted-foreground">exists</span>}
             </DropdownMenuItem>
             {/* Add Sub-project - for root project and sub-projects */}
             {(isProject || isSubproject) && onAddSubproject && (
