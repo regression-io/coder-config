@@ -336,6 +336,135 @@ Full plugin lifecycle management including marketplace discovery, trust configur
 
 ---
 
+## CC-14: Codex CLI Full Settings Coverage
+
+**Status:** `PLANNED`
+
+Complete Codex CLI config.toml management. Codex is now Rust-based (v0.120.0) with TOML config, 50+ feature flags, named profiles, multi-agent, and granular permissions. Current support is MCP-only.
+
+**Source:** [Codex CLI](https://github.com/openai/codex) — OpenAI's coding CLI (Rust, TOML config, config.schema.json)
+
+| # | Item | Status |
+|---|------|--------|
+| 1 | Model & provider config: `model`, `model_provider`, `model_providers` map with base_url/auth/wire_api, `model_reasoning_effort`, `service_tier` | `PLANNED` |
+| 2 | Approval & sandbox: `approval_policy` (untrusted/on-request/never/granular), `sandbox_mode` (read-only/workspace-write/danger-full-access), network/filesystem permissions | `PLANNED` |
+| 3 | Feature flags editor: 50+ boolean toggles under `[features]` (multi_agent, plugins, memories, web_search, shell_tool, hooks, etc.) | `PLANNED` |
+| 4 | Profiles: `[profiles.<name>]` named config presets with full ConfigProfile fields, active profile selection | `PLANNED` |
+| 5 | Multi-agent config: `[agents]` with max_threads, max_depth, job_max_runtime_seconds, named agent roles | `PLANNED` |
+| 6 | Plugins & skills: `[plugins]`, `[skills]` with bundled/custom enable/disable, `[marketplaces]` with git sources | `PLANNED` |
+| 7 | Memory system: `[memories]` with generate/use toggles, consolidation model, rollout management | `PLANNED` |
+| 8 | TUI settings: `[tui]` theme, animations, notifications, status_line, terminal_title | `PLANNED` |
+| 9 | Web UI: Codex settings view with TOML editor and structured field editors | `PLANNED` |
+
+**Dependencies:** None
+
+**Exit criteria:**
+- [ ] All top-level config.toml sections editable in Web UI
+- [ ] `coder-config codex show` displays current Codex config summary
+- [ ] Profile switching works via CLI and UI
+- [ ] Feature flags toggle generates valid TOML
+- [ ] TOML round-trips without data loss (preserve comments where possible)
+
+---
+
+## CC-15: Codex CLI Instruction File Management
+
+**Status:** `PLANNED`
+
+Manage AGENTS.md files for Codex CLI. Codex uses `AGENTS.md` (not CODEX.md) with directory-walk discovery, override files, and configurable fallback filenames.
+
+| # | Item | Status |
+|---|------|--------|
+| 1 | AGENTS.md CRUD in Project Explorer: create/edit alongside CLAUDE.md and GEMINI.md | `PLANNED` |
+| 2 | Override support: `AGENTS.override.md` for local-only instructions (gitignored) | `PLANNED` |
+| 3 | Fallback filenames: respect `project_doc_fallback_filenames` config for non-standard names | `PLANNED` |
+| 4 | Hierarchy visualization: show directory-walk discovery chain in UI | `PLANNED` |
+
+**Dependencies:** None
+
+**Exit criteria:**
+- [ ] Project Explorer shows AGENTS.md alongside other instruction files
+- [ ] AGENTS.override.md created with .gitignore entry
+- [ ] Fallback filename resolution matches Codex CLI behavior
+
+---
+
+## CC-16: Gemini CLI Full Settings Coverage
+
+**Status:** `PLANNED`
+
+Complete Gemini CLI settings.json management. Gemini CLI (v0.37.1) has 15+ top-level config sections including model configs, approval modes, sandbox, security, hooks, agents, extensions, context management, and enterprise admin. Current support is MCP-only.
+
+**Source:** [Gemini CLI](https://github.com/google-gemini/gemini-cli) — Google's coding CLI (settings.schema.json)
+
+| # | Item | Status |
+|---|------|--------|
+| 1 | Model config: `model.name`, `modelConfigs` aliases/chains/thinking, temperature, auto-routing between Pro/Flash | `PLANNED` |
+| 2 | Approval & security: `general.defaultApprovalMode` (default/auto_edit/plan/yolo), `security.*` (toolSandboxing, disableYoloMode, folderTrust, envRedaction, conseca) | `PLANNED` |
+| 3 | Sandbox config: `tools.sandbox` with 5 methods (seatbelt/docker/podman/gvisor/lxc), allowed paths, network access | `PLANNED` |
+| 4 | Hooks: 11 lifecycle events (BeforeTool, AfterTool, BeforeAgent, AfterAgent, SessionStart, SessionEnd, PreCompress, BeforeModel, AfterModel, BeforeToolSelection, Notification) | `PLANNED` |
+| 5 | Extensions: install/enable/disable, registry management, `gemini-extension.json` format, `security.allowedExtensions` | `PLANNED` |
+| 6 | Agents: subagent overrides (model, maxTurns, maxTimeMinutes), browser agent config (headless, domains, profiles) | `PLANNED` |
+| 7 | Context management: `contextManagement.*` (historyWindow, messageLimits, tool distillation, output masking) | `PLANNED` |
+| 8 | UI & display: `ui.*` (theme, footer, inlineThinkingMode, accessibility, loadingPhrases, custom themes) | `PLANNED` |
+| 9 | Experimental features: worktrees, JIT context, memory manager, model steering, ADK integration | `PLANNED` |
+| 10 | Web UI: Gemini settings view with structured editors for all sections | `PLANNED` |
+
+**Dependencies:** None
+
+**Exit criteria:**
+- [ ] All settings.json sections editable in Web UI
+- [ ] `coder-config gemini show` displays current Gemini config summary
+- [ ] Sandbox config generates valid settings for all 5 sandbox methods
+- [ ] Hook events configurable with matcher patterns
+- [ ] Extension management (install/enable/disable) works via CLI and UI
+
+---
+
+## CC-17: Gemini CLI Context & Memory Management
+
+**Status:** `PLANNED`
+
+Manage GEMINI.md files and context configuration. Gemini CLI uses hierarchical GEMINI.md discovery with boundary markers, import syntax, and configurable file names.
+
+| # | Item | Status |
+|---|------|--------|
+| 1 | GEMINI.md CRUD in Project Explorer: create/edit at global and project scopes | `PLANNED` |
+| 2 | Context config: `context.fileName` (array support), `context.memoryBoundaryMarkers`, `context.includeDirectories` | `PLANNED` |
+| 3 | Import resolution: `@path/to/file.md` syntax preview showing resolved content | `PLANNED` |
+| 4 | Session retention: `general.sessionRetention` config (maxAge, maxCount, minRetention) | `PLANNED` |
+
+**Dependencies:** None
+
+**Exit criteria:**
+- [ ] GEMINI.md files manageable alongside CLAUDE.md and AGENTS.md
+- [ ] Context config generates valid settings with array file names
+- [ ] Session retention config applies correctly
+
+---
+
+## CC-18: Cross-Tool Approval & Sandbox Unification
+
+**Status:** `PLANNED`
+
+Unified approval mode and sandbox configuration across all three tools. Each tool has a different model (Claude: permissions + auto mode + sandbox, Codex: approval_policy + sandbox_mode, Gemini: defaultApprovalMode + sandbox + yoloMode) but the concepts map to similar intents.
+
+| # | Item | Status |
+|---|------|--------|
+| 1 | Unified approval matrix: visual mapping of Claude/Codex/Gemini approval modes showing equivalent settings | `PLANNED` |
+| 2 | Sandbox comparison view: side-by-side of what each tool restricts at each sandbox level | `PLANNED` |
+| 3 | One-click presets: "Restrictive", "Balanced", "Permissive" presets that set appropriate values for all installed tools | `PLANNED` |
+| 4 | Per-tool override: fine-tune individual tool settings after applying a preset | `PLANNED` |
+
+**Dependencies:** CC-10 (Claude settings), CC-14 (Codex settings), CC-16 (Gemini settings)
+
+**Exit criteria:**
+- [ ] Approval matrix shows correct equivalences across tools
+- [ ] Presets generate valid config for all installed tools
+- [ ] Per-tool overrides persist without clobbering preset values
+
+---
+
 ## Dependency Graph
 
 ```
@@ -350,4 +479,9 @@ CC-9  ← CC-2  (shared provider registry concepts)
 CC-10          (independent)
 CC-11          (independent)
 CC-12          (independent)
+CC-14          (independent)
+CC-15          (independent)
+CC-16          (independent)
+CC-17          (independent)
+CC-10 + CC-14 + CC-16 ← CC-18 (cross-tool unification needs all three)
 ```
