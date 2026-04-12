@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Claude Code Router module** - `lib/router.js` for CCR config management (providers, routing rules, presets, activation env, status detection)
 - **AGENTS.override.md support** - Create local Codex instruction overrides with auto-gitignore
   - "New AGENTS.override.md" menu item in Project Explorer
   - Auto-adds `AGENTS.override.md` to `.gitignore` on creation
