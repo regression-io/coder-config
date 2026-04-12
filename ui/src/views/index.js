@@ -16,3 +16,4 @@ export { default as LoopsView } from './LoopsView';
 export { default as TutorialView } from './TutorialView';
 export { default as SessionsView } from './SessionsView';
 export { default as StatuslinesView } from './StatuslinesView';
+export { default as RouterView } from './RouterView';

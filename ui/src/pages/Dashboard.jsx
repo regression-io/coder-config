@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Settings, Package, RefreshCw, Rocket, Terminal,
-  Folder, FolderOpen, Loader2, Brain, Wand2, Wrench, Shield, Download, Layers, BookOpen, Puzzle, Workflow, GraduationCap, RefreshCcw, Save, MonitorDot
+  Folder, FolderOpen, Loader2, Brain, Wand2, Wrench, Shield, Download, Layers, BookOpen, Puzzle, Workflow, GraduationCap, RefreshCcw, Save, MonitorDot, GitBranch
 } from 'lucide-react';
 import FileExplorer from "@/components/FileExplorer";
 import ProjectSwitcher from "@/components/ProjectSwitcher";
@@ -33,6 +33,7 @@ import {
   TutorialView,
   SessionsView,
   StatuslinesView,
+  RouterView,
 } from "@/views";
 
 const navItems = [
@@ -52,6 +53,7 @@ const navItems = [
   // Developer section
   { id: 'create-mcp', label: 'Create MCP', icon: Wand2, section: 'Developer' },
   { id: 'loops', label: 'Ralph Loops', icon: RefreshCcw, section: 'Developer', isNew: true },
+  { id: 'router', label: 'Code Router', icon: GitBranch, section: 'Developer' },
   // System section
   { id: 'statuslines', label: 'Statusline', icon: MonitorDot, section: 'System', isNew: true },
   { id: 'sessions', label: 'Sessions', icon: Save, section: 'System' },
@@ -549,6 +551,8 @@ export default function Dashboard() {
         }} />;
       case 'loops':
         return <LoopsView activeProject={activeProject} />;
+      case 'router':
+        return <RouterView />;
       case 'docs':
         return <DocsView />;
       case 'tutorial':
