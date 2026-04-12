@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Save, Loader2, Palette, Monitor, Terminal, Shield, Sparkles, Server, Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { Settings, Save, Loader2, Palette, Monitor, Terminal, Shield, Sparkles, Server, Plus, Trash2, ChevronDown, ChevronRight, FileText, Clock } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -452,12 +452,185 @@ export default function GeminiSettingsEditor({ settings, onSave, loading, settin
 
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-medium text-foreground">Respect .gitignore</label>
-              <p className="text-xs text-muted-foreground">Exclude files matching .gitignore patterns</p>
+              <label className="text-sm font-medium text-foreground">Approval Mode</label>
+              <p className="text-xs text-muted-foreground">How tool executions are approved</p>
+            </div>
+            <Select
+              value={getSetting('general', 'defaultApprovalMode', 'default')}
+              onValueChange={(value) => updateSetting('general', 'defaultApprovalMode', value)}
+            >
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default</SelectItem>
+                <SelectItem value="auto_edit">Auto Edit</SelectItem>
+                <SelectItem value="plan">Plan</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-foreground">Notifications</label>
+              <p className="text-xs text-muted-foreground">Enable run-event notifications</p>
             </div>
             <Switch
-              checked={getSetting('general', 'respectGitignore', true)}
-              onCheckedChange={(checked) => updateSetting('general', 'respectGitignore', checked)}
+              checked={getSetting('general', 'enableNotifications', false)}
+              onCheckedChange={(checked) => updateSetting('general', 'enableNotifications', checked)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Context Settings */}
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+          <FileText className="w-4 h-4 text-blue-500" />
+          Context (GEMINI.md)
+        </h3>
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-foreground">Context File Names</label>
+            <p className="text-xs text-muted-foreground mb-2">
+              File names Gemini CLI looks for as instruction files (comma-separated). Default: GEMINI.md
+            </p>
+            <Input
+              value={(() => {
+                const fn = localSettings?.context?.fileName;
+                if (Array.isArray(fn)) return fn.join(', ');
+                return fn || '';
+              })()}
+              onChange={(e) => {
+                const val = e.target.value;
+                const arr = val ? val.split(',').map(s => s.trim()).filter(Boolean) : undefined;
+                setLocalSettings(prev => ({
+                  ...prev,
+                  context: {
+                    ...prev.context,
+                    fileName: arr && arr.length === 1 ? arr[0] : arr
+                  }
+                }));
+              }}
+              placeholder="GEMINI.md"
+              className="font-mono text-sm"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-foreground">Include Directory Tree</label>
+              <p className="text-xs text-muted-foreground">Include directory tree in initial request context</p>
+            </div>
+            <Switch
+              checked={localSettings?.context?.includeDirectoryTree ?? true}
+              onCheckedChange={(checked) => setLocalSettings(prev => ({
+                ...prev,
+                context: { ...prev.context, includeDirectoryTree: checked }
+              }))}
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-foreground">Memory Boundary Markers</label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Stops GEMINI.md upward traversal at directories containing these markers (comma-separated)
+            </p>
+            <Input
+              value={(localSettings?.context?.memoryBoundaryMarkers || []).join(', ')}
+              onChange={(e) => {
+                const arr = e.target.value ? e.target.value.split(',').map(s => s.trim()).filter(Boolean) : undefined;
+                setLocalSettings(prev => ({
+                  ...prev,
+                  context: { ...prev.context, memoryBoundaryMarkers: arr }
+                }));
+              }}
+              placeholder=".git"
+              className="font-mono text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-foreground">Include Directories</label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Additional workspace directories to include (comma-separated)
+            </p>
+            <Input
+              value={(localSettings?.context?.includeDirectories || []).join(', ')}
+              onChange={(e) => {
+                const arr = e.target.value ? e.target.value.split(',').map(s => s.trim()).filter(Boolean) : undefined;
+                setLocalSettings(prev => ({
+                  ...prev,
+                  context: { ...prev.context, includeDirectories: arr }
+                }));
+              }}
+              placeholder="~/shared-libs, ../common"
+              className="font-mono text-sm"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Session Retention */}
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+          <Clock className="w-4 h-4 text-blue-500" />
+          Session Retention
+        </h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-foreground">Enable Session Retention</label>
+              <p className="text-xs text-muted-foreground">Save session history for later resumption</p>
+            </div>
+            <Switch
+              checked={localSettings?.general?.sessionRetention?.enabled ?? true}
+              onCheckedChange={(checked) => setLocalSettings(prev => ({
+                ...prev,
+                general: {
+                  ...prev.general,
+                  sessionRetention: { ...prev.general?.sessionRetention, enabled: checked }
+                }
+              }))}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-foreground">Max Age</label>
+              <p className="text-xs text-muted-foreground">How long to keep sessions (e.g. 30d, 7d, 24h)</p>
+            </div>
+            <Input
+              value={localSettings?.general?.sessionRetention?.maxAge || ''}
+              onChange={(e) => setLocalSettings(prev => ({
+                ...prev,
+                general: {
+                  ...prev.general,
+                  sessionRetention: { ...prev.general?.sessionRetention, maxAge: e.target.value || undefined }
+                }
+              }))}
+              placeholder="30d"
+              className="font-mono text-sm w-24"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-foreground">Max Sessions</label>
+              <p className="text-xs text-muted-foreground">Maximum number of sessions to keep</p>
+            </div>
+            <Input
+              type="number"
+              value={localSettings?.general?.sessionRetention?.maxCount ?? ''}
+              onChange={(e) => setLocalSettings(prev => ({
+                ...prev,
+                general: {
+                  ...prev.general,
+                  sessionRetention: { ...prev.general?.sessionRetention, maxCount: e.target.value ? Number(e.target.value) : undefined }
+                }
+              }))}
+              placeholder="unlimited"
+              className="font-mono text-sm w-24"
             />
           </div>
         </div>

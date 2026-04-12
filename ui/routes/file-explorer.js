@@ -455,6 +455,10 @@ function createClaudeFile(body) {
     case 'claudemd':
       filePath = path.join(dir, '.claude', 'CLAUDE.md');
       break;
+    case 'geminimd':
+      filePath = path.join(dir, 'GEMINI.md');
+      initialContent = content || '# Project Instructions\n\nInstructions for Gemini CLI.\n';
+      break;
     case 'agentsmd':
       filePath = path.join(dir, 'AGENTS.md');
       initialContent = content || '# Project Instructions\n\nInstructions for Codex CLI.\n';

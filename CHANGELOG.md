@@ -12,6 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **AGENTS.override.md support** - Create local Codex instruction overrides with auto-gitignore
   - "New AGENTS.override.md" menu item in Project Explorer
   - Auto-adds `AGENTS.override.md` to `.gitignore` on creation
+- **Gemini CLI context settings** - New Context and Session Retention sections in Gemini settings editor
+  - Context file names (`context.fileName`, supports array for multiple file names)
+  - Include directory tree toggle
+  - Memory boundary markers (`context.memoryBoundaryMarkers`)
+  - Include directories (`context.includeDirectories`)
+  - Session retention: enable/disable, max age, max session count
+  - Approval mode selector (default/auto_edit/plan)
+  - Notifications toggle
+- **GEMINI.md create menu** - "New GEMINI.md" option in Project Explorer folder dropdown
 - **Instruction hierarchy API** - `GET /api/instruction-hierarchy?dir=<path>` returns directory-walk discovery chain
   - Discovers CLAUDE.md, GEMINI.md, AGENTS.md at each level from project to root
   - Shows override files and global instruction locations

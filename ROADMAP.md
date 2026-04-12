@@ -423,16 +423,16 @@ Complete Gemini CLI settings.json management. Gemini CLI (v0.37.1) has 15+ top-l
 
 ## CC-17: Gemini CLI Context & Memory Management
 
-**Status:** `PLANNED`
+**Status:** `PARTIAL`
 
 Manage GEMINI.md files and context configuration. Gemini CLI uses hierarchical GEMINI.md discovery with boundary markers, import syntax, and configurable file names.
 
 | # | Item | Status |
 |---|------|--------|
-| 1 | GEMINI.md CRUD in Project Explorer: create/edit at global and project scopes | `PLANNED` |
-| 2 | Context config: `context.fileName` (array support), `context.memoryBoundaryMarkers`, `context.includeDirectories` | `PLANNED` |
+| 1 | GEMINI.md CRUD in Project Explorer: create/edit at global and project scopes | `COMPLETE` |
+| 2 | Context config: `context.fileName` (array support), `context.memoryBoundaryMarkers`, `context.includeDirectories` | `COMPLETE` |
 | 3 | Import resolution: `@path/to/file.md` syntax preview showing resolved content | `PLANNED` |
-| 4 | Session retention: `general.sessionRetention` config (maxAge, maxCount, minRetention) | `PLANNED` |
+| 4 | Session retention: `general.sessionRetention` config (maxAge, maxCount, minRetention) | `COMPLETE` |
 
 **Dependencies:** None
 
