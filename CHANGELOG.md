@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed `cleanupPeriodDays` to enforce min value of 1
 - **Plugin scope terminology** - Updated to match CC's current naming (`local`/`user` instead of `project`/`global`)
 - **Tool paths** - Added `projectSkills`, `projectAgents`, `settingsSchema`, `mcpScopes` to Claude Code constants
+- **MCP transport types** - MCP editors now display HTTP/SSE/WS MCPs correctly (show URL instead of command)
+  - AddMcpDialog accepts MCPs with `url` field (not just `command`)
+  - McpEditor and GlobalMcpEditor show transport type and URL for non-stdio MCPs
 
 ## [0.51.0] - 2026-04-12
 

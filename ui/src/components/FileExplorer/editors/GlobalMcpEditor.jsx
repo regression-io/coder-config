@@ -175,7 +175,7 @@ export default function GlobalMcpEditor({ content, parsed, onSave, registry }) {
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 font-mono">
-                    {config.command} {config.args?.join(' ')}
+                    {config.url ? `${config.type || 'http'}: ${config.url}` : `${config.command} ${config.args?.join(' ') || ''}`}
                   </p>
                 </div>
               ))}
@@ -211,7 +211,7 @@ export default function GlobalMcpEditor({ content, parsed, onSave, registry }) {
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p className="font-mono text-xs">{mcpConfig.command} {mcpConfig.args?.join(' ')}</p>
+                      <p className="font-mono text-xs">{mcpConfig.url ? `${mcpConfig.type || 'http'}: ${mcpConfig.url}` : `${mcpConfig.command} ${mcpConfig.args?.join(' ') || ''}`}</p>
                       {mcpConfig.description && <p className="text-xs text-gray-400 mt-1">{mcpConfig.description}</p>}
                     </TooltipContent>
                   </Tooltip>

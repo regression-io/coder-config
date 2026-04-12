@@ -55,8 +55,8 @@ export default function AddMcpDialog({ open, onClose, onAdd }) {
     }
 
     for (const [name, mcp] of Object.entries(mcpsToAdd)) {
-      if (!mcp.command) {
-        toast.error(`MCP "${name}" is missing required "command" field`);
+      if (!mcp.command && !mcp.url) {
+        toast.error(`MCP "${name}" is missing required "command" (stdio) or "url" (http/sse/ws) field`);
         return;
       }
     }

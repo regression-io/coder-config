@@ -304,7 +304,7 @@ export default function McpEditor({ content, parsed, onSave, registry, configDir
                     </div>
                   </div>
                   <p className={`text-xs mt-1 font-mono ${isDisabled ? 'text-gray-400' : 'text-gray-500 dark:text-slate-400'}`}>
-                    {config.command} {config.args?.join(' ')}
+                    {config.url ? `${config.type || 'http'}: ${config.url}` : `${config.command} ${config.args?.join(' ') || ''}`}
                   </p>
                 </div>
               );
