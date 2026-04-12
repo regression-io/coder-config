@@ -10,14 +10,16 @@ Choose which Gemini model to use.
 
 | Model | Description |
 |-------|-------------|
-| **Gemini 2.5 Pro** | Most capable, best for complex tasks |
-| **Gemini 2.5 Flash** | Fast and efficient, good balance |
-| **Gemini 2.0 Pro** | Previous generation capable model |
-| **Gemini 2.0 Flash** | Previous generation fast model |
+| **Auto** | CLI picks best model per task |
+| **Gemini 3.1 Pro** | Latest, thinking + multimodal tool use |
+| **Gemini 3 Pro** | Thinking + multimodal tools |
+| **Gemini 3 Flash** | Fast with thinking |
+| **Gemini 2.5 Pro** | Previous generation capable |
+| **Gemini 2.5 Flash** | Previous generation fast |
 
-### Preview Features
+### Model Aliases
 
-Enable **Preview Features** to access experimental models like Gemini 2.5 Pro Preview.
+You can also use aliases: \`auto\`, \`pro\`, \`flash\`, \`flash-lite\`
     `
   },
   'gemini-display': {
@@ -31,10 +33,14 @@ Configure Gemini CLI's appearance and output.
 
 | Setting | Description |
 |---------|-------------|
-| **Theme** | Color theme (Dark, Light, System) |
-| **Show Token Count** | Display token usage in responses |
-| **Show Diff View** | Use diff format for file changes |
-| **Streaming** | Enable real-time response streaming |
+| **Theme** | Color theme for the CLI interface |
+| **Dynamic Window Title** | Update title with status icons |
+| **Show Line Numbers** | Display line numbers in chat |
+| **Show Citations** | Display citations for generated text |
+| **Hide Context Summary** | Hide GEMINI.md and MCP servers above input |
+| **Hide Footer** | Remove footer from the UI |
+| **Screen Reader Mode** | Accessible plain-text output |
+| **Inline Thinking** | Show model thinking (off or full) |
     `
   },
   'gemini-general': {
@@ -49,8 +55,18 @@ Core Gemini CLI behavior options.
 | Setting | Description |
 |---------|-------------|
 | **Vim Keybindings** | Enable Vim mode in the CLI |
-| **Auto-save** | Automatically save file changes |
-| **Check for Updates** | Check for new Gemini CLI versions |
+| **Auto Update** | Check for new Gemini CLI versions |
+| **Checkpointing** | Enable session recovery support |
+| **Approval Mode** | Default: ask, Auto Edit: auto-approve edits, Plan: read-only |
+
+### Approval Modes
+
+| Mode | Description |
+|------|-------------|
+| **default** | Ask before tool execution |
+| **auto_edit** | Auto-approve file edits |
+| **plan** | Read-only, no edits allowed |
+| **yolo** | Auto-approve everything (use with caution) |
 
 ### Configuration File
 
@@ -60,12 +76,12 @@ Settings are stored in \`~/.gemini/settings.json\`:
 {
   "general": {
     "vimMode": false,
-    "autoSave": true,
-    "checkForUpdates": true
+    "defaultApprovalMode": "default",
+    "enableAutoUpdate": true,
+    "checkpointing": { "enabled": false }
   },
   "model": {
-    "default": "gemini-2.5-flash",
-    "previewFeatures": false
+    "name": "auto"
   }
 }
 \`\`\`
@@ -76,14 +92,32 @@ Settings are stored in \`~/.gemini/settings.json\`:
     content: `
 ## Sandbox Mode
 
-Control command execution safety.
+Control command execution safety. Gemini CLI supports 5 sandbox methods.
 
-### Options
+### Sandbox Methods
 
-| Mode | Description |
-|------|-------------|
-| **Enabled** | Commands run in isolated environment |
-| **Disabled** | Commands run directly on system |
+| Method | Platform | Description |
+|--------|----------|-------------|
+| **sandbox-exec** | macOS | Lightweight seatbelt profiles |
+| **Docker** | Cross-platform | Container-based isolation |
+| **Podman** | Cross-platform | Container-based (rootless) |
+| **gVisor (runsc)** | Linux | Strongest isolation, user-space kernel |
+| **LXC** | Linux | Full system container (experimental) |
+
+### Configuration
+
+\`\`\`json
+{
+  "tools": {
+    "sandbox": {
+      "enabled": true,
+      "command": "docker",
+      "networkAccess": false,
+      "allowedPaths": ["/workspace"]
+    }
+  }
+}
+\`\`\`
 
 ### When to Disable
 

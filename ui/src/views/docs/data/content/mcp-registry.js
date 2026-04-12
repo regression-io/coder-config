@@ -98,17 +98,29 @@ Search GitHub or npm in the Registry view. Click "Add" to pre-fill the JSON with
     content: `
 ## Configuring MCPs
 
-### Required Fields
+### Transport Types
+
+MCPs support multiple transport modes:
+
+| Transport | Field | Description |
+|-----------|-------|-------------|
+| **stdio** | \`command\` + \`args\` | Local process (most common) |
+| **HTTP** | \`url\` | Streamable HTTP endpoint |
+| **SSE** | \`url\` with \`type: "sse"\` | Server-Sent Events (deprecated, use HTTP) |
+| **WebSocket** | \`url\` with \`type: "ws"\` | WebSocket connection |
+
+### Stdio MCP (Local Process)
 
 - **command** - The executable to run (e.g., "npx", "node", "python")
 - **args** - Array of command-line arguments
-
-### Optional Fields
-
 - **env** - Environment variables for the MCP
-- **cwd** - Working directory
 
-### Example Configuration
+### HTTP/Remote MCP
+
+- **url** - The endpoint URL
+- **type** - Transport type ("http", "sse", or "ws")
+
+### Example Configurations
 
 \`\`\`json
 {
@@ -120,12 +132,9 @@ Search GitHub or npm in the Registry view. Click "Add" to pre-fill the JSON with
         "GITHUB_TOKEN": "\${GITHUB_TOKEN}"
       }
     },
-    "postgres": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-postgres"],
-      "env": {
-        "DATABASE_URL": "\${DATABASE_URL}"
-      }
+    "remote-server": {
+      "type": "http",
+      "url": "https://mcp.example.com/api"
     }
   }
 }

@@ -487,7 +487,7 @@ claude plugin install python-support@claude-config-plugins
 1. Open Project Explorer
 2. Click the **+** menu on any project folder
 3. Select **Install Plugins**
-4. Toggle plugins on/off with scope selection (Project/Global/Local)
+4. Toggle plugins on/off with scope selection (Local/User)
 
 ### Plugin Directory
 
@@ -528,19 +528,21 @@ mcp__github__*           # All GitHub MCP tools
 ```
 
 ### Model Selection
-Choose your preferred Claude model (Sonnet 4, Opus 4.5, etc.)
+Choose your preferred Claude model (Opus 4.6, Sonnet 4.6, Haiku 4.5) and effort level (low/medium/high).
 
 ### Behavior
-- Auto-accept edits
-- Verbose mode
-- Enable/disable MCP servers
+- Show thinking summaries
+- Voice dictation
+- Auto memory
+- Enable all project MCP servers
+- Output style, default shell, CLAUDE.md excludes
 
 ## Gemini CLI Settings
 
 The Web UI provides a visual editor for `~/.gemini/settings.json`:
 
 ### Model Selection
-Choose Gemini model (2.5 Pro, 2.5 Flash, etc.) and enable preview features.
+Choose Gemini model (Auto, Gemini 3.1 Pro, 3 Flash, 2.5 Pro, etc.).
 
 ### Display Options
 Configure theme, token count display, diff view, and streaming.
@@ -679,7 +681,7 @@ npm start
 
 ### Testing
 
-The project has comprehensive test coverage with 230 tests across 10 test files:
+The project has comprehensive test coverage with 608 tests across 18 test files:
 
 ```bash
 # Run all tests

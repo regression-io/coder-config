@@ -151,13 +151,14 @@ All tools use identical JSON format for MCP server definitions:
 
 | Feature | Claude Code | Gemini CLI | Codex CLI | Antigravity |
 |---------|-------------|------------|-----------|-------------|
-| Type | Terminal CLI | Terminal CLI | Terminal CLI | Full IDE |
+| Type | Terminal CLI | Terminal CLI | Terminal TUI | Full IDE |
 | MCP Config | \`.mcp.json\` | \`.gemini/settings.json\` | \`~/.codex/config.toml\` | \`~/.gemini/antigravity/\` |
 | Config Format | JSON | JSON | TOML | JSON |
 | Env Interpolation | Yes (\`\${VAR}\`) | Yes | Yes | No |
-| Skills | \`.claude/commands/\` | \`.gemini/commands/\` | N/A | Unknown |
-| Rules | \`.claude/rules/\` | \`.gemini/rules/\` | N/A | \`.agent/rules/\` |
-| Instructions | \`CLAUDE.md\` | \`GEMINI.md\` | N/A | \`GEMINI.md\` |
+| Skills | \`.claude/skills/\` | \`.gemini/commands/\` | Built-in + SKILL.md | Unknown |
+| Rules | \`.claude/rules/\` | \`.gemini/rules/\` | Via AGENTS.md | \`.agent/rules/\` |
+| Instructions | \`CLAUDE.md\` | \`GEMINI.md\` | \`AGENTS.md\` | \`GEMINI.md\` |
+| Agents | \`.claude/agents/\` | \`.gemini/agents/\` | Built-in multi-agent | N/A |
 
 ### What This Means
 

@@ -48,20 +48,28 @@ Choose which Claude model to use.
 
 ### Available Models
 
-- **Claude Sonnet 4** - Fast, capable, good for most tasks
-- **Claude Opus 4** - Most capable, best for complex tasks
-- **Claude Haiku** - Fastest, good for simple tasks
+- **Claude Opus 4.6** - Most capable, best for complex tasks
+- **Claude Sonnet 4.6** - Fast output, great balance of speed and capability
+- **Claude Sonnet 4.5** - Previous generation, balanced
+- **Claude Haiku 4.5** - Fastest, good for simple tasks
 
 ### Setting the Model
 
-In **Claude Code** settings, use the Model dropdown to select your preferred model.
+In **Claude Code** settings, use the Model tab to select your preferred model.
+
+### Effort Level
+
+Control reasoning thoroughness:
+- **Low** - Faster, less thorough
+- **Medium** - Balanced (default)
+- **High** - Most thorough reasoning
 
 ### Per-Task Model
 
 Some tasks may benefit from different models:
-- Use Haiku for quick edits
-- Use Opus for complex refactoring
-- Use Sonnet as a balanced default
+- Use Haiku 4.5 for quick edits and simple tasks
+- Use Opus 4.6 for complex refactoring and architecture
+- Use Sonnet 4.6 as a balanced default
     `
   },
   'behavior': {
@@ -73,9 +81,14 @@ Configure how Claude Code behaves.
 
 ### Available Settings
 
-- **Auto-accept edits** - Automatically accept file changes
-- **Verbose mode** - Show more detailed output
-- **Enable MCPs** - Toggle MCP servers on/off
+- **Respect .gitignore** - Honor .gitignore patterns when searching
+- **Show Thinking Summaries** - Display extended thinking summaries
+- **Voice Dictation** - Enable push-to-talk voice input
+- **Auto Memory** - Allow Claude to save notes across sessions
+- **Enable All Project MCP Servers** - Auto-approve project .mcp.json servers
+- **Output Style** - Named output style for responses
+- **Default Shell** - Bash or PowerShell
+- **CLAUDE.md Excludes** - Skip specific CLAUDE.md files in monorepos
 
 ### Configuration
 
@@ -89,18 +102,32 @@ These settings are stored in \`~/.claude/settings.json\` and can be edited in th
 
 Hooks allow you to run custom commands at specific points.
 
-### Available Hooks
+### Hook Events (30 total)
 
-- **preToolUse** - Before a tool is used
-- **postToolUse** - After a tool is used
-- **notification** - When Claude sends a notification
+Key events include:
+- **SessionStart** / **SessionEnd** - Session lifecycle
+- **PreToolUse** / **PostToolUse** - Before/after tool execution
+- **UserPromptSubmit** - Before processing user input
+- **SubagentStart** / **SubagentStop** - Agent spawning
+- **FileChanged** / **CwdChanged** - File system events
+- **TaskCreated** / **TaskCompleted** - Task tracking
+
+### Handler Types
+
+- **command** - Shell script (with async, timeout options)
+- **http** - HTTP POST to a URL
+- **prompt** - Single-turn LLM evaluation
+- **agent** - Spawns a subagent
 
 ### Configuration
 
 \`\`\`json
 {
   "hooks": {
-    "postToolUse": "echo 'Tool used'"
+    "PreToolUse": [{
+      "matcher": "Bash",
+      "hooks": [{ "type": "command", "command": "~/.claude/hooks/pre.sh" }]
+    }]
   }
 }
 \`\`\`
@@ -110,6 +137,7 @@ Hooks allow you to run custom commands at specific points.
 - Run linters after file edits
 - Log tool usage
 - Custom notifications
+- Workstream context injection
     `
   },
 };
