@@ -117,7 +117,7 @@ export default function PluginSelectorDialog({ open, onOpenChange, projectDir, p
   const [loading, setLoading] = useState(true);
   const [pluginsData, setPluginsData] = useState({ allPlugins: [], categories: [] });
   const [searchQuery, setSearchQuery] = useState('');
-  const [scope, setScope] = useState('project');
+  const [scope, setScope] = useState('local');
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showExternal, setShowExternal] = useState(true);
   const [showInternal, setShowInternal] = useState(true);
@@ -253,22 +253,16 @@ export default function PluginSelectorDialog({ open, onOpenChange, projectDir, p
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="project">
+                <SelectItem value="local">
                   <span className="flex items-center gap-2">
                     <Building2 className="w-3.5 h-3.5" />
-                    Project
+                    Local (this project)
                   </span>
                 </SelectItem>
                 <SelectItem value="user">
                   <span className="flex items-center gap-2">
                     <Globe className="w-3.5 h-3.5" />
-                    Global
-                  </span>
-                </SelectItem>
-                <SelectItem value="local">
-                  <span className="flex items-center gap-2">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Local
+                    User (all projects)
                   </span>
                 </SelectItem>
               </SelectContent>

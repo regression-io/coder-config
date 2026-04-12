@@ -35,9 +35,15 @@ const MODEL_OPTIONS = [
     recommended: true
   },
   {
+    id: 'claude-sonnet-4-6',
+    name: 'Claude Sonnet 4.6',
+    description: 'Fast output, great balance of speed and capability',
+    tier: 'sonnet'
+  },
+  {
     id: 'claude-sonnet-4-5-20250929',
     name: 'Claude Sonnet 4.5',
-    description: 'Best balance of speed and capability',
+    description: 'Previous generation, balanced',
     tier: 'sonnet'
   },
   {
@@ -55,9 +61,12 @@ const EFFORT_LEVELS = [
 ];
 
 const PERMISSION_MODES = [
-  { value: 'default', label: 'Default' },
-  { value: 'plan', label: 'Plan' },
-  { value: 'acceptEdits', label: 'Accept Edits' },
+  { value: 'default', label: 'Default', description: 'Ask for most tool uses' },
+  { value: 'plan', label: 'Plan', description: 'Read-only, no edits allowed' },
+  { value: 'acceptEdits', label: 'Accept Edits', description: 'Auto-approve file edits' },
+  { value: 'auto', label: 'Auto', description: 'AI classifies safe vs risky actions' },
+  { value: 'dontAsk', label: "Don't Ask", description: 'Auto-approve most actions' },
+  { value: 'bypassPermissions', label: 'Bypass Permissions', description: 'No restrictions (dangerous)' },
 ];
 
 const TEAMMATE_MODES = [
@@ -124,11 +133,14 @@ const ENV_VARIABLES = [
 ];
 
 const KNOWN_FIELDS = [
-  'permissions', 'model', 'effortLevel', 'availableModels', 'alwaysThinkingEnabled',
-  'autoAcceptEdits', 'verbose', 'enableMcp', 'enableAllProjectMcpServers',
-  'respectGitignore', 'showTurnDuration', 'cleanupPeriodDays', 'plansDirectory',
-  'disableAllHooks', 'language', 'teammateMode', 'apiBaseUrl',
-  'attribution', 'sandbox', 'env', 'hooks'
+  'permissions', 'model', 'modelOverrides', 'effortLevel', 'availableModels',
+  'alwaysThinkingEnabled', 'showThinkingSummaries', 'enableAllProjectMcpServers',
+  'respectGitignore', 'cleanupPeriodDays', 'plansDirectory',
+  'disableAllHooks', 'language', 'teammateMode', 'outputStyle',
+  'attribution', 'sandbox', 'env', 'hooks', 'voiceEnabled',
+  'autoMemoryEnabled', 'autoMemoryDirectory', 'defaultShell',
+  'worktree', 'autoUpdatesChannel', 'prefersReducedMotion',
+  'claudeMdExcludes', 'disableSkillShellExecution',
 ];
 
 function ToggleRow({ label, description, checked, onCheckedChange }) {
@@ -547,46 +559,60 @@ export default function ClaudeSettingsEditor({
               <Label className="text-base font-medium">Session Behavior</Label>
 
               <ToggleRow
-                label="Auto-accept Edits"
-                description="Automatically accept file edits without confirmation"
-                checked={settings.autoAcceptEdits ?? false}
-                onCheckedChange={(checked) => updateSetting('autoAcceptEdits', checked, true)}
-              />
-
-              <ToggleRow
-                label="Verbose Output"
-                description="Show detailed output for operations"
-                checked={settings.verbose ?? false}
-                onCheckedChange={(checked) => updateSetting('verbose', checked, true)}
-              />
-
-              <ToggleRow
-                label="Show Turn Duration"
-                description="Display how long each turn takes"
-                checked={settings.showTurnDuration ?? false}
-                onCheckedChange={(checked) => updateSetting('showTurnDuration', checked, true)}
-              />
-
-              <ToggleRow
                 label="Respect .gitignore"
                 description="Honor .gitignore patterns when searching files"
                 checked={settings.respectGitignore ?? true}
                 onCheckedChange={(checked) => updateSetting('respectGitignore', checked, true)}
               />
 
+              <ToggleRow
+                label="Show Thinking Summaries"
+                description="Display summaries of extended thinking"
+                checked={settings.showThinkingSummaries ?? false}
+                onCheckedChange={(checked) => updateSetting('showThinkingSummaries', checked, true)}
+              />
+
+              <ToggleRow
+                label="Voice Dictation"
+                description="Enable push-to-talk voice input"
+                checked={settings.voiceEnabled ?? false}
+                onCheckedChange={(checked) => updateSetting('voiceEnabled', checked, true)}
+              />
+
+              <ToggleRow
+                label="Reduced Motion"
+                description="Reduce UI animations"
+                checked={settings.prefersReducedMotion ?? false}
+                onCheckedChange={(checked) => updateSetting('prefersReducedMotion', checked, true)}
+              />
+
+              {/* Memory */}
+              <Label className="text-base font-medium pt-2">Memory</Label>
+
+              <ToggleRow
+                label="Auto Memory"
+                description="Allow Claude to automatically save notes across sessions"
+                checked={settings.autoMemoryEnabled ?? true}
+                onCheckedChange={(checked) => updateSetting('autoMemoryEnabled', checked, true)}
+              />
+
+              <div className="space-y-2">
+                <Label className="text-sm">Auto Memory Directory</Label>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Custom path for auto-memory storage</p>
+                <Input
+                  value={settings.autoMemoryDirectory || ''}
+                  onChange={(e) => updateSetting('autoMemoryDirectory', e.target.value)}
+                  placeholder="~/.claude/projects/<project>/memory"
+                  className="font-mono text-sm"
+                />
+              </div>
+
               {/* MCP & Servers */}
               <Label className="text-base font-medium pt-2">MCP & Servers</Label>
 
               <ToggleRow
-                label="Enable MCP Servers"
-                description="Allow Claude Code to use MCP server connections"
-                checked={settings.enableMcp ?? true}
-                onCheckedChange={(checked) => updateSetting('enableMcp', checked, true)}
-              />
-
-              <ToggleRow
                 label="Enable All Project MCP Servers"
-                description="Automatically load all MCP servers defined in project configs"
+                description="Auto-approve all MCP servers defined in project .mcp.json"
                 checked={settings.enableAllProjectMcpServers ?? false}
                 onCheckedChange={(checked) => updateSetting('enableAllProjectMcpServers', checked, true)}
               />
@@ -606,11 +632,22 @@ export default function ClaudeSettingsEditor({
 
               <div className="space-y-2">
                 <Label className="text-sm">Language</Label>
-                <p className="text-xs text-gray-500 dark:text-slate-400">UI language for Claude Code</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Response language preference</p>
                 <Input
                   value={settings.language || ''}
                   onChange={(e) => updateSetting('language', e.target.value)}
                   placeholder="english"
+                  className="font-mono text-sm"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Output Style</Label>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Named output style for responses</p>
+                <Input
+                  value={settings.outputStyle || ''}
+                  onChange={(e) => updateSetting('outputStyle', e.target.value)}
+                  placeholder="concise"
                   className="font-mono text-sm"
                 />
               </div>
@@ -631,6 +668,61 @@ export default function ClaudeSettingsEditor({
                 </Select>
               </div>
 
+              <div className="space-y-2">
+                <Label className="text-sm">Default Shell</Label>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Shell used for bash commands</p>
+                <Select
+                  value={settings.defaultShell || 'bash'}
+                  onValueChange={(v) => updateSetting('defaultShell', v === 'bash' ? undefined : v, true)}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bash">Bash</SelectItem>
+                    <SelectItem value="powershell">PowerShell</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Auto-updates Channel</Label>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Release channel for auto-updates</p>
+                <Select
+                  value={settings.autoUpdatesChannel || 'latest'}
+                  onValueChange={(v) => updateSetting('autoUpdatesChannel', v === 'latest' ? undefined : v, true)}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="latest">Latest (default)</SelectItem>
+                    <SelectItem value="stable">Stable</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Worktree */}
+              <Label className="text-base font-medium pt-2">Worktree</Label>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Symlink Directories</Label>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Directories to symlink into worktrees (comma-separated)</p>
+                <Input
+                  value={(settings.worktree?.symlinkDirectories || []).join(', ')}
+                  onChange={(e) => updateNestedSetting('worktree', 'symlinkDirectories', csvToArray(e.target.value), false)}
+                  placeholder="node_modules, .venv"
+                  className="font-mono text-sm"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Sparse Paths</Label>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Git sparse-checkout paths for worktrees (comma-separated)</p>
+                <Input
+                  value={(settings.worktree?.sparsePaths || []).join(', ')}
+                  onChange={(e) => updateNestedSetting('worktree', 'sparsePaths', csvToArray(e.target.value), false)}
+                  placeholder="src/, lib/"
+                  className="font-mono text-sm"
+                />
+              </div>
+
               {/* Paths & Cleanup */}
               <Label className="text-base font-medium pt-2">Paths & Cleanup</Label>
 
@@ -647,31 +739,34 @@ export default function ClaudeSettingsEditor({
 
               <div className="space-y-2">
                 <Label className="text-sm">Cleanup Period (days)</Label>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Auto-cleanup interval for old session data</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Auto-cleanup interval for old session data (min: 1)</p>
                 <Input
                   type="number"
+                  min="1"
                   value={settings.cleanupPeriodDays ?? ''}
-                  onChange={(e) => updateSetting('cleanupPeriodDays', e.target.value ? Number(e.target.value) : undefined)}
+                  onChange={(e) => updateSetting('cleanupPeriodDays', e.target.value ? Math.max(1, Number(e.target.value)) : undefined)}
                   placeholder="30"
                   className="font-mono text-sm w-32"
                 />
               </div>
 
-              {/* API */}
-              <Label className="text-base font-medium pt-2">API</Label>
-
               <div className="space-y-2">
-                <Label className="text-sm">API Base URL</Label>
-                <p className="text-xs text-gray-500 dark:text-slate-400">
-                  Custom API endpoint (for proxies or enterprise deployments)
-                </p>
+                <Label className="text-sm">CLAUDE.md Excludes</Label>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Glob patterns to skip specific CLAUDE.md files (comma-separated)</p>
                 <Input
-                  value={settings.apiBaseUrl || ''}
-                  onChange={(e) => updateSetting('apiBaseUrl', e.target.value)}
-                  placeholder="https://api.anthropic.com"
+                  value={(settings.claudeMdExcludes || []).join(', ')}
+                  onChange={(e) => updateSetting('claudeMdExcludes', csvToArray(e.target.value))}
+                  placeholder="packages/legacy/CLAUDE.md"
                   className="font-mono text-sm"
                 />
               </div>
+
+              <ToggleRow
+                label="Disable Skill Shell Execution"
+                description="Prevent skills/commands from running shell commands"
+                checked={settings.disableSkillShellExecution ?? false}
+                onCheckedChange={(checked) => updateSetting('disableSkillShellExecution', checked, true)}
+              />
 
               {/* Attribution */}
               <Label className="text-base font-medium pt-2">Attribution</Label>
@@ -720,9 +815,63 @@ export default function ClaudeSettingsEditor({
               <ToggleRow
                 label="Auto-allow Bash When Sandboxed"
                 description="Automatically approve bash commands when sandbox is active"
-                checked={settings.sandbox?.autoAllowBashIfSandboxed ?? false}
+                checked={settings.sandbox?.autoAllowBashIfSandboxed ?? true}
                 onCheckedChange={(checked) => updateNestedSetting('sandbox', 'autoAllowBashIfSandboxed', checked)}
               />
+
+              <ToggleRow
+                label="Fail If Sandbox Unavailable"
+                description="Exit if the sandbox environment cannot be started"
+                checked={settings.sandbox?.failIfUnavailable ?? false}
+                onCheckedChange={(checked) => updateNestedSetting('sandbox', 'failIfUnavailable', checked)}
+              />
+
+              {/* Filesystem */}
+              <Label className="text-base font-medium pt-2">Filesystem Rules</Label>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Allow Write</Label>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Additional writable paths (comma-separated)</p>
+                <Input
+                  value={(settings.sandbox?.filesystem?.allowWrite || []).join(', ')}
+                  onChange={(e) => updateDeepNestedSetting('sandbox', 'filesystem', 'allowWrite', csvToArray(e.target.value), false)}
+                  placeholder="/tmp/builds, ~/output"
+                  className="font-mono text-sm"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Deny Write</Label>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Blocked write paths (comma-separated)</p>
+                <Input
+                  value={(settings.sandbox?.filesystem?.denyWrite || []).join(', ')}
+                  onChange={(e) => updateDeepNestedSetting('sandbox', 'filesystem', 'denyWrite', csvToArray(e.target.value), false)}
+                  placeholder="~/.ssh, ~/.gnupg"
+                  className="font-mono text-sm"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Deny Read</Label>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Blocked read paths (comma-separated)</p>
+                <Input
+                  value={(settings.sandbox?.filesystem?.denyRead || []).join(', ')}
+                  onChange={(e) => updateDeepNestedSetting('sandbox', 'filesystem', 'denyRead', csvToArray(e.target.value), false)}
+                  placeholder="~/.ssh, ~/.gnupg, ~/.aws"
+                  className="font-mono text-sm"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Allow Read (within denied)</Label>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Re-allow specific paths within denyRead (comma-separated)</p>
+                <Input
+                  value={(settings.sandbox?.filesystem?.allowRead || []).join(', ')}
+                  onChange={(e) => updateDeepNestedSetting('sandbox', 'filesystem', 'allowRead', csvToArray(e.target.value), false)}
+                  placeholder="~/.ssh/known_hosts"
+                  className="font-mono text-sm"
+                />
+              </div>
 
               {/* Network */}
               <Label className="text-base font-medium pt-2">Network Rules</Label>
@@ -815,9 +964,16 @@ export default function ClaudeSettingsEditor({
 
               <ToggleRow
                 label="Enable Weaker Nested Sandbox"
-                description="Use a less restrictive sandbox when already inside a sandbox"
+                description="Use less restrictive sandbox for Docker/WSL2 (Linux)"
                 checked={settings.sandbox?.enableWeakerNestedSandbox ?? false}
                 onCheckedChange={(checked) => updateNestedSetting('sandbox', 'enableWeakerNestedSandbox', checked)}
+              />
+
+              <ToggleRow
+                label="Enable Weaker Network Isolation"
+                description="Allow TLS trust service access in sandbox (macOS)"
+                checked={settings.sandbox?.enableWeakerNetworkIsolation ?? false}
+                onCheckedChange={(checked) => updateNestedSetting('sandbox', 'enableWeakerNetworkIsolation', checked)}
               />
             </div>
           </TabsContent>
@@ -876,8 +1032,8 @@ export default function ClaudeSettingsEditor({
                     }
                   }}
                   placeholder={`{
-  "preToolExecution": "~/.claude/hooks/pre.sh",
-  "postToolExecution": "~/.claude/hooks/post.sh"
+  "PreToolUse": [{ "matcher": "Bash", "hooks": [{ "type": "command", "command": "~/.claude/hooks/pre.sh" }] }],
+  "PostToolUse": [{ "matcher": "Bash", "hooks": [{ "type": "command", "command": "~/.claude/hooks/post.sh" }] }]
 }`}
                   className="font-mono text-sm min-h-[120px]"
                 />

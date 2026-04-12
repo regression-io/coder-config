@@ -238,14 +238,116 @@ Manage Claude Code Router (CCR) configuration through coder-config CLI and Web U
 
 ---
 
+## CC-10: Full Settings.json Coverage
+
+**Status:** `PLANNED`
+
+Complete coverage of all 60+ Claude Code settings.json fields in the Web UI settings editor. Current editor covers ~20 fields; CC now has model overrides, auto mode classifier, managed settings, and many more.
+
+| # | Item | Status |
+|---|------|--------|
+| 1 | Model overrides editor: `modelOverrides` mapping of Anthropic model IDs to provider-specific IDs | `PLANNED` |
+| 2 | Auto mode classifier config: `autoMode.environment`, `autoMode.allow`, `autoMode.soft_deny` arrays | `PLANNED` |
+| 3 | Managed settings viewer: read-only display of managed/MDM settings from all scopes (server, file, drop-in) | `PLANNED` |
+| 4 | Company announcements editor: `companyAnnouncements` array for team/enterprise startup messages | `PLANNED` |
+| 5 | API auth helpers: `apiKeyHelper`, `awsAuthRefresh`, `awsCredentialExport` script path editors | `PLANNED` |
+| 6 | File suggestion config: `fileSuggestion` custom `@` autocomplete script | `PLANNED` |
+| 7 | Spinner customization: `spinnerTipsOverride`, `spinnerVerbs` editors | `PLANNED` |
+| 8 | Status line config: `statusLine` with `refreshInterval` and command editor | `PLANNED` |
+
+**Dependencies:** None
+
+**Exit criteria:**
+- [ ] All 60+ settings.json fields editable or viewable in Web UI
+- [ ] Settings editor validates field types against official JSON Schema
+- [ ] Managed-only fields shown as read-only with explanation
+- [ ] Auto mode classifier config generates valid `autoMode` block
+
+---
+
+## CC-11: Hook Builder
+
+**Status:** `PLANNED`
+
+Visual hook builder supporting all 30 Claude Code hook events and 4 handler types (command, http, prompt, agent). Replace the current raw JSON textarea with a structured editor.
+
+| # | Item | Status |
+|---|------|--------|
+| 1 | Event picker: all 30 hook events with matcher configuration and descriptions | `PLANNED` |
+| 2 | Handler type editors: command (with async/shell/timeout), HTTP (URL/headers), prompt (LLM eval), agent (subagent tools) | `PLANNED` |
+| 3 | Conditional hooks: `if` field editor using permission rule syntax | `PLANNED` |
+| 4 | Hook testing: dry-run a hook with sample payload and show output | `PLANNED` |
+| 5 | Pre-built hook library: common hooks (workstream inject, session persist, activity track) as one-click installs | `PLANNED` |
+
+**Dependencies:** None
+
+**Exit criteria:**
+- [ ] All 30 hook events configurable via visual builder
+- [ ] All 4 handler types (command, http, prompt, agent) have dedicated editors
+- [ ] Conditional `if` field generates valid permission rule syntax
+- [ ] Generated hooks JSON validates against CC's expected format
+
+---
+
+## CC-12: Subagent & Agent Management
+
+**Status:** `PLANNED`
+
+Manage custom subagent definitions (`.claude/agents/*.md`) through CLI and Web UI. CC now supports project-scoped and user-scoped agents with YAML frontmatter configuration.
+
+| # | Item | Status |
+|---|------|--------|
+| 1 | Agent CRUD: create/edit/delete agent markdown files with YAML frontmatter | `PLANNED` |
+| 2 | Frontmatter editor: visual fields for name, description, tools, disallowedTools, model, permissionMode, maxTurns, skills, mcpServers, hooks, memory, isolation | `PLANNED` |
+| 3 | Scope management: project (`.claude/agents/`) vs user (`~/.claude/agents/`) agent placement | `PLANNED` |
+| 4 | Agent teams config: team definitions, task dependencies, teammate display modes | `PLANNED` |
+| 5 | CLI commands: `coder-config agents list`, `agents create`, `agents edit` | `PLANNED` |
+
+**Dependencies:** None
+
+**Exit criteria:**
+- [ ] Agent files created with valid YAML frontmatter and markdown body
+- [ ] All frontmatter fields (tools, model, permissionMode, etc.) editable via UI
+- [ ] Agent teams config generates valid team JSON
+- [ ] `coder-config agents list` shows all project and user agents
+
+---
+
+## CC-13: Plugin Ecosystem Management
+
+**Status:** `PLANNED`
+
+Full plugin lifecycle management including marketplace discovery, trust configuration, and cross-tool plugin portability.
+
+| # | Item | Status |
+|---|------|--------|
+| 1 | Marketplace management: `extraKnownMarketplaces` add/remove, trust warnings | `PLANNED` |
+| 2 | Plugin trust config: `enabledPlugins`, blocked plugins, custom trust messages | `PLANNED` |
+| 3 | Plugin MCP servers: handle `${CLAUDE_PLUGIN_ROOT}` and `${CLAUDE_PLUGIN_DATA}` variables | `PLANNED` |
+| 4 | Plugin hooks: manage force-enabled plugin hooks with `allowManagedHooksOnly` | `PLANNED` |
+
+**Dependencies:** CC-5 (cross-tool skill management)
+
+**Exit criteria:**
+- [ ] Marketplace sources configurable with validation
+- [ ] Plugin trust/block lists manageable via UI
+- [ ] Plugin MCP server variables resolve correctly
+- [ ] Plugin hooks display in hook builder with managed status
+
+---
+
 ## Dependency Graph
 
 ```
-CC-1 ← CC-4 (shared frontmatter format)
-CC-1 ← CC-5 (standard format for skill metadata)
-CC-1 ← CC-8 (source format to convert from)
-CC-2 ← CC-6 (multi-provider config for sweep targets)
-CC-2 ← CC-7 (per-provider model config)
-CC-3    (independent)
-CC-9 ← CC-2 (shared provider registry concepts)
+CC-1  ← CC-4  (shared frontmatter format)
+CC-1  ← CC-5  (standard format for skill metadata)
+CC-1  ← CC-8  (source format to convert from)
+CC-2  ← CC-6  (multi-provider config for sweep targets)
+CC-2  ← CC-7  (per-provider model config)
+CC-3           (independent)
+CC-5  ← CC-13 (plugin ecosystem builds on skill management)
+CC-9  ← CC-2  (shared provider registry concepts)
+CC-10          (independent)
+CC-11          (independent)
+CC-12          (independent)
 ```

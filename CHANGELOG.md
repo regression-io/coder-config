@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Claude Code settings alignment** - Updated settings editor to match current Claude Code schema
+  - Added Claude Sonnet 4.6 to model picker
+  - Added `auto`, `dontAsk`, `bypassPermissions` to permission mode selector
+  - Removed stale fields (`autoAcceptEdits`, `verbose`, `enableMcp`) that aren't valid CC settings
+  - Added missing settings: `showThinkingSummaries`, `voiceEnabled`, `autoMemoryEnabled`, `autoMemoryDirectory`, `outputStyle`, `defaultShell`, `autoUpdatesChannel`, `claudeMdExcludes`, `disableSkillShellExecution`, `prefersReducedMotion`
+  - Added worktree settings: `symlinkDirectories`, `sparsePaths`
+  - Fixed hooks placeholder to use current event names (`PreToolUse`/`PostToolUse`)
+  - Added sandbox filesystem rules: `allowWrite`, `denyWrite`, `denyRead`, `allowRead`
+  - Added `failIfUnavailable` and `enableWeakerNetworkIsolation` sandbox toggles
+  - Fixed `cleanupPeriodDays` to enforce min value of 1
+- **Plugin scope terminology** - Updated to match CC's current naming (`local`/`user` instead of `project`/`global`)
+- **Tool paths** - Added `projectSkills`, `projectAgents`, `settingsSchema`, `mcpScopes` to Claude Code constants
+
 ## [0.51.0] - 2026-04-12
 
 ### Added

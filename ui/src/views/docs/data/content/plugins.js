@@ -46,15 +46,14 @@ The recommended way to install plugins:
 3. Select **Install Plugins**
 4. Browse available plugins
 5. Toggle plugins on/off
-6. Select scope (Project/Global/Local)
+6. Select scope (Local/User)
 
 ### Scope Options
 
 | Scope | Location | Description |
 |-------|----------|-------------|
-| Project | \`.claude/plugins.json\` | Only for this project |
-| Global | \`~/.claude/plugins.json\` | All projects |
-| Local | Project-specific | Scoped to workspace |
+| Local | Per-project in \`~/.claude.json\` | Default, for this project only |
+| User | Global in \`~/.claude.json\` | Available to all projects |
 
 ### From Plugin Directory
 
