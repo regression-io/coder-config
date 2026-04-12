@@ -22,6 +22,7 @@ const env = require('./env');
 const configs = require('./configs');
 const mcpDiscovery = require('./mcp-discovery');
 const statuslines = require('./statuslines');
+const router = require('./router');
 
 module.exports = {
   projects,
@@ -44,4 +45,5 @@ module.exports = {
   configs,
   mcpDiscovery,
   statuslines,
+  router,
 };

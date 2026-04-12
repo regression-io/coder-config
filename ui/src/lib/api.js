@@ -922,6 +922,59 @@ export const api = {
     });
   },
 
+  // Router (Claude Code Router)
+  async getRouterStatus() {
+    return request('/router/status');
+  },
+
+  async getRouterConfig() {
+    return request('/router/config');
+  },
+
+  async saveRouterConfig(config) {
+    return request('/router/config', { method: 'PUT', body: config });
+  },
+
+  async getRouterProviders() {
+    return request('/router/providers');
+  },
+
+  async addRouterProvider(name, config) {
+    return request('/router/providers', { method: 'POST', body: { name, config } });
+  },
+
+  async removeRouterProvider(name) {
+    return request(`/router/providers?name=${encodeURIComponent(name)}`, { method: 'DELETE' });
+  },
+
+  async getRouterRules() {
+    return request('/router/rules');
+  },
+
+  async setRouterRule(task, providerModel) {
+    return request('/router/rules', { method: 'PUT', body: { task, providerModel } });
+  },
+
+  async getRouterPresets() {
+    return request('/router/presets');
+  },
+
+  async saveRouterPreset(name) {
+    return request('/router/presets', { method: 'POST', body: { name } });
+  },
+
+  async loadRouterPreset(name) {
+    return request('/router/preset-load', { method: 'POST', body: { name } });
+  },
+
+  async startRouter() {
+    return request('/router/start', { method: 'POST' });
+  },
+
+  async stopRouter() {
+    return request('/router/stop', { method: 'POST' });
+  },
+
 };
 
 export default api;

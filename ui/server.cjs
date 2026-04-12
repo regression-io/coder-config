@@ -940,6 +940,44 @@ class ConfigUIServer {
       case '/api/smart-sync/remember':
         if (req.method === 'POST') return this.json(res, routes.smartSync.smartSyncRememberChoice(this.manager, body.projectPath, body.workstreamId, body.choice));
         break;
+
+      // Router (Claude Code Router)
+      case '/api/router/status':
+        if (req.method === 'GET') return this.json(res, routes.router.getStatus(this.manager));
+        break;
+
+      case '/api/router/config':
+        if (req.method === 'GET') return this.json(res, routes.router.getConfig(this.manager));
+        if (req.method === 'PUT') return this.json(res, routes.router.saveConfig(this.manager, body));
+        break;
+
+      case '/api/router/providers':
+        if (req.method === 'GET') return this.json(res, routes.router.getProviders(this.manager));
+        if (req.method === 'POST') return this.json(res, routes.router.addProvider(this.manager, body));
+        if (req.method === 'DELETE') return this.json(res, routes.router.removeProvider(this.manager, query.name));
+        break;
+
+      case '/api/router/rules':
+        if (req.method === 'GET') return this.json(res, routes.router.getRules(this.manager));
+        if (req.method === 'PUT') return this.json(res, routes.router.setRule(this.manager, body));
+        break;
+
+      case '/api/router/presets':
+        if (req.method === 'GET') return this.json(res, routes.router.getPresets(this.manager));
+        if (req.method === 'POST') return this.json(res, routes.router.savePreset(this.manager, body));
+        break;
+
+      case '/api/router/preset-load':
+        if (req.method === 'POST') return this.json(res, routes.router.loadPreset(this.manager, body));
+        break;
+
+      case '/api/router/start':
+        if (req.method === 'POST') return this.json(res, routes.router.startProxy());
+        break;
+
+      case '/api/router/stop':
+        if (req.method === 'POST') return this.json(res, routes.router.stopProxy());
+        break;
     }
 
     // Dynamic routes
