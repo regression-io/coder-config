@@ -211,7 +211,7 @@ Convert AI coding tool configurations between 11+ target formats. Single-source-
 
 ## CC-9: Claude Code Router Integration
 
-**Status:** `PLANNED`
+**Status:** `COMPLETE`
 
 Manage Claude Code Router (CCR) configuration through coder-config CLI and Web UI. CCR is a local proxy that routes Claude Code API calls to different LLM providers based on task type (default, background, reasoning, long-context, web-search, image). Config at `~/.claude-code-router/config.json`.
 
@@ -219,12 +219,12 @@ Manage Claude Code Router (CCR) configuration through coder-config CLI and Web U
 
 | # | Item | Status |
 |---|------|--------|
-| 1 | `lib/router.js` module: read/write `~/.claude-code-router/config.json` with provider CRUD and router rule management | `PLANNED` |
-| 2 | CLI commands: `coder-config router list`, `router add-provider`, `router remove-provider`, `router set-rule <task> <provider,model>` | `PLANNED` |
-| 3 | Web UI: Router view with provider management, task-to-model mapping editor, and transformer configuration | `PLANNED` |
-| 4 | Env var bridging: resolve `$VAR` interpolation in CCR config using coder-config's existing env system | `PLANNED` |
-| 5 | Preset support: import/export named router configurations via `coder-config router preset` | `PLANNED` |
-| 6 | Auto-detect CCR installation and show router status in dashboard | `PLANNED` |
+| 1 | `lib/router.js` module: read/write `~/.claude-code-router/config.json` with provider CRUD and router rule management | `COMPLETE` |
+| 2 | CLI commands: `coder-config router list`, `router add-provider`, `router remove-provider`, `router set-rule <task> <provider,model>` | `COMPLETE` |
+| 3 | Web UI: Router view with provider management, task-to-model mapping editor, and transformer configuration | `COMPLETE` |
+| 4 | Env var bridging: resolve `$VAR` interpolation in CCR config using coder-config's existing env system | `COMPLETE` |
+| 5 | Preset support: import/export named router configurations via `coder-config router preset` | `COMPLETE` |
+| 6 | Auto-detect CCR installation and show router status in dashboard | `COMPLETE` |
 
 **Dependencies:** CC-2 (shared provider registry concepts)
 

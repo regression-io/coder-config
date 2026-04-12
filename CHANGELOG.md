@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Claude Code Router module** - `lib/router.js` for CCR config management (providers, routing rules, presets, activation env, status detection)
+- **Claude Code Router integration (CC-9)** — Full CCR proxy configuration and lifecycle management
+  - `lib/router.js` — config read/write, provider CRUD, routing rules, presets, status detection, activation env
+  - CLI: `coder-config router status/list/add-provider/remove-provider/set-rule/preset/start/stop/activate`
+  - Web UI: Router view in Developer section with status bar, 2x3 routing rules grid, provider management, presets
+  - API: 13 endpoints under `/api/router/*` (status, config, providers, rules, presets, start/stop)
+  - Tests: `test/router.test.js` with 36 tests covering all functions
 - **AGENTS.override.md support** - Create local Codex instruction overrides with auto-gitignore
   - "New AGENTS.override.md" menu item in Project Explorer
   - Auto-adds `AGENTS.override.md` to `.gitignore` on creation
