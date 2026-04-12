@@ -93,6 +93,7 @@ function scanFolderForExplorer(dir, manager, label = null) {
       name: 'AGENTS.md (root)',
       path: rootAgentsMd,
       type: 'agentsmd',
+      tool: 'codex',
       size: fs.statSync(rootAgentsMd).size,
       isRoot: true
     });
@@ -105,6 +106,8 @@ function scanFolderForExplorer(dir, manager, label = null) {
       name: 'AGENTS.override.md (root)',
       path: rootAgentsOverrideMd,
       type: 'agentsmd',
+      tool: 'codex',
+      isOverride: true,
       size: fs.statSync(rootAgentsOverrideMd).size,
       isRoot: true
     });
@@ -847,9 +850,9 @@ function getFileHashes(manager, projectDir, config = {}) {
  */
 function getInstructionHierarchy(dir) {
   const home = os.homedir();
-  const hierarchy = { claude: [], gemini: [], codex: [] };
+  const hierarchy = { dir: path.resolve(dir), claude: [], gemini: [], codex: [] };
 
-  // Walk from dir up to filesystem root
+  // Walk from dir up to HOME (don't traverse above home directory)
   let current = path.resolve(dir);
   const seen = new Set();
 
@@ -889,17 +892,27 @@ function getInstructionHierarchy(dir) {
       }
     }
 
-    // Also check ~/.codex/AGENTS.md for global Codex instructions
-    if (current === home) {
-      const globalAgents = path.join(home, '.codex', 'AGENTS.md');
-      if (fs.existsSync(globalAgents)) {
-        hierarchy.codex.push({ path: globalAgents, dir: '~/.codex', name: 'AGENTS.md', size: fs.statSync(globalAgents).size });
-      }
-    }
-
+    // Stop at HOME directory (don't walk above it)
+    if (current === home) break;
     const parent = path.dirname(current);
     if (parent === current) break;
     current = parent;
+  }
+
+  // Always check home directory last (global scope)
+  if (!seen.has(home)) {
+    const globalClaudeMd = path.join(home, '.claude', 'CLAUDE.md');
+    if (fs.existsSync(globalClaudeMd)) {
+      hierarchy.claude.push({ path: globalClaudeMd, dir: '~/.claude', size: fs.statSync(globalClaudeMd).size });
+    }
+    const globalGeminiMd = path.join(home, '.gemini', 'GEMINI.md');
+    if (fs.existsSync(globalGeminiMd)) {
+      hierarchy.gemini.push({ path: globalGeminiMd, dir: '~/.gemini', size: fs.statSync(globalGeminiMd).size });
+    }
+    const globalAgentsMd = path.join(home, '.codex', 'AGENTS.md');
+    if (fs.existsSync(globalAgentsMd)) {
+      hierarchy.codex.push({ path: globalAgentsMd, dir: '~/.codex', name: 'AGENTS.md', size: fs.statSync(globalAgentsMd).size });
+    }
   }
 
   return hierarchy;
