@@ -28,22 +28,22 @@ import PermissionsEditor from "@/components/PermissionsEditor";
 
 const MODEL_OPTIONS = [
   {
-    id: 'claude-opus-4-6',
-    name: 'Claude Opus 4.6',
-    description: 'Most capable, best for complex tasks',
+    id: 'claude-opus-4-7',
+    name: 'Claude Opus 4.7',
+    description: 'Most capable; 1M context, adaptive thinking, Jan 2026 knowledge',
     tier: 'opus',
     recommended: true
+  },
+  {
+    id: 'claude-opus-4-6',
+    name: 'Claude Opus 4.6',
+    description: 'Previous Opus; supports Fast mode',
+    tier: 'opus'
   },
   {
     id: 'claude-sonnet-4-6',
     name: 'Claude Sonnet 4.6',
     description: 'Fast output, great balance of speed and capability',
-    tier: 'sonnet'
-  },
-  {
-    id: 'claude-sonnet-4-5-20250929',
-    name: 'Claude Sonnet 4.5',
-    description: 'Previous generation, balanced',
     tier: 'sonnet'
   },
   {
@@ -54,10 +54,19 @@ const MODEL_OPTIONS = [
   }
 ];
 
+// Deprecated model IDs — warn users to migrate
+const DEPRECATED_MODELS = {
+  'claude-3-haiku-20240307': { replacement: 'claude-haiku-4-5-20251001', retires: '2026-04-19' },
+  'claude-sonnet-4-20250514': { replacement: 'claude-sonnet-4-6', retires: '2026-06-15' },
+  'claude-opus-4-20250514': { replacement: 'claude-opus-4-7', retires: '2026-06-15' },
+  'claude-sonnet-4-5-20250929': { replacement: 'claude-sonnet-4-6', retires: null },
+};
+
 const EFFORT_LEVELS = [
   { value: 'low', label: 'Low', description: 'Faster, less thorough' },
   { value: 'medium', label: 'Medium', description: 'Balanced' },
-  { value: 'high', label: 'High', description: 'Most thorough reasoning' },
+  { value: 'high', label: 'High', description: 'Always thinks (adaptive default)' },
+  { value: 'xhigh', label: 'Extra High', description: 'Deep thinking — Opus 4.7 only' },
 ];
 
 const PERMISSION_MODES = [
@@ -91,7 +100,7 @@ const ENV_VARIABLES = [
   {
     key: 'MAX_THINKING_TOKENS',
     label: 'Max Thinking Tokens',
-    description: 'Extended thinking budget (0 to disable)',
+    description: 'Legacy extended-thinking budget (0 to disable). Ignored by Opus 4.7 — use Effort Level instead.',
     placeholder: '5000'
   },
   {
@@ -141,6 +150,16 @@ const KNOWN_FIELDS = [
   'autoMemoryEnabled', 'autoMemoryDirectory', 'defaultShell',
   'worktree', 'autoUpdatesChannel', 'prefersReducedMotion',
   'claudeMdExcludes', 'disableSkillShellExecution',
+  // Added for Claude Code + Opus 4.7 era
+  'allowedMcpServers', 'deniedMcpServers',
+  'disabledMcpjsonServers', 'enabledMcpjsonServers',
+  'allowManagedMcpServersOnly', 'allowManagedHooksOnly',
+  'allowManagedPermissionRulesOnly',
+  'allowedHttpHookUrls', 'httpHookAllowedEnvVars',
+  'disableAutoMode', 'useAutoModeDuringPlan',
+  'forceLoginMethod', 'forceLoginOrgUUID', 'forceRemoteSettingsRefresh',
+  'strictKnownMarketplaces', 'blockedMarketplaces',
+  'spinnerVerbs', 'spinnerTipsOverride', 'statusLine',
 ];
 
 function ToggleRow({ label, description, checked, onCheckedChange }) {
@@ -489,13 +508,25 @@ export default function ClaudeSettingsEditor({
                 </div>
               </div>
 
+              {/* Deprecated model warning */}
+              {settings.model && DEPRECATED_MODELS[settings.model] && (
+                <Alert className="border-amber-300 bg-amber-50 dark:bg-amber-950/30">
+                  <AlertTriangle className="w-4 h-4" />
+                  <AlertDescription>
+                    <strong>{settings.model}</strong> is deprecated
+                    {DEPRECATED_MODELS[settings.model].retires && ` (retires ${DEPRECATED_MODELS[settings.model].retires})`}.
+                    Migrate to <code>{DEPRECATED_MODELS[settings.model].replacement}</code>.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {/* Effort Level */}
               <div>
                 <Label className="text-base font-medium">Effort Level</Label>
                 <p className="text-sm text-gray-500 dark:text-slate-400 mb-3">
-                  Opus reasoning effort (affects speed vs thoroughness)
+                  Reasoning effort (adaptive thinking). Opus 4.7 supports <code>xhigh</code>; <code>budget_tokens</code>/manual thinking is deprecated.
                 </p>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-4 gap-3">
                   {EFFORT_LEVELS.map(level => (
                     <button
                       key={level.value}
@@ -545,7 +576,7 @@ export default function ClaudeSettingsEditor({
                 <Input
                   value={settings.model || ''}
                   onChange={(e) => updateSetting('model', e.target.value)}
-                  placeholder="claude-opus-4-6"
+                  placeholder="claude-opus-4-7"
                   className="font-mono"
                 />
               </div>
@@ -1019,7 +1050,10 @@ export default function ClaudeSettingsEditor({
               <div>
                 <Label className="text-base font-medium">Hooks</Label>
                 <p className="text-sm text-gray-500 dark:text-slate-400 mb-3">
-                  Scripts to run before/after tool executions (JSON format)
+                  Scripts to run on events (JSON). Events: PreToolUse, PostToolUse, UserPromptSubmit,
+                  SessionStart, SessionEnd, Stop, SubagentStart, SubagentStop, PermissionRequest,
+                  FileChanged, CwdChanged, TaskCreated, TaskCompleted, Elicitation, ElicitationResult,
+                  WorktreeCreate, WorktreeRemove. Types: command | http | prompt | agent.
                 </p>
                 <Textarea
                   value={settings.hooks ? JSON.stringify(settings.hooks, null, 2) : ''}
@@ -1037,6 +1071,148 @@ export default function ClaudeSettingsEditor({
 }`}
                   className="font-mono text-sm min-h-[120px]"
                 />
+              </div>
+
+              {/* MCP allow/deny */}
+              <div>
+                <Label className="text-base font-medium">MCP Server Allow/Deny</Label>
+                <p className="text-sm text-gray-500 dark:text-slate-400 mb-3">
+                  Lock down which MCP servers Claude Code can use (deny wins over allow)
+                </p>
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label className="text-sm">Allowed MCP Servers</Label>
+                    <Input
+                      value={(settings.allowedMcpServers || []).join(', ')}
+                      onChange={(e) => updateSetting('allowedMcpServers', csvToArray(e.target.value))}
+                      placeholder="github, filesystem"
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Denied MCP Servers</Label>
+                    <Input
+                      value={(settings.deniedMcpServers || []).join(', ')}
+                      onChange={(e) => updateSetting('deniedMcpServers', csvToArray(e.target.value))}
+                      placeholder="untrusted-server"
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Disabled .mcp.json Servers</Label>
+                    <Input
+                      value={(settings.disabledMcpjsonServers || []).join(', ')}
+                      onChange={(e) => updateSetting('disabledMcpjsonServers', csvToArray(e.target.value))}
+                      placeholder="server-name"
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Enabled .mcp.json Servers</Label>
+                    <Input
+                      value={(settings.enabledMcpjsonServers || []).join(', ')}
+                      onChange={(e) => updateSetting('enabledMcpjsonServers', csvToArray(e.target.value))}
+                      placeholder="server-name"
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* HTTP Hook Security */}
+              <div>
+                <Label className="text-base font-medium">HTTP Hook Security</Label>
+                <p className="text-sm text-gray-500 dark:text-slate-400 mb-3">
+                  Whitelist targets and env vars exposed to HTTP hooks
+                </p>
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label className="text-sm">Allowed HTTP Hook URLs</Label>
+                    <Input
+                      value={(settings.allowedHttpHookUrls || []).join(', ')}
+                      onChange={(e) => updateSetting('allowedHttpHookUrls', csvToArray(e.target.value))}
+                      placeholder="https://hooks.internal, https://ci.example.com"
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">HTTP Hook Allowed Env Vars</Label>
+                    <Input
+                      value={(settings.httpHookAllowedEnvVars || []).join(', ')}
+                      onChange={(e) => updateSetting('httpHookAllowedEnvVars', csvToArray(e.target.value))}
+                      placeholder="CI, GITHUB_TOKEN"
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Managed-mode lockdowns */}
+              <div>
+                <Label className="text-base font-medium">Managed-Mode Lockdowns</Label>
+                <p className="text-sm text-gray-500 dark:text-slate-400 mb-3">
+                  For enterprise-managed settings. Forces only managed config to load.
+                </p>
+                <div className="space-y-2">
+                  <ToggleRow
+                    label="Allow Managed Hooks Only"
+                    description="Only hooks from managed settings + SDK are loaded"
+                    checked={settings.allowManagedHooksOnly ?? false}
+                    onCheckedChange={(checked) => updateSetting('allowManagedHooksOnly', checked || undefined, true)}
+                  />
+                  <ToggleRow
+                    label="Allow Managed MCP Servers Only"
+                    description="Only MCP servers from managed settings are loaded"
+                    checked={settings.allowManagedMcpServersOnly ?? false}
+                    onCheckedChange={(checked) => updateSetting('allowManagedMcpServersOnly', checked || undefined, true)}
+                  />
+                  <ToggleRow
+                    label="Allow Managed Permission Rules Only"
+                    description="Only permission rules from managed settings apply"
+                    checked={settings.allowManagedPermissionRulesOnly ?? false}
+                    onCheckedChange={(checked) => updateSetting('allowManagedPermissionRulesOnly', checked || undefined, true)}
+                  />
+                  <ToggleRow
+                    label="Disable Auto Mode"
+                    description="Prevent Auto permission mode from activating"
+                    checked={settings.disableAutoMode === 'disable'}
+                    onCheckedChange={(checked) => updateSetting('disableAutoMode', checked ? 'disable' : undefined, true)}
+                  />
+                  <ToggleRow
+                    label="Force Remote Settings Refresh"
+                    description="Fail-closed on startup if remote managed settings cannot be fetched"
+                    checked={settings.forceRemoteSettingsRefresh ?? false}
+                    onCheckedChange={(checked) => updateSetting('forceRemoteSettingsRefresh', checked || undefined, true)}
+                  />
+                  <div className="space-y-2">
+                    <Label className="text-sm">Force Login Method</Label>
+                    <Select
+                      value={settings.forceLoginMethod || 'none'}
+                      onValueChange={(v) => updateSetting('forceLoginMethod', v === 'none' ? undefined : v, true)}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">(not forced)</SelectItem>
+                        <SelectItem value="claudeai">claude.ai only</SelectItem>
+                        <SelectItem value="console">Console only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Force Login Org UUID(s)</Label>
+                    <Input
+                      value={(Array.isArray(settings.forceLoginOrgUUID)
+                        ? settings.forceLoginOrgUUID
+                        : settings.forceLoginOrgUUID ? [settings.forceLoginOrgUUID] : []).join(', ')}
+                      onChange={(e) => {
+                        const arr = csvToArray(e.target.value);
+                        updateSetting('forceLoginOrgUUID', !arr ? undefined : (arr.length === 1 ? arr[0] : arr));
+                      }}
+                      placeholder="uuid-1, uuid-2"
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Custom settings */}

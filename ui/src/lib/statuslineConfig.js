@@ -1,5 +1,5 @@
 export const BLOCK_DEFS = [
-  { id: 'model',         label: 'Model Name',          preview: 'claude-opus-4-6' },
+  { id: 'model',         label: 'Model Name',          preview: 'claude-opus-4-7' },
   { id: 'context-bar',   label: 'Context Bar',          preview: '●●●●○○○○○○  37%', hasStyle: true },
   { id: 'ctx-pct',       label: 'Context %',            preview: '37% ctx' },
   { id: 'ctx-tokens',    label: 'Token Counts',         preview: '74.4K/200.0K' },
@@ -31,7 +31,7 @@ export function configToPreview(config) {
   const parts = [];
   for (const block of blocks.filter(b => b.enabled)) {
     switch (block.id) {
-      case 'model':         parts.push('claude-opus-4-6'); break;
+      case 'model':         parts.push('claude-opus-4-7'); break;
       case 'context-bar': {
         const f = block.style === 'blocks' ? '█' : '●';
         const e = block.style === 'blocks' ? '░' : '○';
