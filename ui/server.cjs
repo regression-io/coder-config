@@ -303,6 +303,13 @@ class ConfigUIServer {
     } catch (e) {
       // Ignore migration errors
     }
+    try {
+      // Refresh installed statusline preset scripts when bundled templates
+      // change between versions (skipped if user has customized the script).
+      routes.statuslines.autoMigratePresets();
+    } catch (e) {
+      // Ignore migration errors
+    }
   }
 
   async handleRequest(req, res) {

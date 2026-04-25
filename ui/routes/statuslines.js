@@ -62,7 +62,115 @@ echo "$OUT"
 `,
 
   full: `#!/bin/bash
-# Full: model, colored context bar, token counts, lines, branch, duration, cost, workstream
+# Full: model, context bar, 5H/7D rate-limit bars, lines, branch, cost, workstream
+input=$(cat)
+MODEL=$(echo "$input" | jq -r '.model.display_name // "?"')
+MODEL_SHORT=$(echo "$MODEL" | cut -c1-12)
+[ "\${#MODEL}" -gt 12 ] && MODEL_SHORT="\${MODEL_SHORT}…"
+PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
+CTX_USED=$(echo "$input" | jq -r '((.context_window.current_usage.input_tokens // 0) + (.context_window.current_usage.cache_creation_input_tokens // 0) + (.context_window.current_usage.cache_read_input_tokens // 0))')
+CTX_MAX=$(echo "$input" | jq -r '.context_window.context_window_size // 200000')
+LINES_ADD=$(echo "$input" | jq -r '.cost.total_lines_added // 0')
+LINES_REM=$(echo "$input" | jq -r '.cost.total_lines_removed // 0')
+COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
+RL_5H_PCT=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty' | cut -d. -f1)
+RL_5H_RESET=$(echo "$input" | jq -r '.rate_limits.five_hour.resets_at // empty')
+RL_7D_PCT=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty' | cut -d. -f1)
+
+GREEN='\\033[32m'; YELLOW='\\033[33m'; RED='\\033[31m'
+CYAN='\\033[36m'; DIM='\\033[2m'; RESET='\\033[0m'
+[ "$PCT" -ge 90 ] && BAR_COLOR="$RED" || { [ "$PCT" -ge 70 ] && BAR_COLOR="$YELLOW" || BAR_COLOR="$GREEN"; }
+
+FILLED=$((PCT / 10)); EMPTY=$((10 - FILLED))
+BAR=""; [ "$FILLED" -gt 0 ] && BAR="$BAR$(printf '●%.0s' $(seq 1 $FILLED))"
+        [ "$EMPTY" -gt 0 ]  && BAR="$BAR$(printf '○%.0s' $(seq 1 $EMPTY))"
+
+make_block_bar() {
+    local pct=\$1 color=\$2 width=8
+    [ -z "\$pct" ] && pct=0
+    local filled=\$((pct * width / 100))
+    [ "\$filled" -gt "\$width" ] && filled=\$width
+    [ "\$filled" -eq 0 ] && [ "\$pct" -gt 0 ] && filled=1
+    local empty=\$((width - filled))
+    local out=""
+    [ "\$filled" -gt 0 ] && out="\${color}\$(printf '▰%.0s' \$(seq 1 \$filled))\${RESET}"
+    [ "\$empty"  -gt 0 ] && out="\$out\${DIM}\$(printf '▰%.0s' \$(seq 1 \$empty))\${RESET}"
+    printf '%s' "\$out"
+}
+time_until_hm() {
+    local resets=\$1
+    local now; now=\$(date +%s)
+    local diff=\$((resets - now))
+    [ "\$diff" -lt 0 ] && diff=0
+    local h=\$((diff / 3600))
+    local m=\$(((diff % 3600) / 60))
+    printf '%dH %dM' "\$h" "\$m"
+}
+rl_color() {
+    local pct=\$1
+    [ -z "\$pct" ] && { printf '%s' "$GREEN"; return; }
+    if [ "\$pct" -ge 90 ]; then printf '%s' "$RED"
+    elif [ "\$pct" -ge 70 ]; then printf '%s' "$YELLOW"
+    else printf '%s' "$GREEN"; fi
+}
+
+fmt_tokens() {
+    local n=\$1
+    if [ "\$n" -ge 1000000 ]; then
+        awk "BEGIN {v=\$n/1000000; if (v == int(v)) printf \\"%dM\\", v; else printf \\"%.1fM\\", v}"
+    else
+        local k=\$(( (n + 500) / 1000 ))
+        if [ "\$k" -ge 1000 ]; then
+            awk "BEGIN {v=\$k/1000; if (v == int(v)) printf \\"%dM\\", v; else printf \\"%.1fM\\", v}"
+        else
+            printf '%dK' "\$k"
+        fi
+    fi
+}
+CTX_K=$(fmt_tokens $CTX_USED)
+MAX_K=$(fmt_tokens $CTX_MAX)
+COST_FMT=$(printf '$%.3f' $COST)
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')
+
+WS_TAG=""
+if [ -n "$CODER_WORKSTREAM" ]; then
+  case "$CODER_WORKSTREAM_COLOR" in
+    red)    WS_COLOR='\\033[38;5;203m' ;;
+    orange) WS_COLOR='\\033[38;5;208m' ;;
+    yellow) WS_COLOR='\\033[38;5;221m' ;;
+    green)  WS_COLOR='\\033[38;5;120m' ;;
+    cyan)   WS_COLOR='\\033[38;5;87m'  ;;
+    blue)   WS_COLOR='\\033[38;5;111m' ;;
+    purple) WS_COLOR='\\033[38;5;177m' ;;
+    pink)   WS_COLOR='\\033[38;5;213m' ;;
+    gray)   WS_COLOR='\\033[38;5;245m' ;;
+    *)      WS_COLOR="$CYAN" ;;
+  esac
+  WS_TAG=" | \${WS_COLOR}◆ \${CODER_WORKSTREAM}\${RESET}"
+fi
+
+OUT="\${CYAN}\${MODEL_SHORT}\${RESET} \${BAR_COLOR}\${BAR}\${RESET} \${DIM}\${CTX_K}/\${MAX_K}\${RESET} (\${PCT}%)"
+
+if [ -n "$RL_5H_PCT" ]; then
+    C5=$(rl_color "$RL_5H_PCT")
+    B5=$(make_block_bar "$RL_5H_PCT" "$C5")
+    OUT="$OUT | \${DIM}5H:\${RESET} \${B5} \${RL_5H_PCT}%"
+    [ -n "$RL_5H_RESET" ] && OUT="$OUT \${DIM}$(time_until_hm "$RL_5H_RESET")\${RESET}"
+fi
+if [ -n "$RL_7D_PCT" ]; then
+    C7=$(rl_color "$RL_7D_PCT")
+    B7=$(make_block_bar "$RL_7D_PCT" "$C7")
+    OUT="$OUT | \${DIM}7D:\${RESET} \${B7} \${RL_7D_PCT}%"
+fi
+
+[ "$LINES_ADD" != "0" ] || [ "$LINES_REM" != "0" ] && OUT="$OUT | \${GREEN}+\${LINES_ADD}\${RESET} \${RED}-\${LINES_REM}\${RESET}"
+[ -n "$BRANCH" ] && OUT="$OUT | \${CYAN}\${BRANCH}\${RESET}"
+OUT="$OUT | \${YELLOW}\${COST_FMT}\${RESET}\${WS_TAG}"
+echo -e "$OUT"
+`,
+
+  classic: `#!/bin/bash
+# Classic: model, colored context bar, token counts, lines, branch, duration, cost, workstream
 input=$(cat)
 MODEL=$(echo "$input" | jq -r '.model.display_name // "?"')
 PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
@@ -88,8 +196,6 @@ HOURS=$((DUR_MS / 3600000)); MINS=$(((DUR_MS % 3600000) / 60000))
 COST_FMT=$(printf '$%.3f' $COST)
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')
 
-# Workstream tag (if active). CODER_WORKSTREAM and CODER_WORKSTREAM_COLOR
-# are set by coder-config when a workstream is activated.
 WS_TAG=""
 if [ -n "$CODER_WORKSTREAM" ]; then
   case "$CODER_WORKSTREAM_COLOR" in
@@ -188,8 +294,15 @@ const PRESETS = [
   {
     id: 'full',
     name: 'Full',
-    description: 'Everything with colors: model, context bar, token counts, lines, branch, duration, cost, workstream',
-    preview: '* opus-4-6 | ●●●●○○○○○○ 74.4K/200.0K | 37% left | +146 -13 | main | 5h 2m | $0.142 | ◆ coder-config',
+    description: 'Model, context bar, 5H/7D rate-limit bars with reset timers, lines, branch, cost, workstream',
+    preview: 'Opus 4.7 ●●●○○○○○○○ 74K/1M (37%) | 5H: ▰▰▰▰▰▰▰▰ 42% 2H 29M | 7D: ▰▰▰▰▰▰▰▰ 15% | +146 -13 | main | $0.142',
+    category: 'Git',
+  },
+  {
+    id: 'classic',
+    name: 'Classic',
+    description: 'Original full layout: model, context bar, token counts, lines, branch, duration, cost, workstream',
+    preview: '* Opus 4.7 | ●●●●○○○○○○ 74.4K/200.0K | 63% left | +146 -13 | main | 5h 2m | $0.142 | ◆ coder-config',
     category: 'Git',
   },
   {
@@ -251,9 +364,112 @@ function ensureScriptDir() {
 function writeScript(presetId, content) {
   ensureScriptDir();
   const p = scriptPath(presetId);
+  // Backup any existing script before overwriting (timestamped, never collides).
+  if (fs.existsSync(p)) {
+    const existing = fs.readFileSync(p, 'utf8');
+    if (existing !== content) {
+      const ts = new Date().toISOString().replace(/[:.]/g, '-');
+      fs.writeFileSync(`${p}.${ts}.bak`, existing, 'utf8');
+    }
+  }
   fs.writeFileSync(p, content, 'utf8');
   fs.chmodSync(p, 0o755);
+  // Track this exact content as a "known shipped version" so future
+  // auto-migrations can tell user edits apart from old templates.
+  recordShippedHash(presetId, content);
   return p;
+}
+
+// ---------------------------------------------------------------------------
+// Auto-migration: refresh installed preset scripts when the bundled template
+// changes between versions, but only if the on-disk script matches one of the
+// previously-shipped versions (i.e. the user hasn't customized it).
+// ---------------------------------------------------------------------------
+
+const SHIPPED_HASHES_FILE = path.join(STATUSLINES_DIR, '.shipped-hashes.json');
+
+// Historical content hashes for each preset, seeded so users who installed a
+// preset before the hash-tracking system was added still get auto-migrated.
+// Append (never edit) when a preset's bundled template changes.
+const LEGACY_HASHES = {
+  full: [
+    '0ac48c7d993dd0c6e49b1f537934e418a5e65b0838afc587bafde31cc45877da', // pre-2026-04 model+duration variant
+  ],
+  minimal: ['d818c74b391732f5aae948fbc9c154b6cba8e56952a1727d3dfa78602823c601'],
+  'context-bar': ['643bf0f54baa70ec72d85f8800dee24712c31eae8b6b0030e597d0c1e4ed0ae0'],
+  'git-context': ['b186ea21e4d14fb905f8682e5dfe7b3b2050a93b7801226002052aaa7bafd451'],
+  'cost-tracker': ['83364c860744a6cf7fb5f07b061ae13a1919fc7e72f35597dd383e2de3371895'],
+  multiline: ['49939b21f4691171bcfbe5c0ca252bcf9ffb772f335a14712bb9beccf67920b9'],
+};
+
+function sha256(s) {
+  return require('crypto').createHash('sha256').update(s).digest('hex');
+}
+
+function loadShippedHashes() {
+  if (!fs.existsSync(SHIPPED_HASHES_FILE)) return {};
+  try { return JSON.parse(fs.readFileSync(SHIPPED_HASHES_FILE, 'utf8')); } catch { return {}; }
+}
+
+function saveShippedHashes(data) {
+  ensureScriptDir();
+  fs.writeFileSync(SHIPPED_HASHES_FILE, JSON.stringify(data, null, 2), 'utf8');
+}
+
+function recordShippedHash(presetId, content) {
+  const data = loadShippedHashes();
+  const list = data[presetId] || [];
+  const h = sha256(content);
+  if (!list.includes(h)) {
+    list.push(h);
+    data[presetId] = list;
+    try { saveShippedHashes(data); } catch {}
+  }
+}
+
+/**
+ * Run on server startup. For each preset whose script is installed AND whose
+ * settings.json points at it, refresh the file from the latest bundled template
+ * if the on-disk hash matches a previously-shipped version. User-edited scripts
+ * (unknown hash) are left alone.
+ */
+function autoMigratePresets() {
+  try {
+    const settings = readSettings();
+    const cmd = commandPathInSettings(settings);
+    if (!cmd) return;
+    const presetId = matchPresetFromCommand(cmd);
+    if (presetId === 'disabled' || presetId === 'custom') return;
+
+    const latest = SCRIPTS[presetId];
+    if (!latest) return;
+    const p = scriptPath(presetId);
+    if (!fs.existsSync(p)) return;
+
+    const onDisk = fs.readFileSync(p, 'utf8');
+    if (onDisk === latest) {
+      // Already up-to-date — make sure its hash is recorded.
+      recordShippedHash(presetId, latest);
+      return;
+    }
+
+    const shipped = [
+      ...(loadShippedHashes()[presetId] || []),
+      ...(LEGACY_HASHES[presetId] || []),
+    ];
+    const onDiskHash = sha256(onDisk);
+    if (!shipped.includes(onDiskHash)) {
+      // User-edited — record latest as known but don't overwrite.
+      recordShippedHash(presetId, latest);
+      return;
+    }
+
+    // Safe to refresh: writeScript backs up + records new hash.
+    writeScript(presetId, latest);
+    console.log(`[statuslines] auto-migrated preset "${presetId}" to latest template`);
+  } catch (e) {
+    // Never let migration crash startup.
+  }
 }
 
 function commandPathInSettings(settings) {
@@ -357,4 +573,5 @@ module.exports = {
   getCurrentStatusline,
   getPresetScript,
   setStatusline,
+  autoMigratePresets,
 };
