@@ -45,13 +45,13 @@ function setActiveWorkstream(manager, id) {
  */
 function createWorkstream(manager, body) {
   if (!manager) return { error: 'Manager not available' };
-  const { name, projects = [], rules = '' } = body;
+  const { name, projects = [], rules = '', color = null } = body;
 
   if (!name) {
     return { error: 'Name is required' };
   }
 
-  const ws = manager.workstreamCreate(name, projects, rules);
+  const ws = manager.workstreamCreate(name, projects, rules, color);
   if (!ws) {
     return { error: 'Failed to create workstream (name may already exist)' };
   }

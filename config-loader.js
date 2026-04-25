@@ -28,7 +28,7 @@ const { init, show } = require('./lib/init');
 const { memoryList, memoryInit, memoryAdd, memorySearch } = require('./lib/memory');
 const { envList, envSet, envUnset } = require('./lib/env');
 const { getProjectsRegistryPath, loadProjectsRegistry, saveProjectsRegistry, projectList, projectAdd, projectRemove } = require('./lib/projects');
-const { getWorkstreamsPath, loadWorkstreams, saveWorkstreams, workstreamList, workstreamCreate, workstreamUpdate, workstreamDelete, workstreamUse, workstreamActive, workstreamAddProject, workstreamRemoveProject, workstreamInject, workstreamDetect, workstreamGet, getActiveWorkstream, countWorkstreamsForProject, workstreamInstallHook, workstreamInstallHookGemini, workstreamInstallHookCodex, workstreamDeactivate, workstreamCheckPath, getSettingsPath, loadSettings, saveSettings, workstreamAddTrigger, workstreamRemoveTrigger, workstreamSetAutoActivate, setGlobalAutoActivate, shouldAutoActivate, workstreamCheckFolder, workstreamInstallCdHook, workstreamUninstallCdHook, workstreamCdHookStatus, discoverSubProjects, generateRulesFromRepos, generateRulesWithClaude, generateRulesWithAI, getAvailableAITools, findAIBinary, AI_TOOLS, workstreamSetSandbox } = require('./lib/workstreams');
+const { getWorkstreamsPath, loadWorkstreams, saveWorkstreams, workstreamList, workstreamCreate, workstreamUpdate, workstreamDelete, workstreamUse, workstreamActive, workstreamAddProject, workstreamRemoveProject, workstreamInject, workstreamDetect, workstreamGet, getActiveWorkstream, countWorkstreamsForProject, workstreamInstallHook, workstreamInstallHookGemini, workstreamInstallHookCodex, workstreamDeactivate, workstreamCheckPath, getSettingsPath, loadSettings, saveSettings, workstreamAddTrigger, workstreamRemoveTrigger, workstreamSetAutoActivate, setGlobalAutoActivate, shouldAutoActivate, workstreamCheckFolder, workstreamInstallCdHook, workstreamUninstallCdHook, workstreamCdHookStatus, discoverSubProjects, generateRulesFromRepos, generateRulesWithClaude, generateRulesWithAI, getAvailableAITools, findAIBinary, AI_TOOLS, workstreamSetSandbox, WORKSTREAM_COLORS, workstreamSetColor } = require('./lib/workstreams');
 const { getActivityPath, getDefaultActivity, loadActivity, saveActivity, detectProjectRoot, activityLog, activitySummary, generateWorkstreamName, activitySuggestWorkstreams, activityClear } = require('./lib/activity');
 const { getLoopsPath, loadLoops, saveLoops, loadLoopState, saveLoopState, loadHistory, saveHistory, loopList, loopCreate, loopGet, loopUpdate, loopDelete, loopStart, loopPause, loopResume, loopCancel, loopApprove, loopComplete, loopFail, loopStatus, loopHistory, loopConfig, getActiveLoop, recordIteration, saveClarifications, savePlan, loadClarifications, loadPlan, loopInject, archiveLoop } = require('./lib/loops');
 const { heartbeat: runHeartbeat, formatReport, getExitCode, saveLastHeartbeat, shouldNotify, buildMacosNotification, loadHeartbeatConfig, getDefaultHeartbeatConfig } = require('./lib/heartbeat');
@@ -184,7 +184,9 @@ class ClaudeConfigManager {
   loadWorkstreams() { return loadWorkstreams(this.installDir); }
   saveWorkstreams(data) { return saveWorkstreams(this.installDir, data); }
   workstreamList() { return workstreamList(this.installDir); }
-  workstreamCreate(name, projects, rules) { return workstreamCreate(this.installDir, name, projects, rules); }
+  workstreamCreate(name, projects, rules, color) { return workstreamCreate(this.installDir, name, projects, rules, color); }
+  workstreamSetColor(idOrName, value) { return workstreamSetColor(this.installDir, idOrName, value); }
+  get WORKSTREAM_COLORS() { return WORKSTREAM_COLORS; }
   workstreamUpdate(idOrName, updates) { return workstreamUpdate(this.installDir, idOrName, updates); }
   workstreamDelete(idOrName) { return workstreamDelete(this.installDir, idOrName); }
   workstreamUse(idOrName, evalMode) { return workstreamUse(this.installDir, idOrName, evalMode); }

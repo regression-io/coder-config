@@ -62,7 +62,7 @@ echo "$OUT"
 `,
 
   full: `#!/bin/bash
-# Full: model, colored context bar, token counts, lines, branch, duration, cost
+# Full: model, colored context bar, token counts, lines, branch, duration, cost, workstream
 input=$(cat)
 MODEL=$(echo "$input" | jq -r '.model.display_name // "?"')
 PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
@@ -88,11 +88,30 @@ HOURS=$((DUR_MS / 3600000)); MINS=$(((DUR_MS % 3600000) / 60000))
 COST_FMT=$(printf '$%.3f' $COST)
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')
 
+# Workstream tag (if active). CODER_WORKSTREAM and CODER_WORKSTREAM_COLOR
+# are set by coder-config when a workstream is activated.
+WS_TAG=""
+if [ -n "$CODER_WORKSTREAM" ]; then
+  case "$CODER_WORKSTREAM_COLOR" in
+    red)    WS_COLOR='\\033[38;5;203m' ;;
+    orange) WS_COLOR='\\033[38;5;208m' ;;
+    yellow) WS_COLOR='\\033[38;5;221m' ;;
+    green)  WS_COLOR='\\033[38;5;120m' ;;
+    cyan)   WS_COLOR='\\033[38;5;87m'  ;;
+    blue)   WS_COLOR='\\033[38;5;111m' ;;
+    purple) WS_COLOR='\\033[38;5;177m' ;;
+    pink)   WS_COLOR='\\033[38;5;213m' ;;
+    gray)   WS_COLOR='\\033[38;5;245m' ;;
+    *)      WS_COLOR="$CYAN" ;;
+  esac
+  WS_TAG=" | \${WS_COLOR}◆ \${CODER_WORKSTREAM}\${RESET}"
+fi
+
 OUT="\${CYAN}*\${RESET} $MODEL | \${BAR_COLOR}\${BAR}\${RESET} \${DIM}\${CTX_K}/\${MAX_K}\${RESET} | \${REM}% left"
 [ "$LINES_ADD" != "0" ] || [ "$LINES_REM" != "0" ] && OUT="$OUT | \${GREEN}+\${LINES_ADD}\${RESET} \${RED}-\${LINES_REM}\${RESET}"
 [ -n "$BRANCH" ] && OUT="$OUT | \${CYAN}\${BRANCH}\${RESET}"
 [ "$HOURS" -gt 0 ] && OUT="$OUT | \${HOURS}h \${MINS}m" || OUT="$OUT | \${MINS}m"
-OUT="$OUT | \${YELLOW}\${COST_FMT}\${RESET}"
+OUT="$OUT | \${YELLOW}\${COST_FMT}\${RESET}\${WS_TAG}"
 echo -e "$OUT"
 `,
 
@@ -169,8 +188,8 @@ const PRESETS = [
   {
     id: 'full',
     name: 'Full',
-    description: 'Everything with colors: model, context bar, token counts, lines, branch, duration, cost',
-    preview: '* opus-4-6 | ●●●●○○○○○○ 74.4K/200.0K | 37% left | +146 -13 | main | 5h 2m | $0.142',
+    description: 'Everything with colors: model, context bar, token counts, lines, branch, duration, cost, workstream',
+    preview: '* opus-4-6 | ●●●●○○○○○○ 74.4K/200.0K | 37% left | +146 -13 | main | 5h 2m | $0.142 | ◆ coder-config',
     category: 'Git',
   },
   {

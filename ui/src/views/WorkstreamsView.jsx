@@ -32,6 +32,60 @@ import {
 import api from "@/lib/api";
 import { useProjectsStore, useWorkstreamsStore } from "@/stores";
 
+const WORKSTREAM_COLORS = [
+  { name: 'red',    hex: '#ef4444' },
+  { name: 'orange', hex: '#f97316' },
+  { name: 'yellow', hex: '#eab308' },
+  { name: 'green',  hex: '#22c55e' },
+  { name: 'cyan',   hex: '#06b6d4' },
+  { name: 'blue',   hex: '#3b82f6' },
+  { name: 'purple', hex: '#a855f7' },
+  { name: 'pink',   hex: '#ec4899' },
+  { name: 'gray',   hex: '#9ca3af' },
+];
+
+function ColorSwatch({ color, size = 'md' }) {
+  const palette = WORKSTREAM_COLORS.find(c => c.name === color);
+  if (!palette) return null;
+  const dim = size === 'sm' ? 'w-2.5 h-2.5' : 'w-3.5 h-3.5';
+  return (
+    <span
+      className={`inline-block rounded-full ${dim} flex-shrink-0 ring-1 ring-black/10 dark:ring-white/20`}
+      style={{ backgroundColor: palette.hex }}
+      title={`Color: ${color}`}
+    />
+  );
+}
+
+function ColorPicker({ value, onChange }) {
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      <button
+        type="button"
+        onClick={() => onChange(null)}
+        className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${
+          !value ? 'border-purple-600 dark:border-purple-400' : 'border-gray-300 dark:border-slate-600 hover:border-gray-400'
+        }`}
+        title="No color"
+      >
+        <X className="w-3 h-3 text-gray-400" />
+      </button>
+      {WORKSTREAM_COLORS.map(c => (
+        <button
+          key={c.name}
+          type="button"
+          onClick={() => onChange(c.name)}
+          className={`w-7 h-7 rounded-full border-2 transition-all ${
+            value === c.name ? 'border-gray-900 dark:border-white scale-110' : 'border-transparent hover:scale-105'
+          }`}
+          style={{ backgroundColor: c.hex }}
+          title={c.name}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function WorkstreamsView({ onWorkstreamChange }) {
   // Use stores for shared state
   const { projects, fetch: fetchProjects } = useProjectsStore();
@@ -415,6 +469,7 @@ export default function WorkstreamsView({ onWorkstreamChange }) {
       name: editingWorkstream.name,
       rules: editingWorkstream.rules,
       projects: editingWorkstream.projects || [],
+      color: editingWorkstream.color || null,
     });
     if (result.success) {
       toast.success('Workstream updated');
@@ -620,6 +675,7 @@ export default function WorkstreamsView({ onWorkstreamChange }) {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
+                      {ws.color && <ColorSwatch color={ws.color} />}
                       <h3 className="font-medium truncate text-gray-900 dark:text-white">
                         {ws.name}
                       </h3>
@@ -1492,6 +1548,19 @@ export default function WorkstreamsView({ onWorkstreamChange }) {
                   value={editingWorkstream.name}
                   onChange={e => setEditingWorkstream(prev => ({ ...prev, name: e.target.value }))}
                 />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5 block">
+                  Color
+                </label>
+                <ColorPicker
+                  value={editingWorkstream.color || null}
+                  onChange={(color) => setEditingWorkstream(prev => ({ ...prev, color }))}
+                />
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1.5">
+                  Shown in the list and the Full statusline (when active).
+                </p>
               </div>
 
               {/* Projects Section in Edit */}
