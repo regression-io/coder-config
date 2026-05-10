@@ -8,6 +8,7 @@ export const BLOCK_DEFS = [
   { id: 'git-branch',    label: 'Git Branch',           preview: 'main' },
   { id: 'duration',      label: 'Duration',             preview: '5h 32m' },
   { id: 'cost',          label: 'Cost (API equiv.)',     preview: '$0.142' },
+  { id: 'cache',         label: 'Cache Tier',            preview: 'cache 5m' },
 ];
 
 export const DEFAULT_VISUAL_CONFIG = {
@@ -23,6 +24,7 @@ export const DEFAULT_VISUAL_CONFIG = {
     { id: 'git-branch',    enabled: false },
     { id: 'duration',      enabled: false },
     { id: 'cost',          enabled: false },
+    { id: 'cache',         enabled: false },
   ],
 };
 
@@ -45,6 +47,7 @@ export function configToPreview(config) {
       case 'git-branch':    parts.push('main'); break;
       case 'duration':      parts.push('5h 32m'); break;
       case 'cost':          parts.push('$0.142'); break;
+      case 'cache':         parts.push('cache 5m'); break;
     }
   }
   return parts.length ? prefix + parts.join(separator) : '(empty)';
@@ -88,6 +91,16 @@ export function configToScript(config) {
   }
   if (has('git-branch'))
     lines.push(`BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')`);
+  if (has('cache')) {
+    // Walk recent assistant turns for the most recent cache_creation event.
+    // Report 1h if extended-tier tokens present, else 5m. Empty if no cache
+    // writes are visible in the recent window.
+    lines.push(`TRANSCRIPT=$(echo "$input" | jq -r '.transcript_path // ""')`);
+    lines.push(`CACHE_TIER=""`);
+    lines.push(`if [ -n "$TRANSCRIPT" ] && [ -f "$TRANSCRIPT" ]; then`);
+    lines.push(`  CACHE_TIER=$(tail -200 "$TRANSCRIPT" 2>/dev/null | jq -r 'select(.message.usage.cache_creation) | if (.message.usage.cache_creation.ephemeral_1h_input_tokens // 0) > 0 then "1h" elif (.message.usage.cache_creation.ephemeral_5m_input_tokens // 0) > 0 then "5m" else empty end' 2>/dev/null | tail -1)`);
+    lines.push(`fi`);
+  }
 
   const barBlock = enabled.find(b => b.id === 'context-bar');
   if (barBlock) {
@@ -129,6 +142,7 @@ export function configToScript(config) {
         }
         break;
       case 'cost': out('$COST_FMT'); break;
+      case 'cache': out('cache $CACHE_TIER', '[ -n "$CACHE_TIER" ]'); break;
     }
   }
 
