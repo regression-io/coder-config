@@ -15,7 +15,7 @@ Codex settings are stored in:
 
 ### Key Features
 
-- **GPT-5.2 Codex** - Latest OpenAI coding model
+- **GPT-5.6 Sol** - Latest OpenAI flagship coding model
 - **Reasoning effort** - Control how thoroughly the model thinks
 - **Sandbox modes** - Configurable filesystem access
 - **MCP support** - Connect external tools and services
@@ -31,7 +31,7 @@ npm install -g @openai/codex
 codex
 
 # Use a specific model
-codex --model gpt-5.2-codex
+codex --model gpt-5.6-sol
 
 # Full auto mode (minimal approvals)
 codex --full-auto
@@ -53,10 +53,10 @@ Choose the AI model that powers your Codex CLI sessions.
 
 | Model | Description |
 |-------|-------------|
-| **gpt-5.2-codex** | Latest and most capable (recommended) |
-| **gpt-5-codex** | Previous generation, still very capable |
-| **gpt-5** | General purpose model |
-| **o3-mini** | Fast reasoning model for quick tasks |
+| **gpt-5.6-sol** | Flagship — strongest for complex coding (recommended) |
+| **gpt-5.6-terra** | Balanced, everyday work |
+| **gpt-5.6-luna** | Fast and affordable |
+| **gpt-5.5** | Previous-generation frontier model |
 
 ### Reasoning Effort
 
@@ -75,7 +75,7 @@ Control how thoroughly the model reasons about problems:
 \`\`\`toml
 # ~/.codex/config.toml
 
-model = "gpt-5.2-codex"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "medium"
 \`\`\`
 
@@ -83,7 +83,7 @@ model_reasoning_effort = "medium"
 
 \`\`\`bash
 # Use a specific model for one session
-codex --model o3-mini
+codex --model gpt-5.6-terra
 \`\`\`
     `
   },

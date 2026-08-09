@@ -65,7 +65,7 @@ export default function CodexSettingsView() {
         <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">CLI Commands</h4>
         <div className="space-y-1 text-sm text-gray-600 dark:text-slate-400 font-mono">
           <p>codex                        # Start Codex CLI</p>
-          <p>codex --model gpt-5.2-codex  # Use specific model</p>
+          <p>codex --model gpt-5.6-sol  # Use specific model</p>
           <p>codex --full-auto            # Low-friction mode</p>
         </div>
       </div>

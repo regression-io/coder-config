@@ -48,9 +48,9 @@ Choose which Claude model to use.
 
 ### Available Models
 
-- **Claude Opus 4.6** - Most capable, best for complex tasks
-- **Claude Sonnet 4.6** - Fast output, great balance of speed and capability
-- **Claude Sonnet 4.5** - Previous generation, balanced
+- **Claude Opus 5** - Most capable, best for complex tasks
+- **Claude Opus 4.8** - Previous Opus, highly autonomous
+- **Claude Sonnet 5** - Fast output, great balance of speed and capability
 - **Claude Haiku 4.5** - Fastest, good for simple tasks
 
 ### Setting the Model
@@ -68,8 +68,8 @@ Control reasoning thoroughness:
 
 Some tasks may benefit from different models:
 - Use Haiku 4.5 for quick edits and simple tasks
-- Use Opus 4.6 for complex refactoring and architecture
-- Use Sonnet 4.6 as a balanced default
+- Use Opus 5 for complex refactoring and architecture
+- Use Sonnet 5 as a balanced default
     `
   },
   'behavior': {

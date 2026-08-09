@@ -28,22 +28,22 @@ import PermissionsEditor from "@/components/PermissionsEditor";
 
 const MODEL_OPTIONS = [
   {
-    id: 'claude-opus-4-7',
-    name: 'Claude Opus 4.7',
-    description: 'Most capable; 1M context, adaptive thinking, Jan 2026 knowledge',
+    id: 'claude-opus-5',
+    name: 'Claude Opus 5',
+    description: 'Most capable; 1M context, adaptive thinking, deep agentic + coding work',
     tier: 'opus',
     recommended: true
   },
   {
-    id: 'claude-opus-4-6',
-    name: 'Claude Opus 4.6',
-    description: 'Previous Opus; supports Fast mode',
+    id: 'claude-opus-4-8',
+    name: 'Claude Opus 4.8',
+    description: 'Previous Opus; highly autonomous, supports Fast mode',
     tier: 'opus'
   },
   {
-    id: 'claude-sonnet-4-6',
-    name: 'Claude Sonnet 4.6',
-    description: 'Fast output, great balance of speed and capability',
+    id: 'claude-sonnet-5',
+    name: 'Claude Sonnet 5',
+    description: 'Fast output, near-Opus quality on coding and agentic work',
     tier: 'sonnet'
   },
   {
@@ -57,16 +57,17 @@ const MODEL_OPTIONS = [
 // Deprecated model IDs — warn users to migrate
 const DEPRECATED_MODELS = {
   'claude-3-haiku-20240307': { replacement: 'claude-haiku-4-5-20251001', retires: '2026-04-19' },
-  'claude-sonnet-4-20250514': { replacement: 'claude-sonnet-4-6', retires: '2026-06-15' },
-  'claude-opus-4-20250514': { replacement: 'claude-opus-4-7', retires: '2026-06-15' },
-  'claude-sonnet-4-5-20250929': { replacement: 'claude-sonnet-4-6', retires: null },
+  'claude-sonnet-4-20250514': { replacement: 'claude-sonnet-5', retires: '2026-06-15' },
+  'claude-opus-4-20250514': { replacement: 'claude-opus-5', retires: '2026-06-15' },
+  'claude-opus-4-1-20250805': { replacement: 'claude-opus-5', retires: '2026-08-05' },
+  'claude-sonnet-4-5-20250929': { replacement: 'claude-sonnet-5', retires: null },
 };
 
 const EFFORT_LEVELS = [
   { value: 'low', label: 'Low', description: 'Faster, less thorough' },
   { value: 'medium', label: 'Medium', description: 'Balanced' },
   { value: 'high', label: 'High', description: 'Always thinks (adaptive default)' },
-  { value: 'xhigh', label: 'Extra High', description: 'Deep thinking — Opus 4.7 only' },
+  { value: 'xhigh', label: 'Extra High', description: 'Deep thinking (Opus 5, Opus 4.8, Sonnet 5)' },
 ];
 
 const PERMISSION_MODES = [
@@ -100,7 +101,7 @@ const ENV_VARIABLES = [
   {
     key: 'MAX_THINKING_TOKENS',
     label: 'Max Thinking Tokens',
-    description: 'Legacy extended-thinking budget (0 to disable). Ignored by Opus 4.7 — use Effort Level instead.',
+    description: 'Legacy extended-thinking budget (0 to disable). Ignored by Opus 5/4.8 — use Effort Level instead.',
     placeholder: '5000'
   },
   {
@@ -524,7 +525,7 @@ export default function ClaudeSettingsEditor({
               <div>
                 <Label className="text-base font-medium">Effort Level</Label>
                 <p className="text-sm text-gray-500 dark:text-slate-400 mb-3">
-                  Reasoning effort (adaptive thinking). Opus 4.7 supports <code>xhigh</code>; <code>budget_tokens</code>/manual thinking is deprecated.
+                  Reasoning effort (adaptive thinking). Opus 5, Opus 4.8, and Sonnet 5 support <code>xhigh</code>; <code>budget_tokens</code>/manual thinking is deprecated.
                 </p>
                 <div className="grid grid-cols-4 gap-3">
                   {EFFORT_LEVELS.map(level => (
@@ -576,7 +577,7 @@ export default function ClaudeSettingsEditor({
                 <Input
                   value={settings.model || ''}
                   onChange={(e) => updateSetting('model', e.target.value)}
-                  placeholder="claude-opus-4-7"
+                  placeholder="claude-opus-5"
                   className="font-mono"
                 />
               </div>

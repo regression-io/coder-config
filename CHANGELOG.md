@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Model catalogs refreshed to current models** across pickers, docs, and previews
+  - Claude Code model picker: Claude Opus 5 (recommended), Opus 4.8, Sonnet 5, Haiku 4.5; deprecation replacements retargeted to Opus 5 / Sonnet 5 (added retired `claude-opus-4-1`)
+  - Effort-level UI no longer labels `xhigh` as "Opus 4.7 only" (now Opus 5 / 4.8 / Sonnet 5)
+  - Codex CLI model picker: GPT-5.6 Sol (recommended), Terra, Luna, GPT-5.5 (replaced deprecated gpt-5.2-codex / gpt-5-codex / o3-mini)
+  - Updated docs content (Claude + Codex settings), README, and statusline preview strings
+
 ## [0.54.0] - 2026-04-12
 
 ### Added

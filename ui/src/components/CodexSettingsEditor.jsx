@@ -18,10 +18,10 @@ import {
 import { toast } from "sonner";
 
 const CODEX_MODELS = [
-  { id: 'gpt-5.2-codex', name: 'GPT-5.2 Codex', description: 'Latest and most capable' },
-  { id: 'gpt-5-codex', name: 'GPT-5 Codex', description: 'Previous generation' },
-  { id: 'gpt-5', name: 'GPT-5', description: 'General purpose' },
-  { id: 'o3-mini', name: 'o3-mini', description: 'Fast reasoning model' },
+  { id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', description: 'Flagship — strongest for complex coding' },
+  { id: 'gpt-5.6-terra', name: 'GPT-5.6 Terra', description: 'Balanced, everyday work' },
+  { id: 'gpt-5.6-luna', name: 'GPT-5.6 Luna', description: 'Fast and affordable' },
+  { id: 'gpt-5.5', name: 'GPT-5.5', description: 'Previous-generation frontier model' },
 ];
 
 const APPROVAL_POLICIES = [

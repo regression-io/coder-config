@@ -528,7 +528,7 @@ mcp__github__*           # All GitHub MCP tools
 ```
 
 ### Model Selection
-Choose your preferred Claude model (Opus 4.6, Sonnet 4.6, Haiku 4.5) and effort level (low/medium/high).
+Choose your preferred Claude model (Opus 5, Opus 4.8, Sonnet 5, Haiku 4.5) and effort level (low/medium/high/xhigh).
 
 ### Behavior
 - Show thinking summaries
@@ -560,7 +560,7 @@ Control command execution safety (enabled/disabled).
 The Web UI provides a visual editor for `~/.codex/config.toml`:
 
 ### Model Settings
-- **Model** - Select GPT-5.2 Codex, GPT-5, o3-mini, etc.
+- **Model** - Select GPT-5.6 Sol, Terra, Luna, etc.
 - **Reasoning Effort** - Control thoroughness (minimal to xhigh)
 
 ### Security

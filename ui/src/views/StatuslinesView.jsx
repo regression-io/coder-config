@@ -252,7 +252,7 @@ export default function StatuslinesView() {
         <p className="text-xs text-gray-500 dark:text-slate-500">
           Test a script:{' '}
           <code className="bg-gray-100 dark:bg-slate-800 px-1 rounded font-mono">
-            {'echo \'{"model":{"display_name":"opus-4-6"},"context_window":{"used_percentage":37,"remaining_percentage":63}}\' | ~/.claude/statuslines/full.sh'}
+            {'echo \'{"model":{"display_name":"opus-4-8"},"context_window":{"used_percentage":37,"remaining_percentage":63}}\' | ~/.claude/statuslines/full.sh'}
           </code>
         </p>
       </div>
