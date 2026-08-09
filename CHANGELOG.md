@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.54.7] - 2026-08-09
+
 ### Changed
 
 - **Model catalogs refreshed to current models** across pickers, docs, and previews
