@@ -314,5 +314,5 @@ Open Hooks view → switch scope to active project → select `PreToolUse` event
 ## Related Documents
 
 - [ROADMAP.md CC-11](../../../ROADMAP.md)
-- [CLAUDE.md](../../../CLAUDE.md) — project architecture overview
+- [CLAUDE.md](../../../AGENTS.md) — project architecture overview
 - (Pending) Implementation plan: `docs/superpowers/plans/2026-04-13-cc-11-hook-builder.md`
