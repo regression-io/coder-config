@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 See [docs/DEEP-CONTEXT.md](docs/DEEP-CONTEXT.md) for project architecture, commands, inventories, and reference material.
 
